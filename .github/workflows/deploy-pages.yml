@@ -1,0 +1,39 @@
+name: Deploy GitHub Pages
+
+# Publishes the repo root (index.html + docs) to GitHub Pages on every push
+# to the branches below. No build step: index.html is a static single-file
+# app per docs/ARCHITECTURE.md, so the artifact is just the repo contents.
+on:
+  push:
+    branches:
+      - main
+      - claude/japanese-cognitive-atlas-p3zszz
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
