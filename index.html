@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>日语认知图谱 Japanese Cognitive Atlas</title>
+<style>
+  :root {
+    --bg: #f3ead9;
+    --paper: #faf3e6;
+    --paper-dim: #efe4cc;
+    --ink: #2b2620;
+    --ink-soft: #6b6152;
+    --border: #d8c9a8;
+    --accent: #8a6d3b;
+    --success: #2E7D5B;
+    --success-bg: #e9f5ee;
+    --error: #BE3A2B;
+    --error-bg: #fbeae7;
+    --lock: #9b9384;
+    --particle-wa: #BE3A2B;
+    --particle-ga: #2563A8;
+    --particle-wo: #2E7D5B;
+    --particle-ni: #6D4FA3;
+    --particle-de: #A8641C;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+    line-height: 1.6;
+  }
+  .jp { font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif; }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--paper); border-bottom: 1px solid var(--border);
+    padding: 0.5rem 1rem;
+  }
+  header h1 { font-size: 1.05rem; margin: 0 0 0.5rem 0; color: var(--accent); }
+  nav { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+  nav button {
+    background: transparent; border: 1px solid transparent; border-radius: var(--radius);
+    padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.9rem; color: var(--ink-soft);
+  }
+  nav button.active { background: var(--paper-dim); border-color: var(--border); color: var(--ink); font-weight: 600; }
+  nav .devtoggle { margin-left: auto; font-size: 0.8rem; color: var(--ink-soft); display: flex; align-items: center; gap: 0.3rem; }
+  main { max-width: 860px; margin: 0 auto; padding: 1rem; }
+  .card {
+    background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1rem; margin-bottom: 1rem;
+  }
+  h2 { font-size: 1.1rem; margin: 0 0 0.5rem 0; }
+  h3 { font-size: 1rem; margin: 0.75rem 0 0.35rem 0; }
+  .muted { color: var(--ink-soft); font-size: 0.88rem; }
+  .badge {
+    display: inline-block; font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: 999px;
+    border: 1px solid var(--border); color: var(--ink-soft); margin-left: 0.3rem; white-space: nowrap;
+  }
+  .badge-locked { color: var(--lock); border-color: var(--lock); }
+  .badge-available { color: var(--accent); border-color: var(--accent); }
+  .badge-progress { color: #b8860b; border-color: #b8860b; }
+  .badge-internalized { color: var(--success); border-color: var(--success); }
+  .badge-template { color: var(--error); border-color: var(--error); }
+  .node-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.55rem 0.25rem; border-bottom: 1px solid var(--border); cursor: pointer;
+  }
+  .node-row:last-child { border-bottom: none; }
+  .node-row:hover { background: var(--paper-dim); }
+  .step { border-left: 3px solid var(--accent); padding: 0.25rem 0 0.25rem 0.75rem; margin: 0.75rem 0; }
+  .step h4 { margin: 0 0 0.25rem 0; font-size: 0.95rem; }
+  .example-set { margin: 0.35rem 0; font-size: 0.92rem; }
+  .example-set .jp { font-size: 1.02rem; }
+  .exercise { border: 1px dashed var(--border); padding: 0.75rem; border-radius: var(--radius); margin: 0.6rem 0; background: #fffdf8; }
+  .exercise .cert { font-size: 0.7rem; padding: 0.05rem 0.4rem; border-radius: 4px; border: 1px solid var(--border); color: var(--ink-soft); }
+  .cert-A { border-color: var(--success); color: var(--success); }
+  .cert-B { border-color: #b8860b; color: #b8860b; }
+  .cert-C { border-color: var(--ink-soft); color: var(--ink-soft); }
+  .option-btn {
+    display: block; width: 100%; text-align: left; padding: 0.5rem 0.75rem; margin: 0.25rem 0;
+    border: 1px solid var(--border); border-radius: var(--radius); background: #fff; cursor: pointer; font-size: 0.92rem;
+  }
+  .option-btn:hover { background: var(--paper-dim); }
+  .option-btn.correct { border-color: var(--success); background: var(--success-bg); }
+  .option-btn.incorrect { border-color: var(--error); background: var(--error-bg); }
+  .feedback { margin-top: 0.5rem; padding: 0.5rem 0.6rem; border-radius: var(--radius); font-size: 0.88rem; }
+  .feedback.correct { background: var(--success-bg); color: var(--success); }
+  .feedback.incorrect { background: var(--error-bg); color: var(--error); }
+  .feedback.multi { background: var(--paper-dim); color: var(--ink-soft); }
+  .progress-bar-track { background: #e6dcc4; border-radius: 4px; height: 8px; overflow: hidden; margin: 0.25rem 0; }
+  .progress-bar-fill { background: var(--accent); height: 100%; }
+  .progress-bar-fill.done { background: var(--success); }
+  .ref-list { font-size: 0.85rem; margin: 0.25rem 0; }
+  .ref-capsule {
+    display: inline-block; border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.4rem;
+    margin: 0.1rem; cursor: help; background: var(--paper-dim);
+  }
+  button.primary {
+    background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
+    padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem;
+  }
+  button.secondary {
+    background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius);
+    padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem;
+  }
+  textarea { width: 100%; min-height: 140px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem; }
+  .warn-list { color: var(--error); font-size: 0.85rem; }
+  table.compare { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  table.compare td, table.compare th { border: 1px solid var(--border); padding: 0.4rem; text-align: left; }
+  .back-link { cursor: pointer; color: var(--accent); font-size: 0.88rem; margin-bottom: 0.5rem; display: inline-block; }
+</style>
+</head>
+<body>
+<header>
+  <h1>日语认知图谱 Japanese Cognitive Atlas</h1>
+  <nav id="nav"></nav>
+</header>
+<main id="view"></main>
+
+<script>
+/* =========================================================================
+   1. DATA
+   Schema definitions: docs/NODE_SPEC.md
+   Graph edge semantics: docs/GRAPH_SPEC.md
+   This is the ONLY section content authors touch. Everything below is engine.
+   ========================================================================= */
+
+const MODULES = [
+  {
+    id: '_sample',
+    name: { zh: '示例模块（开发用，非正式内容）', ja: 'サンプルモジュール' },
+    order: 0,
+    status: 'template',
+    description: '仅用于验证学习引擎（渲染 / 判分 / 错题本 / 复习调度 / 进度 / 图谱）是否走通，不是真实语法内容。开启右上角"开发模式"后可见。'
+  }
+];
+
+const ERROR_ROOTS = [
+  { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
+];
+
+const CRITERIA = [
+  {
+    id: 'C_SAMPLE_1',
+    name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
+    description: '能够依据示例节点第一步给出的标准做出判断（仅用于引擎自测）。',
+    module: '_sample',
+    ownerNodeId: 'sample-node'
+  }
+];
+
+const NODES = [
+  {
+    id: 'sample-node',
+    module: '_sample',
+    order: 1,
+    status: 'draft',
+    qualifies: {
+      independentMechanism: '（示例）本节点仅用于证明节点渲染器/练习引擎可以端到端工作。',
+      citedByCount: 0,
+      errorRoot: 'R_SAMPLE',
+      mergeNote: null
+    },
+    title: { zh: '示例节点', ja: 'サンプルノード', en: 'Sample Node' },
+    refs: { requires: [], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: '这是 Layer 0 示例文案：一句话直觉，可直接使用，不解释机制。字数上限 150 字。',
+      example: { jp: 'これはサンプルです。', zh: '这是一个示例。' },
+      hook: '为什么会是这样？'
+    },
+    layer1: {
+      steps: [
+        {
+          id: 'step-1',
+          title: '完成本步后，你能判断：这是不是示例句',
+          body: 'Layer 1 Step 示例正文，说明本步教的机制，字数上限 400 字，仅用于验证渲染与迷你练习是否正常工作。',
+          minimalPair: [
+            { jp: 'これはサンプルです。', zh: '这是示例。' },
+            { jp: 'これはサンプルではありません。', zh: '这不是示例。' }
+          ],
+          miniExercise: { exerciseId: 'ex-sample-1' }
+        },
+        {
+          id: 'step-2',
+          title: '完成本步后，你能判断：该用哪个示例变体',
+          body: '第二个 Step 示例正文，用来验证一个节点可以承载 2-5 个 Step。',
+          minimalPair: [
+            { jp: 'サンプルAです。', zh: '是示例 A。' },
+            { jp: 'サンプルBです。', zh: '是示例 B。' }
+          ],
+          miniExercise: { exerciseId: 'ex-sample-2' }
+        }
+      ],
+      hook: '还有哪些边界情况？'
+    },
+    layer2: {
+      body: 'Layer 2 示例正文：统一理论层，无字数上限，最多 4 个边界案例。真实模块在此处禁止编造频率数据——没有可核实来源就不要写频率结论。',
+      boundaryCases: [
+        { jp: 'サンプルの境界例です。', zh: '这是一个边界示例。', note: '仅用于验证边界案例渲染。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [
+        { variable: '肯定/否定', sets: [ { jp: 'これはサンプルです。', zh: '这是示例。' }, { jp: 'これはサンプルではありません。', zh: '这不是示例。' } ] }
+      ],
+      tier2: [
+        { jp: 'これはサンプルです。', zh: '这是示例。', register: 'plain' },
+        { jp: 'これはサンプルでございます。', zh: '这是示例（郑重语）。', register: 'polite' }
+      ],
+      tier3: []
+    },
+    criteria: ['C_SAMPLE_1'],
+    errorRoots: ['R_SAMPLE']
+  }
+];
+
+const EXERCISES = [
+  {
+    id: 'ex-sample-1',
+    nodeId: 'sample-node',
+    stepId: 'step-1',
+    criterionId: 'C_SAMPLE_1',
+    errorRoot: 'R_SAMPLE',
+    certainty: 'A',
+    type: 'judgment',
+    prompt: '「これはサンプルです」是肯定还是否定形式？',
+    context: null,
+    options: ['肯定', '否定'],
+    answer: 0,
+    feedback: '依据判据 C_SAMPLE_1：句尾为「です」而非「ではありません」，为肯定形式。'
+  },
+  {
+    id: 'ex-sample-2',
+    nodeId: 'sample-node',
+    stepId: 'step-2',
+    criterionId: 'C_SAMPLE_1',
+    errorRoot: 'R_SAMPLE',
+    certainty: 'B',
+    type: 'why-not-x',
+    prompt: '在"两人正在比较 A、B 两个方案"的语境下，说话人说「サンプルAです」，这是在选择哪一个？',
+    context: '两人正在比较 A、B 两个方案。',
+    options: ['方案 A', '方案 B'],
+    answer: 0,
+    feedback: '在这个语境下：句子直接指名"サンプルA"，锁定为方案 A。'
+  },
+  {
+    id: 'ex-sample-3',
+    nodeId: 'sample-node',
+    stepId: null,
+    criterionId: 'C_SAMPLE_1',
+    errorRoot: 'R_SAMPLE',
+    certainty: 'C',
+    type: 'multi-reading',
+    prompt: '（示例）脱离语境时，「サンプルです」可以有哪些合理解读？',
+    context: null,
+    options: null,
+    answer: null,
+    feedback: '脱离语境本身允许多种合理解读，本题不判定唯一答案，仅用于验证 C 级题不进入错题本、不计入 SRS。'
+  }
+];
+
+/* =========================================================================
+   2. STORAGE  (docs/NODE_SPEC.md "Storage" section is the source of truth)
+   ========================================================================= */
+
+const SCHEMA_VERSION = 1;
+const STORAGE_KEY = 'jca_state_v1';
+const HISTORY_CAP = 500;
+
+function defaultState() {
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    progress: { criteria: {} },
+    errorBook: {},
+    history: [],
+    settings: { devMode: false }
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    const parsed = JSON.parse(raw);
+    if (parsed.schemaVersion !== SCHEMA_VERSION) {
+      console.warn('jca: schemaVersion mismatch, resetting to default state');
+      return defaultState();
+    }
+    return parsed;
+  } catch (e) {
+    console.warn('jca: failed to load state, resetting', e);
+    return defaultState();
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+}
+
+let STATE = loadState();
+
+function getCriterionProgress(criterionId) {
+  if (!STATE.progress.criteria[criterionId]) {
+    STATE.progress.criteria[criterionId] = {
+      streak: 0, attempts: 0, correct: 0, lastResult: null, lastSeen: null, internalized: false
+    };
+  }
+  return STATE.progress.criteria[criterionId];
+}
+
+function pushHistory(entry) {
+  STATE.history.push(Object.assign({ ts: Date.now() }, entry));
+  if (STATE.history.length > HISTORY_CAP) STATE.history.shift();
+}
+
+/* =========================================================================
+   3. ENGINE — indices, exercise grading, error book, SRS, graph
+   ========================================================================= */
+
+const NODES_BY_ID = {};
+NODES.forEach(n => { NODES_BY_ID[n.id] = n; });
+const MODULES_BY_ID = {};
+MODULES.forEach(m => { MODULES_BY_ID[m.id] = m; });
+const EXERCISES_BY_ID = {};
+EXERCISES.forEach(e => { EXERCISES_BY_ID[e.id] = e; });
+const CRITERIA_BY_ID = {};
+CRITERIA.forEach(c => { CRITERIA_BY_ID[c.id] = c; });
+const ERROR_ROOTS_BY_ID = {};
+ERROR_ROOTS.forEach(r => { ERROR_ROOTS_BY_ID[r.id] = r; });
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+function isDevOnlyModule(moduleId) {
+  const m = MODULES_BY_ID[moduleId];
+  return !!m && m.status === 'template';
+}
+
+function visibleModules() {
+  return MODULES.filter(m => STATE.settings.devMode || m.status !== 'template');
+}
+function visibleNodes() {
+  return NODES.filter(n => STATE.settings.devMode || !isDevOnlyModule(n.module));
+}
+function visibleCriteria() {
+  return CRITERIA.filter(c => STATE.settings.devMode || !isDevOnlyModule(c.module));
+}
+function visibleErrorRoots() {
+  return ERROR_ROOTS.filter(r => STATE.settings.devMode || !isDevOnlyModule(r.module));
+}
+function visibleExercises() {
+  return EXERCISES.filter(e => {
+    const n = NODES_BY_ID[e.nodeId];
+    return STATE.settings.devMode || !(n && isDevOnlyModule(n.module));
+  });
+}
+
+/* ---- exercise grading (A/B/C rules, docs/NODE_SPEC.md "Exercise") ---- */
+
+// transient, per-page-load only: last answer chosen per exercise, for UI highlight
+let uiAnswerState = {};
+
+function submitAnswer(exerciseId, choiceIndex) {
+  const ex = EXERCISES_BY_ID[exerciseId];
+  if (!ex) return;
+
+  if (ex.certainty === 'C') {
+    // Never graded, never scored, never enters the error book or SRS.
+    uiAnswerState[exerciseId] = { choice: choiceIndex, certainty: 'C' };
+    pushHistory({ exerciseId: ex.id, nodeId: ex.nodeId, criterionId: ex.criterionId, certainty: 'C', correct: null });
+    saveState();
+    render();
+    return;
+  }
+
+  const correct = choiceIndex === ex.answer;
+  uiAnswerState[exerciseId] = { choice: choiceIndex, certainty: ex.certainty, correct };
+
+  const cp = getCriterionProgress(ex.criterionId);
+  cp.attempts += 1;
+  if (correct) {
+    cp.correct += 1;
+    cp.streak += 1;
+  } else {
+    cp.streak = 0;
+  }
+  cp.internalized = cp.streak >= 3;
+  cp.lastResult = correct;
+  cp.lastSeen = Date.now();
+
+  pushHistory({ exerciseId: ex.id, nodeId: ex.nodeId, criterionId: ex.criterionId, certainty: ex.certainty, correct });
+
+  if (!correct) {
+    if (!STATE.errorBook[ex.errorRoot]) STATE.errorBook[ex.errorRoot] = [];
+    STATE.errorBook[ex.errorRoot].push({
+      ts: Date.now(), nodeId: ex.nodeId, exerciseId: ex.id, criterionId: ex.criterionId,
+      certainty: ex.certainty, userAnswer: choiceIndex, correctAnswer: ex.answer
+    });
+  }
+
+  saveState();
+  render();
+}
+
+/* ---- graph (docs/GRAPH_SPEC.md) ---- */
+
+function isCriterionInternalized(criterionId) {
+  const cp = STATE.progress.criteria[criterionId];
+  return !!cp && cp.internalized;
+}
+
+function isNodeInternalized(node) {
+  return node.criteria.length > 0 && node.criteria.every(isCriterionInternalized);
+}
+
+function isNodeStarted(node) {
+  return node.criteria.some(cid => {
+    const cp = STATE.progress.criteria[cid];
+    return cp && cp.attempts > 0;
+  });
+}
+
+function computeUnlockState(node) {
+  const requires = node.refs.requires || [];
+  const prereqsMet = requires.every(reqId => {
+    const reqNode = NODES_BY_ID[reqId];
+    return reqNode && isNodeInternalized(reqNode);
+  });
+  if (!prereqsMet) return 'locked';
+  if (isNodeInternalized(node)) return 'internalized';
+  if (isNodeStarted(node)) return 'in-progress';
+  return 'available';
+}
+
+const UNLOCK_LABEL = {
+  locked: '锁定', available: '可学习', 'in-progress': '学习中', internalized: '已内化'
+};
+const UNLOCK_BADGE_CLASS = {
+  locked: 'badge-locked', available: 'badge-available', 'in-progress': 'badge-progress', internalized: 'badge-internalized'
+};
+
+function validateGraph() {
+  const warnings = [];
+  const ids = new Set(NODES.map(n => n.id));
+  NODES.forEach(n => {
+    ['requires', 'invokes', 'contrasts', 'previews'].forEach(kind => {
+      (n.refs[kind] || []).forEach(targetId => {
+        if (!ids.has(targetId)) warnings.push(`节点 ${n.id} 的 ${kind} 引用了不存在的节点 ${targetId}`);
+      });
+    });
+  });
+  const visiting = new Set(), visited = new Set();
+  function dfs(id, stack) {
+    if (visited.has(id)) return;
+    if (visiting.has(id)) {
+      warnings.push(`requires 存在环：${stack.concat(id).join(' -> ')}`);
+      return;
+    }
+    visiting.add(id);
+    const node = NODES_BY_ID[id];
+    (node ? node.refs.requires || [] : []).forEach(t => dfs(t, stack.concat(id)));
+    visiting.delete(id);
+    visited.add(id);
+  }
+  NODES.forEach(n => dfs(n.id, []));
+  NODES.forEach(n => {
+    (n.refs.contrasts || []).forEach(t => {
+      const tn = NODES_BY_ID[t];
+      if (tn && !(tn.refs.contrasts || []).includes(n.id)) {
+        warnings.push(`对比关系不对称：${n.id} -> ${t}，但 ${t} 未回链`);
+      }
+    });
+  });
+  return warnings;
+}
+
+/* =========================================================================
+   4. UI — router + renderers
+   ========================================================================= */
+
+const TABS = [
+  { id: 'study', label: '学习' },
+  { id: 'practice', label: '练习' },
+  { id: 'errorbook', label: '错题本' },
+  { id: 'review', label: '复习' },
+  { id: 'progress', label: '进度' },
+  { id: 'roadmap', label: '图谱' },
+  { id: 'data', label: '数据' }
+];
+
+let currentTab = 'study';
+let currentNodeId = null;
+
+function navigate(tab) {
+  currentTab = tab;
+  currentNodeId = null;
+  render();
+}
+function openNode(nodeId) {
+  currentNodeId = nodeId;
+  render();
+}
+
+function renderNav() {
+  const nav = document.getElementById('nav');
+  const tabsHtml = TABS.map(t =>
+    `<button data-action="nav" data-tab="${t.id}" class="${currentTab === t.id ? 'active' : ''}">${t.label}</button>`
+  ).join('');
+  nav.innerHTML = tabsHtml + `
+    <span class="devtoggle">
+      <label><input type="checkbox" id="devModeToggle" ${STATE.settings.devMode ? 'checked' : ''}> 开发模式</label>
+    </span>
+  `;
+  document.getElementById('devModeToggle').addEventListener('change', (e) => {
+    STATE.settings.devMode = e.target.checked;
+    saveState();
+    render();
+  });
+}
+
+function renderRefCapsules(ids, kindLabel) {
+  if (!ids || ids.length === 0) return '';
+  const items = ids.map(id => {
+    const n = NODES_BY_ID[id];
+    const title = n ? `${n.title.zh}：${escapeHtml(n.layer0.body)}` : '（未找到节点）';
+    const label = n ? n.title.zh : id;
+    return `<span class="ref-capsule" title="${escapeHtml(title)}" data-action="open-node" data-node-id="${id}">${escapeHtml(label)}</span>`;
+  }).join('');
+  return `<div class="ref-list"><span class="muted">${kindLabel}：</span>${items}</div>`;
+}
+
+function renderExercise(ex) {
+  const ans = uiAnswerState[ex.id];
+  const certClass = 'cert-' + ex.certainty;
+  let optionsHtml = '';
+  if (ex.options) {
+    optionsHtml = ex.options.map((opt, i) => {
+      let cls = 'option-btn';
+      if (ans && ex.certainty !== 'C') {
+        if (i === ex.answer) cls += ' correct';
+        else if (i === ans.choice) cls += ' incorrect';
+      }
+      return `<button class="${cls}" data-action="answer" data-exercise-id="${ex.id}" data-choice="${i}">${escapeHtml(opt)}</button>`;
+    }).join('');
+  }
+  let feedbackHtml = '';
+  if (ans) {
+    if (ex.certainty === 'C') {
+      feedbackHtml = `<div class="feedback multi">多种合理解读，不判定唯一答案：${escapeHtml(ex.feedback)}</div>`;
+    } else {
+      feedbackHtml = `<div class="feedback ${ans.correct ? 'correct' : 'incorrect'}">${ans.correct ? '✓ 正确。' : '✗ 再想想。'} ${escapeHtml(ex.feedback)}</div>`;
+    }
+  }
+  return `
+    <div class="exercise">
+      <div><span class="cert ${certClass}">确定性 ${ex.certainty}</span></div>
+      ${ex.context ? `<div class="muted">语境：${escapeHtml(ex.context)}</div>` : ''}
+      <div style="margin:0.4rem 0;">${escapeHtml(ex.prompt)}</div>
+      ${optionsHtml}
+      ${feedbackHtml}
+    </div>
+  `;
+}
+
+function renderNodeDetail(nodeId) {
+  const node = NODES_BY_ID[nodeId];
+  if (!node) return `<div class="card">未找到节点。</div>`;
+  const mod = MODULES_BY_ID[node.module];
+  const state = computeUnlockState(node);
+
+  const stepsHtml = node.layer1.steps.map(step => {
+    const ex = EXERCISES_BY_ID[step.miniExercise.exerciseId];
+    const pairsHtml = step.minimalPair.map(p => `<div class="example-set"><span class="jp">${escapeHtml(p.jp)}</span> — ${escapeHtml(p.zh)}</div>`).join('');
+    return `
+      <div class="step">
+        <h4>${escapeHtml(step.title)}</h4>
+        <p>${escapeHtml(step.body)}</p>
+        ${pairsHtml}
+        ${ex ? renderExercise(ex) : ''}
+      </div>
+    `;
+  }).join('');
+
+  const boundaryHtml = node.layer2.boundaryCases.map(b => `
+    <div class="example-set">
+      <span class="jp">${escapeHtml(b.jp)}</span> — ${escapeHtml(b.zh)}
+      <div class="muted">${escapeHtml(b.note)}${b.source ? '（来源：' + escapeHtml(b.source) + '）' : '（无可核实来源，未标注频率结论）'}</div>
+    </div>
+  `).join('');
+
+  const tier1 = node.examples.tier1.map(t => `
+    <div class="muted">变量：${escapeHtml(t.variable)}</div>
+    ${t.sets.map(s => `<div class="example-set"><span class="jp">${escapeHtml(s.jp)}</span> — ${escapeHtml(s.zh)}</div>`).join('')}
+  `).join('');
+  const tier2 = node.examples.tier2.map(s => `<div class="example-set"><span class="jp">${escapeHtml(s.jp)}</span> — ${escapeHtml(s.zh)} <span class="badge">${escapeHtml(s.register)}</span></div>`).join('');
+  const tier3 = node.examples.tier3.map(s => `<div class="example-set"><span class="jp">${escapeHtml(s.jp)}</span> — ${escapeHtml(s.zh)} <span class="badge">${escapeHtml(s.register)}</span>${s.source ? ' <span class="muted">来源：' + escapeHtml(s.source) + '</span>' : ''}</div>`).join('');
+
+  const nodeLevelExercises = EXERCISES.filter(e => e.nodeId === node.id && !e.stepId).map(renderExercise).join('');
+
+  return `
+    <span class="back-link" data-action="nav" data-tab="study">← 返回节点列表</span>
+    <div class="card">
+      <h2>${escapeHtml(node.title.zh)} <span class="jp muted">${escapeHtml(node.title.ja)}</span>
+        <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
+        ${mod.status === 'template' ? '<span class="badge badge-template">模板/开发用</span>' : ''}
+      </h2>
+      <div class="muted">模块：${escapeHtml(mod.name.zh)} · 状态：${escapeHtml(node.status)}</div>
+      ${renderRefCapsules(node.refs.requires, '前提 requires')}
+      ${renderRefCapsules(node.refs.previews, '预告 previews')}
+    </div>
+
+    <div class="card">
+      <h3>Layer 0 · 直觉</h3>
+      <p>${escapeHtml(node.layer0.body)}</p>
+      <div class="example-set"><span class="jp">${escapeHtml(node.layer0.example.jp)}</span> — ${escapeHtml(node.layer0.example.zh)}</div>
+      <p class="muted">🪝 ${escapeHtml(node.layer0.hook)}</p>
+    </div>
+
+    <div class="card">
+      <h3>Layer 1 · 机制</h3>
+      ${stepsHtml}
+      <p class="muted">🪝 ${escapeHtml(node.layer1.hook)}</p>
+    </div>
+
+    <div class="card">
+      <h3>Layer 2 · 统一理论</h3>
+      <p>${escapeHtml(node.layer2.body)}</p>
+      <h4>边界案例</h4>
+      ${boundaryHtml || '<p class="muted">暂无</p>'}
+      ${renderRefCapsules(node.refs.contrasts, '辨析 contrasts')}
+      ${renderRefCapsules(node.refs.invokes, '引用 invokes')}
+    </div>
+
+    <div class="card">
+      <h3>例句</h3>
+      <h4>Tier 1 · 最小对立对</h4>
+      ${tier1 || '<p class="muted">暂无</p>'}
+      <h4>Tier 2 · 自然语境</h4>
+      ${tier2 || '<p class="muted">暂无</p>'}
+      <h4>Tier 3 · 边界 / 语料</h4>
+      ${tier3 || '<p class="muted">暂无</p>'}
+    </div>
+
+    ${nodeLevelExercises ? `<div class="card"><h3>综合练习</h3>${nodeLevelExercises}</div>` : ''}
+  `;
+}
+
+function renderNodeList() {
+  const mods = visibleModules().slice().sort((a, b) => a.order - b.order);
+  return mods.map(mod => {
+    const nodes = visibleNodes().filter(n => n.module === mod.id).sort((a, b) => a.order - b.order);
+    const rows = nodes.map(n => {
+      const state = computeUnlockState(n);
+      return `
+        <div class="node-row" data-action="open-node" data-node-id="${n.id}">
+          <span>${escapeHtml(n.title.zh)} <span class="jp muted">${escapeHtml(n.title.ja)}</span></span>
+          <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="card">
+        <h2>${escapeHtml(mod.name.zh)} ${mod.status === 'template' ? '<span class="badge badge-template">开发用</span>' : `<span class="badge">${escapeHtml(mod.status)}</span>`}</h2>
+        <p class="muted">${escapeHtml(mod.description)}</p>
+        ${rows || '<p class="muted">本模块暂无节点。</p>'}
+      </div>
+    `;
+  }).join('') || `<div class="card"><p class="muted">尚无内容模块。基础工程已就绪，等待第一个语法模块接入（见 docs/DEV_GUIDE.md）。开启右上角"开发模式"可查看引擎自测用的示例节点。</p></div>`;
+}
+
+function viewStudy() {
+  return currentNodeId ? renderNodeDetail(currentNodeId) : renderNodeList();
+}
+
+function viewPractice() {
+  const exs = visibleExercises();
+  if (exs.length === 0) return `<div class="card"><p class="muted">暂无练习题。</p></div>`;
+  const byNode = {};
+  exs.forEach(e => { (byNode[e.nodeId] = byNode[e.nodeId] || []).push(e); });
+  return Object.keys(byNode).map(nodeId => {
+    const node = NODES_BY_ID[nodeId];
+    return `<div class="card"><h2>${escapeHtml(node.title.zh)}</h2>${byNode[nodeId].map(renderExercise).join('')}</div>`;
+  }).join('');
+}
+
+function viewErrorBook() {
+  const roots = visibleErrorRoots();
+  if (roots.length === 0) return `<div class="card"><p class="muted">暂无已注册的错误根。</p></div>`;
+  return roots.map(root => {
+    const entries = (STATE.errorBook[root.id] || []).slice().reverse();
+    const rows = entries.map(e => {
+      const node = NODES_BY_ID[e.nodeId];
+      const crit = CRITERIA_BY_ID[e.criterionId];
+      return `
+        <div class="node-row" style="cursor:default;">
+          <span>${escapeHtml(node ? node.title.zh : e.nodeId)} · ${escapeHtml(crit ? crit.name.zh : e.criterionId)}
+            <span class="badge cert-${e.certainty}">${e.certainty}</span>
+          </span>
+          <span class="muted">${new Date(e.ts).toLocaleString('zh-CN')}</span>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="card">
+        <h2>${escapeHtml(root.name)} <span class="badge">${entries.length} 条</span></h2>
+        <p class="muted">${escapeHtml(root.description)}</p>
+        ${rows || '<p class="muted">暂无错误记录。</p>'}
+      </div>
+    `;
+  }).join('');
+}
+
+function viewReview() {
+  const criteria = visibleCriteria();
+  const due = criteria.filter(c => {
+    const cp = STATE.progress.criteria[c.id];
+    return cp && cp.attempts > 0 && !cp.internalized;
+  });
+  if (due.length === 0) {
+    return `<div class="card"><p class="muted">当前没有需要复习的判据。已内化的判据会在出现新错误时自动重新排入复习队列。</p></div>`;
+  }
+  return due.map(c => {
+    const cp = STATE.progress.criteria[c.id];
+    const candidateExercises = visibleExercises().filter(e => e.criterionId === c.id && e.certainty !== 'C');
+    const node = NODES_BY_ID[c.ownerNodeId];
+    return `
+      <div class="card">
+        <h2>${escapeHtml(c.name.zh)} <span class="jp muted">${escapeHtml(c.name.ja)}</span></h2>
+        <p class="muted">归属节点：${node ? escapeHtml(node.title.zh) : c.ownerNodeId} · 当前连续正确 ${cp.streak}/3</p>
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${Math.min(cp.streak, 3) / 3 * 100}%"></div></div>
+        ${candidateExercises.map(renderExercise).join('') || '<p class="muted">暂无可用复习题。</p>'}
+      </div>
+    `;
+  }).join('');
+}
+
+function viewProgress() {
+  const criteria = visibleCriteria();
+  const rows = criteria.map(c => {
+    const cp = STATE.progress.criteria[c.id] || { streak: 0, attempts: 0, correct: 0, internalized: false };
+    const pct = Math.min(cp.streak, 3) / 3 * 100;
+    return `
+      <div style="margin-bottom:0.75rem;">
+        <div>${escapeHtml(c.name.zh)} <span class="jp muted">${escapeHtml(c.name.ja)}</span>
+          ${cp.internalized ? '<span class="badge badge-internalized">已内化</span>' : ''}
+        </div>
+        <div class="progress-bar-track"><div class="progress-bar-fill ${cp.internalized ? 'done' : ''}" style="width:${pct}%"></div></div>
+        <div class="muted">连续正确 ${cp.streak}/3 · 累计作答 ${cp.attempts} 次 · 正确 ${cp.correct} 次</div>
+      </div>
+    `;
+  }).join('');
+
+  const mods = visibleModules();
+  const moduleRollup = mods.map(mod => {
+    const modCriteria = criteria.filter(c => c.module === mod.id);
+    const doneCount = modCriteria.filter(c => STATE.progress.criteria[c.id] && STATE.progress.criteria[c.id].internalized).length;
+    const pct = modCriteria.length ? (doneCount / modCriteria.length * 100) : 0;
+    return `
+      <div style="margin-bottom:0.5rem;">
+        <div>${escapeHtml(mod.name.zh)} — ${doneCount}/${modCriteria.length}</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill done" style="width:${pct}%"></div></div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="card"><h2>模块总览</h2>${moduleRollup || '<p class="muted">暂无模块。</p>'}</div>
+    <div class="card"><h2>判据明细</h2>${rows || '<p class="muted">暂无判据记录。</p>'}</div>
+  `;
+}
+
+function viewRoadmap() {
+  const mods = visibleModules().slice().sort((a, b) => a.order - b.order);
+  const sections = mods.map(mod => {
+    const nodes = visibleNodes().filter(n => n.module === mod.id).sort((a, b) => a.order - b.order);
+    const rows = nodes.map(n => {
+      const state = computeUnlockState(n);
+      const reqTitles = (n.refs.requires || []).map(id => NODES_BY_ID[id] ? NODES_BY_ID[id].title.zh : id).join('、');
+      return `
+        <div class="node-row" data-action="open-node" data-node-id="${n.id}">
+          <span>${escapeHtml(n.title.zh)} ${reqTitles ? `<span class="muted">（前提：${escapeHtml(reqTitles)}）</span>` : ''}</span>
+          <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
+        </div>
+      `;
+    }).join('');
+    return `<div class="card"><h2>${escapeHtml(mod.name.zh)}</h2>${rows || '<p class="muted">暂无节点。</p>'}</div>`;
+  }).join('');
+
+  const warnings = validateGraph();
+  const warnHtml = warnings.length
+    ? `<div class="card"><h2>图结构校验</h2><ul class="warn-list">${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul></div>`
+    : `<div class="card"><h2>图结构校验</h2><p class="muted">未发现悬空引用 / requires 环 / 不对称 contrasts。</p></div>`;
+
+  return sections + warnHtml;
+}
+
+function viewData() {
+  return `
+    <div class="card">
+      <h2>导出</h2>
+      <p class="muted">将本机学习进度（判据进度 / 错题本 / 历史记录）导出为 JSON，用于跨设备迁移。</p>
+      <button class="primary" data-action="export">导出 JSON</button>
+    </div>
+    <div class="card">
+      <h2>导入</h2>
+      <p class="muted">粘贴之前导出的 JSON，将覆盖当前本机进度。</p>
+      <textarea id="importText" placeholder="在此粘贴 JSON"></textarea>
+      <div style="margin-top:0.5rem;">
+        <button class="primary" data-action="import">导入并覆盖</button>
+      </div>
+      <div id="importResult" class="muted" style="margin-top:0.5rem;"></div>
+    </div>
+    <div class="card">
+      <h2>重置</h2>
+      <p class="muted">清空本机所有学习进度、错题本与历史记录，不可撤销。</p>
+      <button class="secondary" data-action="reset">重置本机数据</button>
+    </div>
+  `;
+}
+
+const VIEW_BUILDERS = {
+  study: viewStudy,
+  practice: viewPractice,
+  errorbook: viewErrorBook,
+  review: viewReview,
+  progress: viewProgress,
+  roadmap: viewRoadmap,
+  data: viewData
+};
+
+function render() {
+  renderNav();
+  const view = document.getElementById('view');
+  view.innerHTML = VIEW_BUILDERS[currentTab]();
+}
+
+/* =========================================================================
+   5. Data import/export/reset handlers
+   ========================================================================= */
+
+function exportStateAsFile() {
+  const blob = new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'jca-progress-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importStateFromText(text) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (e) {
+    return { ok: false, error: '不是合法的 JSON：' + e.message };
+  }
+  if (parsed.schemaVersion !== SCHEMA_VERSION) {
+    return { ok: false, error: 'schemaVersion 不匹配（需要 ' + SCHEMA_VERSION + '，实际 ' + parsed.schemaVersion + '），已拒绝导入。' };
+  }
+  STATE = parsed;
+  saveState();
+  return { ok: true };
+}
+
+function resetAllState() {
+  STATE = defaultState();
+  saveState();
+}
+
+/* =========================================================================
+   6. Event delegation
+   ========================================================================= */
+
+document.body.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-action]');
+  if (!target) return;
+  const action = target.dataset.action;
+
+  if (action === 'nav') {
+    navigate(target.dataset.tab);
+  } else if (action === 'open-node') {
+    openNode(target.dataset.nodeId);
+  } else if (action === 'answer') {
+    submitAnswer(target.dataset.exerciseId, Number(target.dataset.choice));
+  } else if (action === 'export') {
+    exportStateAsFile();
+  } else if (action === 'import') {
+    const text = document.getElementById('importText').value;
+    const result = importStateFromText(text);
+    if (result.ok) {
+      render();
+      document.getElementById('importResult').textContent = '导入成功。';
+    } else {
+      document.getElementById('importResult').textContent = '导入失败：' + result.error;
+    }
+  } else if (action === 'reset') {
+    if (confirm('确定要清空本机所有学习进度吗？此操作不可撤销。')) {
+      resetAllState();
+      render();
+    }
+  }
+});
+
+/* =========================================================================
+   7. Init
+   ========================================================================= */
+
+const graphWarnings = validateGraph();
+if (graphWarnings.length) console.warn('jca graph validation warnings:', graphWarnings);
+
+render();
+</script>
+</body>
+</html>
