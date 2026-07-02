@@ -128,6 +128,13 @@
 
 const MODULES = [
   {
+    id: 'lang-cognition',
+    name: { zh: 'PART 1 · 语言认知：日语如何把思维变成句子', ja: '言語認知モジュール' },
+    order: 1,
+    status: 'draft',
+    description: 'Atlas 的入口模块：不讲孤立语法规则，讲日语组织句子的认知机制——语序、谓语、助词、话题/焦点、活用、连接形，一环扣一环。'
+  },
+  {
     id: '_sample',
     name: { zh: '示例模块（开发用，非正式内容）', ja: 'サンプルモジュール' },
     order: 0,
@@ -137,10 +144,24 @@ const MODULES = [
 ];
 
 const ERROR_ROOTS = [
+  { id: 'R_ORDER', name: '语序依赖误判', description: '把中文"位置决定角色"的直觉套用到日语，误以为词序本身能标出主语/宾语，而忽视角色由格助词决定。', module: 'lang-cognition' },
+  { id: 'R_PRED', name: '谓语省略处理不当', description: '在语境已明确时仍强行补出主语等论元（受中文明确主语倾向影响），或误判谓语是唯一不可省略的成分。', module: 'lang-cognition' },
+  { id: 'R_CASE', name: '格助词遗漏或误用', description: '受中文不使用格助词的影响，漏加格助词，或凭中文对应词直觉选错格助词，未先确认名词在事件中的语义角色。', module: 'lang-cognition' },
+  { id: 'R_B', name: '话题义务化低估（中文迁移）', description: '把は等同于中文零标记话题或"是"字句，低估は在句法位置上的自由度与语用上的强制性，或将は/が混用。', module: 'lang-cognition' },
+  { id: 'R_D', name: '総记/中立叙述误判', description: '把疑问词句、排他性列举等必须用が的场合误用は，通常源于中文"是"字句不区分単纯陈述与排他指认。', module: 'lang-cognition' },
+  { id: 'R_CONJ', name: '活用形态误判为可选装饰', description: '把日语谓语的词尾变化（时体、否定、礼貌等）误当成类似中文"了/不/吗"那样可自由添加/省略的独立虚词，而非强制性形态。', module: 'lang-cognition' },
+  { id: 'R_TE', name: 'て形功能范围误判', description: '把て形直接等同于某个固定中文虚词（如"然后"），忽视て形本身不携带具体逻辑关系、需由后续成分或语境决定。', module: 'lang-cognition' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
 const CRITERIA = [
+  { id: 'C_ORDER_ROLE', name: { zh: '位置-角色分离律', ja: '位置と格の分離則' }, description: '名词在句中的位置不能决定它的语法角色，角色由紧跟其后的格助词决定，词序只影响焦点/强调。', module: 'lang-cognition', ownerNodeId: 'lc-word-order' },
+  { id: 'C_PRED_OBLIGATORY', name: { zh: '谓语必现律', ja: '述語必須則' }, description: '日语句子中谓语（动词/形容词/コピュラ）是唯一不可省略的成分；主语、宾语等论元在语境明确时可以整体省略。', module: 'lang-cognition', ownerNodeId: 'lc-predicate-core' },
+  { id: 'C_PARTICLE_ENTRY', name: { zh: '助词入场律', ja: '助詞参入則' }, description: '裸名词（无助词）不具备任何语法角色；只有紧跟一个格助词，该名词才能进入谓语描述的事件并获得对应角色。', module: 'lang-cognition', ownerNodeId: 'lc-particle-entry' },
+  { id: 'C_WA_TOPIC', name: { zh: 'は话题标记律', ja: 'は主題標識則' }, description: 'は标记话语双方已知或已确立的话题，不是执行谓语动作的语法主语；判断依据是"是否已被谈论"，而非"是否是动作发出者"。', module: 'lang-cognition', ownerNodeId: 'lc-wa-topic' },
+  { id: 'C_GA_NEWINFO', name: { zh: 'が新信息入场律', ja: 'が新情報導入則' }, description: 'が标记第一次被提及的新信息、疑问词的直接应答，或排他性列举（総记）；疑问词句必须用が应答，は不合法。', module: 'lang-cognition', ownerNodeId: 'lc-ga-newinfo' },
+  { id: 'C_CONJ_SINGLE_SLOT', name: { zh: '活用单槽律', ja: '活用単一スロット則' }, description: '日语谓语通过词尾变化（活用）在同一词内部叠加时体、否定、礼貌等语法信息，而非像中文那样依靠另加独立虚词。', module: 'lang-cognition', ownerNodeId: 'lc-verb-engine' },
+  { id: 'C_TE_INTERFACE', name: { zh: 'て形接口律', ja: 'て形インターフェース則' }, description: 'て形本身不表示时体或句子终结，只负责把谓语变成可以承接后续语法成分的开放接口，具体逻辑关系由后接成分/语境决定。', module: 'lang-cognition', ownerNodeId: 'lc-te-interface' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -151,6 +172,265 @@ const CRITERIA = [
 ];
 
 const NODES = [
+  {
+    id: 'lc-word-order', module: 'lang-cognition', order: 1, status: 'draft',
+    qualifies: { independentMechanism: '日语通过格助词标记语法角色，词序本身不承担定位功能；这是判断"能不能逐词对译"的独立机制。', citedByCount: 0, errorRoot: 'R_ORDER', mergeNote: null },
+    title: { zh: '日语不是按中文语序翻译', ja: '語順は訳せない', en: 'Word Order Is Not Translation' },
+    refs: { requires: [], invokes: [], contrasts: [], previews: ['lc-wa-topic'] },
+    layer0: {
+      body: '中文靠词序（谁在前谁是主语）确定语法关系；日语靠格助词（名词后的小词）确定语法关系，词序打乱意思也不变。逐词对照中文语序读日语，会读错角色。',
+      example: { jp: '魚を猫が食べた。', zh: '直译语序是"鱼、猫、吃了"，但角色由を/が决定，意思仍是"猫吃了鱼"，不是"鱼吃了猫"。' },
+      hook: '如果打乱词序意思都不变，日语靠什么分清"谁对谁做了什么"？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：语法角色能不能通过位置看出来',
+          body: '中文是"位置语言"：主语几乎总在谓语前，宾语总在谓语后，位置本身就是语法信号。日语是"标记语言"：每个名词的角色由紧跟其后的格助词（が/を/に/で等）决定，位置只影响强调焦点，不影响角色判断。"魚を猫が食べた"和"猫が魚を食べた"角色完全相同，都是"猫吃鱼"，唯一变化的是哪部分被强调。',
+          minimalPair: [ { jp: '猫が魚を食べた。', zh: '猫吃了鱼。（自然语序）' }, { jp: '魚を猫が食べた。', zh: '猫吃了鱼。（宾语提前，角色不变，强调"鱼"）' } ],
+          miniExercise: { exerciseId: 'ex-lc1-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：为什么不能"看着中文语序拼日语"',
+          body: '用中文语序思维造句，容易把"谁先出现"当成"谁是主语"，结果该加的格助词漏掉，或把强调焦点错当句子主干。正确做法是先确定谓语，再问"谁对谁做了什么"，给每个名词配上正确的格助词——词序留到最后，按强调需要自由调整。',
+          minimalPair: [ { jp: '田中さんは、明日、会議に出ます。', zh: '田中先生明天出席会议。（话题→时间→对象）' }, { jp: '明日、田中さんは会議に出ます。', zh: '同样的意思，词序调整后依然成立，角色由助词决定。' } ],
+          miniExercise: { exerciseId: 'ex-lc1-2' } }
+      ],
+      hook: '角色既然不靠位置，那名词到底靠什么"接"进谓语描述的事件里？'
+    },
+    layer2: {
+      body: '类型学上，日语属于"格标记型"语言，中文更接近"词序依赖型"语言。这不代表日语词序完全自由——日语也有默认语序（谓语必须在句尾），只是名词的语法角色不由这套默认语序决定，而由格助词决定。中文母语者最容易出现的错误，是把"谁先说"直接等同于"谁是主语"，这套直觉在日语里并不成立，必须替换成"看格助词"的判断方式。',
+      boundaryCases: [ { jp: '象は鼻が長い。', zh: '"大象，鼻子长"——两个名词前后排列，但は和が已分别标出话题和描述主体，不能按"大象的鼻子"简单对译语序。', note: '双主语句是词序与助词分离最典型的边界情况，将在は/が节点专门处理。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '话题成分的位置（句首 vs 句中）', sets: [ { jp: '田中さんは今日忙しいです。', zh: '田中先生今天很忙。' }, { jp: '今日、田中さんは忙しいです。', zh: '今天，田中先生很忙。（は标记的话题挪到时间状语后，意思不变）' } ] } ],
+      tier2: [ { jp: '猫が魚を食べた。', zh: '猫吃了鱼。', register: 'plain' }, { jp: '魚を猫が食べました。', zh: '鱼被猫吃掉了（敬体+强调"鱼"，角色不变）。', register: 'polite' }, { jp: '弟が私にプレゼントをくれた。', zh: '弟弟送了我一个礼物。', register: 'spoken' } ],
+      tier3: [ { jp: '結婚式には、私は出席できません。', zh: '婚礼那天，我没法出席。（话题"私"被挪到句中，前面插入了に场所状语）', register: 'written', source: null } ]
+    },
+    criteria: ['C_ORDER_ROLE'], errorRoots: ['R_ORDER']
+  },
+
+  {
+    id: 'lc-predicate-core', module: 'lang-cognition', order: 2, status: 'draft',
+    qualifies: { independentMechanism: '日语句子唯一强制性成分是谓语，主语宾语等论元在语境明确时可省略；这是判断"一句话能不能成立"的独立机制。', citedByCount: 1, errorRoot: 'R_PRED', mergeNote: null },
+    title: { zh: '日语句子的核心是谓语', ja: '文の中心は述語', en: 'The Predicate Is the Core' },
+    refs: { requires: ['lc-word-order'], invokes: [], contrasts: [], previews: ['lc-verb-engine'] },
+    layer0: {
+      body: '日语句子真正不能省的只有一样：谓语（动词/形容词/だ・です）。主语、宾语、时间地点，语境清楚时都可以整段不说。反过来，谓语哪怕独自一个词，也能单独成句。',
+      example: { jp: '（レストランで）「食べる？」「食べる。」', zh: '"吃吗？""吃。"——没有主语没有宾语，光靠谓语就是完整的句子。' },
+      hook: '主语宾语都能省，那日语靠什么让听者知道"谁在吃、吃什么"？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个日语句子里哪个成分绝对不能删',
+          body: '三上章提出的"主語廃止論"（主语废除论）指出，把"主谓宾"这套框架套在日语上会产生误导：日语句子的语法核心不是"主语+谓语"，而是谓语单独一个成分。名词论元本质上是谓语的"选配件"，语境清楚时可以整体不出现；但谓语的时体、礼貌等信息必须靠词形变化表达，无法省略。',
+          minimalPair: [ { jp: '田中さんが本を読んだ。', zh: '田中读了书。（论元齐全）' }, { jp: '読んだ。', zh: '读了。（论元全部省略，靠语境补全，句子依然合法）' } ],
+          miniExercise: { exerciseId: 'ex-lc2-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：为什么中文母语者容易在日语里"硬加主语"',
+          body: '中文虽然也允许承前省略主语，但书面语和正式语境下明确主语的倾向比日语强，教材例句尤其如此。中文母语者学日语容易把每句话都补上"私は"，结果显得生硬啰嗦，甚至改变了信息结构——不必要地把某个名词升格为话题。判断要不要说出主语，标准是"语境是否已经清楚"，不是"语法要不要"。',
+          minimalPair: [ { jp: 'A:「もう食べた？」B:「うん、食べた。」', zh: '甲："吃了吗？"乙："嗯，吃了。"（自然，无需补主语）' }, { jp: 'A:「もう食べた？」B:「うん、私は食べた。」', zh: '刻意补"私は"，听起来像在强调"（别人不知道，但）我吃了"，语气改变。' } ],
+          miniExercise: { exerciseId: 'ex-lc2-2' } }
+      ],
+      hook: '谓语既然是核心，那名词要怎样才能"挂"到谓语上、进入它描述的事件？'
+    },
+    layer2: {
+      body: '三上章（Mikami Akira）的主张是日语类型学讨论中的经典命题：他认为"主语"这一范畴对日语并非必要，谓语才是句子唯一的强制核心，名词论元由格助词标记后依附于谓语，其显现与否取决于语用而非语法。这与印欧语"主谓一致"（谓语形态须与主语人称/数一致）形成对比——日语动词活用不受主语人称、数支配，从形态上印证了主语的非必要性。需要注意：省略的是论元的语音实现，论元所代表的语义角色仍然存在，只是没有说出来。',
+      boundaryCases: [ { jp: '雨が降ってきた。', zh: '"下雨了"——这类自然现象句，日语里根本不存在一个可补的"主语"，进一步说明"主语"不是日语句子的必要范畴。', note: '自然现象句是主语废除论最有力的边界证据之一。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '论元是否说出（同一语境下）', sets: [ { jp: '（母が子に）ご飯、食べなさい。', zh: '（妈妈对孩子）饭，吃了。（没有主语"你"，谓语单独成句仍合法）' }, { jp: '（母が子に）あなたはご飯を食べなさい。', zh: '刻意补"你"，语气变得生硬，像特意点名。' } ] } ],
+      tier2: [ { jp: '食べる？', zh: '吃吗？', register: 'spoken' }, { jp: 'お召し上がりになりますか。', zh: '您要用餐吗？（敬语，同样没有明说主语"您"）', register: 'polite' }, { jp: '雨だ。', zh: '下雨了。（コピュラ「だ」独自成句）', register: 'plain' } ],
+      tier3: [ { jp: '「行く？」「行かない。」', zh: '"去吗？""不去。"——日常对话论元几乎全部省略，只保留谓语的肯定/否定形态。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_PRED_OBLIGATORY'], errorRoots: ['R_PRED']
+  },
+
+  {
+    id: 'lc-particle-entry', module: 'lang-cognition', order: 3, status: 'draft',
+    qualifies: { independentMechanism: '裸名词不具备语法角色，只有格助词能把名词"接入"谓语描述的事件并赋予角色；这是关于论元如何与谓语建立关系的独立机制。', citedByCount: 1, errorRoot: 'R_CASE', mergeNote: null },
+    title: { zh: '名词靠助词进入事件', ja: '名詞は助詞で事態に参加する', en: 'Particles Grant Nouns a Role' },
+    refs: { requires: ['lc-predicate-core'], invokes: [], contrasts: [], previews: ['lc-ga-newinfo'] },
+    layer0: {
+      body: '一个光秃秃的名词（比如"猫"）本身不携带任何语法角色。只有在后面加上一个格助词（が/を/に/で……），这个名词才"接入"谓语描述的事件，获得一个具体角色。',
+      example: { jp: '猫。→ 猫が。／猫を。／猫に。', zh: '同一个"猫"，配上不同格助词，在事件里分别扮演"谁做"、"对谁做"、"给谁"等完全不同的角色。' },
+      hook: '格助词到底把名词接到事件结构的哪个位置上？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个名词没有助词时是否具备语法角色',
+          body: '格助词的作用类似给名词接上一根"插头"，插头的形状（が/を/に/で……）决定这个名词插进事件结构的哪个"插槽"：が常标施事/主体，を常标受事，に常标对象/到达点，で常标场所/工具。没有插头的裸名词在完整句子里是不合法的，谓语无法识别出它的角色。',
+          minimalPair: [ { jp: '子供が笑った。', zh: '孩子笑了。（子供+が=施事）' }, { jp: '子供を笑った。', zh: '（笑话/嘲笑了）孩子。（子供+を=受事，角色完全不同）' } ],
+          miniExercise: { exerciseId: 'ex-lc3-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：为什么"助词遗漏"是常见的中文迁移错误',
+          body: '中文不用格助词，名词的角色主要靠词序和常识推断，中文母语者说日语时容易漏掉格助词，或凭感觉乱配。判断该用哪个格助词，不能凭中文对应词的"感觉"，而要问：这个名词在谓语描述的事件里，到底扮演施事、受事、场所还是别的角色？角色确定了，格助词基本就唯一确定。',
+          minimalPair: [ { jp: '駅で友達を待つ。', zh: '在车站等朋友。（で=场所，を=受事）' }, { jp: '駅を友達を待つ。', zh: '✗ 不合法：を只能标一个核心受事，"駅"角色是场所，须用で。' } ],
+          miniExercise: { exerciseId: 'ex-lc3-2' } }
+      ],
+      hook: '几乎所有格助词都稳定标记角色，但は看起来也很像格助词——它标的到底是不是角色？'
+    },
+    layer2: {
+      body: '格语法（Case Grammar, Fillmore 1968）等传统强调：论元要合法出现在句子里，须先被赋予一个"格"（句法格或语义角色）。日语用显性的格助词把这套机制"摆在台面上"，比多数印欧语更透明。但日语助词系统里有一部分——最典型的是は——并不标记论元的语义角色，而是标记信息结构（话题/焦点），会"覆盖"格助词的位置（如"猫が"变成"猫は"），是格助词系统里的特例，将在下一节点专门处理。',
+      boundaryCases: [ { jp: '公園で子供が遊んでいる。', zh: '孩子在公园里玩。（で=场所，が=施事，两个格助词各司其职）', note: '一句话可同时容纳多个格助词，只要标记的角色不冲突。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '格助词（角色随之改变）', sets: [ { jp: '先生が学生に本をあげた。', zh: '老师给了学生一本书。（に=接受者）' }, { jp: '先生が学生と本を読んだ。', zh: '老师和学生一起读了书。（と=共同动作者，角色完全不同）' } ] } ],
+      tier2: [ { jp: '妹が公園で遊んでいる。', zh: '妹妹在公园里玩。', register: 'plain' }, { jp: '弟にケーキをあげました。', zh: '给弟弟蛋糕了。', register: 'polite' }, { jp: 'ナイフでパンを切る。', zh: '用刀切面包。', register: 'written' } ],
+      tier3: [ { jp: '彼は病気で会社を休んだ。', zh: '他因为生病向公司请了假。（で在此标"原因"而非场所，同一助词随语境切换语义角色）', register: 'written', source: null } ]
+    },
+    criteria: ['C_PARTICLE_ENTRY'], errorRoots: ['R_CASE']
+  },
+
+  {
+    id: 'lc-wa-topic', module: 'lang-cognition', order: 4, status: 'draft',
+    qualifies: { independentMechanism: 'は标记话语双方共知/已确立的话题（信息结构范畴），不是格助词标记的语义角色（论元结构范畴）；属于篇章/语用层，而非句法论元层。', citedByCount: 0, errorRoot: 'R_B', mergeNote: 'は在本节点只处理"话题 vs 角色"这一认知区别；は/が的对比留给下一节点，用contrasts关联，避免混淆两套判断标准。' },
+    title: { zh: 'は不是主语，而是话题', ja: 'はは主語でなく主題', en: 'Wa Marks Topic, Not Subject' },
+    refs: { requires: ['lc-particle-entry'], invokes: ['lc-particle-entry'], contrasts: ['lc-ga-newinfo'], previews: [] },
+    layer0: {
+      body: 'は不回答"这个名词在事件里扮演什么角色"（那是格助词的工作），は标记的是"接下来要谈的，就是这个"——双方都已知道、或刚被提到的对象。把は当"主语标记"，会在双主语句等场景里彻底失灵。',
+      example: { jp: '象は鼻が長い。', zh: '"要谈的是大象：（它）鼻子长"——は挑出话题"大象"，が标出真正在性质上打头的"鼻子"，角色不同。' },
+      hook: '如果は不表示"谁做了动作"，它和真正标施事的が之间，到底谁负责什么？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：は标出的名词是不是句子的语法主语',
+          body: '久野暲（Kuno Susumu）提出，は标记的是"旧信息"——说话人假定听话人已经知道、或语境中已确立的对象；が（非疑问句里）常标"新信息"。は的功能不是"标出谁执行动作"（那是格助词的分工），而是"宣布接下来要谈论的对象"。因此は可以脱离原本的格助词位置，标在宾语、状语，甚至从句外的成分上。',
+          minimalPair: [ { jp: '田中さんが来た。', zh: '田中来了。（が：单纯陈述"谁来了"，常回答"谁来了？"）' }, { jp: '田中さんは来た。', zh: '田中，他来了。（は：田中是已谈论的对象，可能是"别人没来，田中来了"）' } ],
+          miniExercise: { exerciseId: 'ex-lc4-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：一句话里为什么会同时出现は和が',
+          body: 'は负责"划定话题"，が负责"在话题范围内标出角色"，两者管不同层面，可同时出现不冲突：「象は鼻が長い」里，は先框定"接下来说大象"，が再在"大象"这个话题内部，标出真正具有"长"这一性质的主体"鼻子"。如果因此把は也当成格助词、当成语法主语标记，会在双主语句、多重は句上判断失败。',
+          minimalPair: [ { jp: '象は鼻が長い。', zh: '大象，鼻子长。（象=话题，鼻=真正的性质主体）' }, { jp: '鼻は象が長い。', zh: '？鼻子的话，大象的长。（换话题为"鼻子"，合语法但语用很怪，"鼻子"通常不是常设话题）' } ],
+          miniExercise: { exerciseId: 'ex-lc4-2' } },
+        { id: 'step-3', title: '完成本步后，你能判断：中文"是"字句/零主语习惯会不会误导你使用は',
+          body: '中文母语者容易低估は的"义务性"：中文允许大段省略话题而不必重复标记，日语话题确立后同样可以省略は的部分（靠上下文），但初学者常见的反向错误，是把中文"是"字句直接类比成は，或把每个"关于……"的对象都标成は，结果该用が的场合（新信息、疑问词答句、总记）也错标成は。',
+          minimalPair: [ { jp: '誰が学生ですか。田中さんが学生です。', zh: '谁是学生？田中是学生。（疑问词问"谁"，答案必须用が）' }, { jp: '田中さんは学生です。', zh: '田中，是学生。（陈述"关于田中"的身份，是话题句）' } ],
+          miniExercise: { exerciseId: 'ex-lc4-3' } }
+      ],
+      hook: '既然が能标"新信息"，が具体在哪些场景里必须登场、は绝对不能顶替？'
+    },
+    layer2: {
+      body: '久野暲对は/が的经典分析把は归入"主题化"（thematization）范畴，把は与が的对立细化为"旧情报の主題"对"新情报／中立叙述／総記の主格"，这一框架后来被广泛应用于日语语用学；黒田成幸（Kuroda）则从"判断"类型角度提出categorical judgment（范畴判断，对应は）与thetic judgment（事态判断，对应が）的对立，与久野的分析相互印证。中文母语者的典型迁移错误，是把は等同于中文话题标记（中文话题多为零标记）或判断句"是"，从而低估は在句法位置上的自由度（可脱离格助词原位）和语用上的强制性（一旦确立话题，を/が标记会被は替换而非并存于同一名词上）。',
+      boundaryCases: [
+        { jp: 'その本は、私はまだ読んでいません。', zh: '"那本书的话，我还没读。"——话题"その本"在句首，主语"私"上也出现は，一句话里两个は分管不同层级。', note: '连续は句是判断"は到底管什么范围"的边界情况，需结合语调停顿。', source: null },
+        { jp: 'これはこれとして、あれはどうする？', zh: '"这个先放一边，那个怎么办？"——は在对比语境下明确带对比焦点色彩，不再是单纯旧信息标记。', note: '对比のは是は用法的重要延伸，超出"旧信息"单一解释。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: 'は vs が（同一名词，信息结构不同）', sets: [ { jp: '雨が降っている。', zh: '（看，）下雨了。（单纯陈述新出现的状况）' }, { jp: '雨は降っている。', zh: '雨的话，还在下。（暗含对比，如"雨还在下，但风已经停了"）' } ] } ],
+      tier2: [ { jp: '私は毎朝コーヒーを飲みます。', zh: '我每天早上喝咖啡。', register: 'polite' }, { jp: 'その件は、また今度話そう。', zh: '那件事，下次再说吧。', register: 'spoken' }, { jp: '本作品は、二〇一〇年に発表された。', zh: '本作品发表于2010年。', register: 'written' } ],
+      tier3: [ { jp: 'A社の株価は上がったが、B社は下がった。', zh: 'A公司的股价涨了，B公司则跌了。（两个は并列对比，是は"对比用法"的典型场景）', register: 'written', source: null } ]
+    },
+    criteria: ['C_WA_TOPIC'], errorRoots: ['R_B']
+  },
+
+  {
+    id: 'lc-ga-newinfo', module: 'lang-cognition', order: 5, status: 'draft',
+    qualifies: { independentMechanism: 'が在语用层承担"引入新信息/回答疑问词/总记（排他性列举）"的功能，这与它作为格助词标施事的句法功能是不同机制层面；本节点专门处理与は对立的语用层が。', citedByCount: 0, errorRoot: 'R_D', mergeNote: 'が的格助词用法（标施事）已在"名词靠助词进入事件"节点处理；本节点只处理が在信息结构层面的用法，两者是同一形式的不同机制层，故分设节点并用requires/contrasts关联，而非合并。' },
+    title: { zh: 'が让新信息进入场景', ja: 'がは新情報を導入する', en: 'Ga Introduces New Information' },
+    refs: { requires: ['lc-wa-topic'], invokes: [], contrasts: ['lc-wa-topic'], previews: [] },
+    layer0: {
+      body: 'が除了标施事角色，还有一个专门工作：把第一次被提到、说话人认为听者尚不知道的信息"摆上台面"。疑问词提问（谁？哪个？）几乎必须用が回答，因为疑问词本身就是"未知项"。',
+      example: { jp: 'だれが来ましたか。田中さんが来ました。', zh: '"谁来了？""田中来了。"——疑问词だれ和它的答案都必须用が，は在这里不合法。' },
+      hook: '为什么が还常被叫做"総记"（排他性列举），这和"新信息"是一回事吗？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一句话该用が还是は来回答疑问句',
+          body: '久野暲把这类が称为"中立叙述"（neutral description）或对疑问词的直接应答：说话人不做任何预设，单纯陈述"发生了什么/是谁"。疑问词本身（誰、どれ、どこ）代表说话人完全未知的空位，回答时必须用が把具体名词"填入"这个空位，绝不能用は——は要求话题已经被双方确立，而疑问词恰恰意味着"还没有确立的对象"。',
+          minimalPair: [ { jp: 'どれが好きですか。これが好きです。', zh: '喜欢哪个？喜欢这个。（疑问词どれ与答案都必须用が）' }, { jp: '✗ どれは好きですか。', zh: '不合法：は要求已确立话题，疑问词どれ本身是未确立的未知项。' } ],
+          miniExercise: { exerciseId: 'ex-lc5-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：什么时候が表示"排他性列举"（総记）而不是单纯新信息',
+          body: '総记のが指：在一组可能人选/选项中，が排他性地"点出唯一符合条件的那一个"，隐含"（其他都不是，）就是这个"的意味。对"誰が学生ですか"回答"田中さんが学生です"，が排除了在场其他所有人，把"学生"这个身份精确分配给田中一人。这种排他性正是が（而非は）在信息结构上的核心特征，也是が能自然回答疑问词的深层原因。',
+          minimalPair: [ { jp: '田中さんが学生です。', zh: '田中是学生。（総记：候选人里唯独田中是学生，排除其他人）' }, { jp: '田中さんは学生です。', zh: '田中，是学生。（单纯话题陈述：介绍田中身份，不隐含排除其他人）' } ],
+          miniExercise: { exerciseId: 'ex-lc5-2' } },
+        { id: 'step-3', title: '完成本步后，你能判断：中文"是"字句的直觉会不会让你把总记のが错标成は',
+          body: '中文"是"字句（"田中是学生"）本身不区分"单纯陈述身份"和"排他性指认"，两种意思共用同一个"是"，母语直觉里没有对应的形式分工。中文母语者容易把所有"X是Y"结构一律套用は，忽略了：一旦语境要求"从若干候选里精确指认出哪一个"（尤其疑问词句），日语必须切换成が，绝非は可以互换的文体选择。',
+          minimalPair: [ { jp: 'クラスで一番背が高いのは誰ですか。田中さんです。', zh: '班里最高的是谁？是田中。（は句问身份归属）' }, { jp: '誰が一番背が高いですか。田中さんが一番背が高いです。', zh: '谁最高？田中最高。（が问、が答，标准総记结构）' } ],
+          miniExercise: { exerciseId: 'ex-lc5-3' } }
+      ],
+      hook: 'は划话题、が引新信息/総记，这两套系统合起来，如何解释几乎所有"该用は还是が"的纠结？'
+    },
+    layer2: {
+      body: '久野暲的框架把が的用法概括为三类：①中立叙述（单纯描写眼前发生的事态或感知，如"あ、雨が降っている"）；②総记（排他性列举，回答"到底是哪一个"）；③从属小句内的主语标记（如"象は鼻が長い"里从句内部的が）。这三类が都不是"旧信息の主題"，而是"新信息／未预设"的が，与は形成系统性对立。中文母语者的典型迁移错误是把总记のが直接映射到中文"是"字句上：中文"是"字句本身兼容"单纯陈述"与"排他指认"两种读法，日语却须用は与が分别对应，这也是本模块把は/が拆成两个独立节点、并用contrasts双向关联的原因——两者的判断标准可能同时出现在一句话里，但各自服务于不同的认知任务。',
+      boundaryCases: [
+        { jp: '窓が開いています。', zh: '窗户开着。（单纯描写眼前状况，中立叙述のが，不隐含"排除其他窗户"）', note: '中立叙述与総记是が的两种不同子用法，容易被学习者混为一谈。', source: null },
+        { jp: '象は鼻が長い。', zh: '大象，鼻子长。（从句内部のが：在"象は"这个话题范围内，が标出从句主语"鼻"）', note: '与"名词靠助词进入事件"节点中が的格助词用法相呼应：从句内部的が仍是角色标记，但外层是は/が的信息结构对立。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '疑问词句的应答（は vs が）', sets: [ { jp: '誰が窓を開けましたか。', zh: '谁开了窗户？（疑问词句，只能用が）' }, { jp: '✗ 誰は窓を開けましたか。', zh: '不合法：は不能与だれ这类未确立的疑问词共现。' } ] } ],
+      tier2: [ { jp: 'あ、財布が落ちましたよ。', zh: '啊，钱包掉了。', register: 'spoken' }, { jp: '本日の議長は鈴木が務めます。', zh: '今天的主持由铃木担任。（は划定"今日的议长"这一话题，が指认具体人选）', register: 'polite' }, { jp: 'この地域では、米が多く生産される。', zh: '这个地区盛产大米。', register: 'written' } ],
+      tier3: [ { jp: '事故の原因は、運転手の居眠りが直接の要因だとされている。', zh: '事故原因方面，据称司机瞌睡是直接因素。（は划定"事故原因"话题，が在其内部指认具体因素——総记与话题结构叠加的复杂例）', register: 'written', source: null } ]
+    },
+    criteria: ['C_GA_NEWINFO'], errorRoots: ['R_D']
+  },
+
+  {
+    id: 'lc-verb-engine', module: 'lang-cognition', order: 6, status: 'draft',
+    qualifies: { independentMechanism: '日语谓语通过词尾变化（活用）在同一个词内部叠加时体、否定、礼貌等多重语法信息，这是关于谓语内部形态运作方式的独立机制。', citedByCount: 1, errorRoot: 'R_CONJ', mergeNote: null },
+    title: { zh: '动词活用是谓语发动机', ja: '活用は述語のエンジン', en: "Conjugation Is the Predicate's Engine" },
+    refs: { requires: ['lc-particle-entry'], invokes: ['lc-predicate-core'], contrasts: [], previews: [] },
+    layer0: {
+      body: '谓语不是固定不变的词，而是一台"发动机"：靠词尾变化（活用），同一个词根能表达"现在/过去""肯定/否定""普通体/敬体"等信息，不需要像中文那样另加"了""过""不""吗"等独立的词。',
+      example: { jp: '食べる → 食べた → 食べない → 食べません', zh: '同一个词根"食べ"，靠词尾变化切出"现在""过去""否定""敬体否定"四种不同信息。' },
+      hook: '词尾变化明明是"加个尾巴"这么简单的操作，为什么会被叫成"发动机"？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个语法信息该靠谓语变形表达，还是该靠另加一个词表达',
+          body: '日语属于典型的膠着语（agglutinative language）：语法信息（时体、否定、使役、被动、礼貌……）像积木一样一层层"粘"在谓语词干后面，构成较长的词尾链，而不是像中文那样用位置固定的独立虚词（了、过、不、吗、被、让）分别承担每一项功能。日语时体、否定、礼貌等信息，第一直觉应该是"谓语会不会变形"，而不是"该往哪儿加个词"。',
+          minimalPair: [ { jp: '食べる。', zh: '吃。（现在/将来，肯定，普通体——四项信息压缩在一个词形里）' }, { jp: '食べさせられなかった。', zh: '（被迫）没能吃。（使役+被动+过去+否定，四层词尾叠加在同一词根上）' } ],
+          miniExercise: { exerciseId: 'ex-lc6-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：为什么把时体/礼貌处理成"加词"而非"变形"会出错',
+          body: '中文母语者的直觉是给谓语"贴标签"：想表达过去就加"了"，想表达否定就加"不"，这些标签位置相对自由、彼此独立。搬到日语会出错，因为对应信息须通过谓语本体的形态变化实现，且变化顺序有严格规则（词根→态→时→礼貌……层层叠加），不能像中文虚词那样随意插入或省略。判断标准是：先确定谓语词干，再按固定顺序逐层确认活用形，而不是另找一个词"贴标签"。',
+          minimalPair: [ { jp: '書いた。', zh: '写了。（活用本体表达过去，没有独立的"了"字对应）' }, { jp: '書きます。／書きました。', zh: '写。／写了。（敬体现在与过去，靠词尾ます/ました区分，同样是变形而非加词）' } ],
+          miniExercise: { exerciseId: 'ex-lc6-2' } }
+      ],
+      hook: '活用会把一个动词变出几十种形态，其中有一种最特殊——它不表示句子结束，而是留一个"接口"给后面的语法。这是什么形态？'
+    },
+    layer2: {
+      body: '类型学上，胶着语（如日语、土耳其语、韩语）与孤立语（如中文）在表达语法范畴上走了两条不同路线：胶着语靠形态学（词内部规则叠加），孤立语靠句法学（独立词+固定语序）。这不代表日语完全没有独立语法词（也有だろう、かもしれない等助动词性质的成分），但谓语核心的时体、否定、礼貌确实主要靠活用完成。中文母语者最典型的迁移错误，是把活用误判为"可选的文体装饰"（类似中文加不加"了"有时可自由取舍），而实际上活用的每一层在日语里都是强制性的语法信息，遗漏或选错都会改变句意甚至导致不合法。',
+      boundaryCases: [ { jp: '食べさせられている。', zh: '（正在被迫）吃着。（使役+被动+て+いる，五层结构叠加在一个词根上，展示活用链可以多长）', note: '多层活用叠加是判断"活用是发动机"最直观的边界示例。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '活用形（同一词根，不同语法信息）', sets: [ { jp: '行く。', zh: '去。（现在/将来，肯定）' }, { jp: '行かなかった。', zh: '没去。（过去，否定——同一词根，两层信息全靠词尾切换）' } ] } ],
+      tier2: [ { jp: '飲む。', zh: '喝。', register: 'plain' }, { jp: '飲みません。', zh: '不喝。（敬体否定）', register: 'polite' }, { jp: '飲めない。', zh: '喝不了/不能喝。（可能形否定）', register: 'spoken' } ],
+      tier3: [ { jp: '本制度は、来年度より適用されないこととなった。', zh: '本制度决定自下年度起不再适用。（被动+否定+形式名词こと，多层活用叠加的书面语例）', register: 'written', source: null } ]
+    },
+    criteria: ['C_CONJ_SINGLE_SLOT'], errorRoots: ['R_CONJ']
+  },
+
+  {
+    id: 'lc-te-interface', module: 'lang-cognition', order: 7, status: 'draft',
+    qualifies: { independentMechanism: 'て形本身不表示句子终结，而是把谓语转换为可以持续承接后续语法成分（体、请求、原因、并列等）的连接形态；是活用体系里专门服务于连接功能的形态，故单独立节点。', citedByCount: 0, errorRoot: 'R_TE', mergeNote: null },
+    title: { zh: 'て形是后续语法的接口', ja: 'て形は後続文法のインターフェース', en: 'Te-Form as a Grammar Interface' },
+    refs: { requires: ['lc-verb-engine'], invokes: ['lc-verb-engine'], contrasts: [], previews: [] },
+    layer0: {
+      body: 'て形是活用家族里唯一"不表示句子结束"的形态：它把谓语变成开放接口，后面可以接续体（ている）、请求（てください）、许可（てもいい）、原因、并列等后续语法——一个て形，能接很多种"插件"。',
+      example: { jp: '食べて + いる／ください／もいい／から…', zh: '同一个て形"食べて"，接不同后续成分，分别变成"正在吃""请吃""可以吃""因为吃了……"。' },
+      hook: '既然て形只是个"接口"，它自己算不算完整地表达了时体、礼貌这些信息？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个て形单独出现时是否已经表达完整的时体/礼貌信息',
+          body: 'て形（近似功能语言学里的converb，非定式连接形）本身不携带时体或礼貌信息——食べて既不是"过去"也不是"现在"，既不是"敬体"也不是"普通体"，这些信息要靠它后面接的成分补足（ている现在进行、てください请求、ました过去敬体等）。可以把て形想成一个USB接口：接口本身不做任何事，功能由插上去的"外设"决定。',
+          minimalPair: [ { jp: '食べている。', zh: '正在吃。（て+いる=进行体，时体信息由いる补足）' }, { jp: '食べてください。', zh: '请吃。（て+ください=请求，礼貌与语气由ください补足）' } ],
+          miniExercise: { exerciseId: 'ex-lc7-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：中文"了/然后/因为"等虚词直觉会不会让你误判て形的功能范围',
+          body: '中文表达"接着做""因为""并列"等关系时，用的是彼此独立、功能单一的虚词（然后、因为、和），每个虚词只对应一种逻辑关系。日语的て形不对应某一个固定的中文虚词，它的具体逻辑关系（先后、原因、并列、方式）往往要靠上下文推断。母语迁移的典型错误，是把て形直接等同于某个中文虚词（比如只理解成"然后"），从而漏判它在てください、ている等结构里根本不表示"先后关系"的用法。',
+          minimalPair: [ { jp: '朝起きて、顔を洗う。', zh: '早上起床，然后洗脸。（て=先后关系）' }, { jp: '疲れて、動けない。', zh: '累得动不了。（て=原因关系，这里不能翻译成"然后"）' } ],
+          miniExercise: { exerciseId: 'ex-lc7-2' } }
+      ],
+      hook: 'て形能接的"插件"里，最重要的一类是体（アスペクト）标记ている——它如何进一步展开一整套"进行/结果状态"系统？留给下一模块揭晓。'
+    },
+    layer2: {
+      body: '功能类型学把て形这类"不独立成句、专门用来连接小句"的形态称为converb（非定式连接形）；日语除て形外，连用中止形（動詞ます形去掉ます，如"食べ、飲み"，多见于书面语）也承担类似的连接功能，但て形是口语与书面语中最通用、承接后续语法种类最多的一种。中文母语者容易低估て形"意义未决"（underspecified）这一特性：由于中文虚词通常一词一义，学习者倾向于给て形也找一个固定翻译，反而忽略了て形的真正功能——不是表达某个具体逻辑关系，而是"保持谓语开放，等待后续成分决定关系"。',
+      boundaryCases: [ { jp: '手紙を書いて、出した。', zh: '写了信，然后寄了出去。（并列/先后动作链，可连续叠加多个て形）', note: '连续て形动作链在长句中可叠加两次以上，是て形"接口"功能最直观的展示。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: 'て形后接的成分（决定具体功能）', sets: [ { jp: '窓を開けている。', zh: '窗户开着。（て+いる=状态持续）' }, { jp: '窓を開けてもいい。', zh: '可以开窗。（て+もいい=许可）' } ] } ],
+      tier2: [ { jp: '座って、待ってて。', zh: '坐下，等着。', register: 'spoken' }, { jp: 'こちらにお座りになってお待ちください。', zh: '请您坐在这里等候。（敬语版て形连接）', register: 'polite' }, { jp: '本委員会は、関係者の意見を聴取して、最終報告書を作成した。', zh: '本委员会听取了相关人员的意见后，制作了最终报告书。（て形在书面语公文体中连接两个动作）', register: 'written' } ],
+      tier3: [ { jp: '風邪をひいて、学校を休んだ。', zh: '感冒了，所以没去上学。（て在这里明确是"原因"关系，不能理解为单纯"先后"）', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TE_INTERFACE'], errorRoots: ['R_TE']
+  },
+
   {
     id: 'sample-node',
     module: '_sample',
@@ -216,6 +496,104 @@ const NODES = [
 ];
 
 const EXERCISES = [
+  // Node 1: lc-word-order
+  { id: 'ex-lc1-1', nodeId: 'lc-word-order', stepId: 'step-1', criterionId: 'C_ORDER_ROLE', errorRoot: 'R_ORDER', certainty: 'A', type: 'judgment',
+    prompt: '「魚を猫が食べた。」这句话里，"吃鱼的"是谁？', context: null, options: ['猫', '鱼'], answer: 0,
+    feedback: '依据判据C_ORDER_ROLE（位置-角色分离律）：角色由格助词决定，"猫"后接が，是施事，无论它在句中第几个出现，都是"吃"的执行者。' },
+  { id: 'ex-lc1-2', nodeId: 'lc-word-order', stepId: 'step-2', criterionId: 'C_ORDER_ROLE', errorRoot: 'R_ORDER', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，"東京で"更适合放在句子的哪个位置？', context: '说话人想强调"是东京"这个地点，而不是强调"谁"或"做什么"。', options: ['句首（提前强调）', '固定不动，只能待在谓语前'], answer: 0,
+    feedback: '在这个语境下：日语允许把想强调的成分挪到句首，位置服务于焦点安排而非角色标记，"東京で"提前并不改变它"地点"的角色。' },
+  { id: 'ex-lc1-3', nodeId: 'lc-word-order', stepId: null, criterionId: 'C_ORDER_ROLE', errorRoot: 'R_ORDER', certainty: 'A', type: 'judgment',
+    prompt: '「花子を太郎が呼んだ。」这句话里，被叫的人是谁？', context: null, options: ['花子', '太郎'], answer: 0,
+    feedback: '依据判据C_ORDER_ROLE：花子后接を，是受事（被叫的对象），与它在句中的位置（句首）无关。' },
+  { id: 'ex-lc1-4', nodeId: 'lc-word-order', stepId: null, criterionId: 'C_ORDER_ROLE', errorRoot: 'R_ORDER', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独看「魚を猫が食べた。」这句话，除了"角色不变"之外，它和「猫が魚を食べた。」在语感上还可能有哪些细微差别？', context: null, options: null, answer: null,
+    feedback: '脱离具体对话语境，"魚を"提前可能暗示强调"鱼"（而非其他食物），也可能只是文体/节奏选择，无法仅凭这一句话判定说话人的真实意图，属于多种合理解读，不判定唯一答案。' },
+
+  // Node 2: lc-predicate-core
+  { id: 'ex-lc2-1', nodeId: 'lc-predicate-core', stepId: 'step-1', criterionId: 'C_PRED_OBLIGATORY', errorRoot: 'R_PRED', certainty: 'A', type: 'judgment',
+    prompt: '「（もう食べた？）うん、食べた。」这句回答里，主语被省略了，这句话在日语里是否合法？', context: null, options: ['合法，谓语单独出现即可成句', '不合法，必须补出主语'], answer: 0,
+    feedback: '依据判据C_PRED_OBLIGATORY（谓语必现律）：日语唯一强制成分是谓语，语境明确时主语可以整体省略，"食べた"单独成句完全合法。' },
+  { id: 'ex-lc2-2', nodeId: 'lc-predicate-core', stepId: 'step-2', criterionId: 'C_PRED_OBLIGATORY', errorRoot: 'R_PRED', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，乙突然回答「私は食べた。」，这句话最可能在暗示什么？', context: '两人正在讨论谁吃了最后一块蛋糕，之前完全没有提到"我"。', options: ['强调"至少我吃了"，带对比意味', '只是习惯性地补充主语，没有额外含义'], answer: 0,
+    feedback: '在这个语境下：语境本不要求说出主语，此时特意补出"私は"会把"私"提升为对比话题，暗含"（不管别人怎样，）我吃了"的对比意味。' },
+  { id: 'ex-lc2-3', nodeId: 'lc-predicate-core', stepId: null, criterionId: 'C_PRED_OBLIGATORY', errorRoot: 'R_PRED', certainty: 'A', type: 'judgment',
+    prompt: '「雨だ。」这句话有没有谓语？', context: null, options: ['有，"だ"就是谓语（コピュラ）', '没有，因为没有动词'], answer: 0,
+    feedback: '依据判据C_PRED_OBLIGATORY：谓语不限于动词，コピュラ「だ」同样是谓语，独自一词即可使句子合法。' },
+  { id: 'ex-lc2-4', nodeId: 'lc-predicate-core', stepId: null, criterionId: 'C_PRED_OBLIGATORY', errorRoot: 'R_PRED', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独听到日本人说「食べる？」，除了"你要吃吗"之外，还可能有哪些合理理解？', context: null, options: null, answer: null,
+    feedback: '脱离具体场景，"食べる？"的主语可能是"你"，也可能是在确认"（这个）能吃吗"，甚至是自言自语"要不要吃"，多种解读均合理，不判定唯一答案。' },
+
+  // Node 3: lc-particle-entry
+  { id: 'ex-lc3-1', nodeId: 'lc-particle-entry', stepId: 'step-1', criterionId: 'C_PARTICLE_ENTRY', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '「子供が笑った。」和「子供を笑った。」，哪一句里"子供"是被笑的对象？', context: null, options: ['子供を笑った', '子供が笑った'], answer: 0,
+    feedback: '依据判据C_PARTICLE_ENTRY（助词入场律）：を标记受事，"子供を"是笑的对象；が标记施事，"子供が"是笑的发出者。' },
+  { id: 'ex-lc3-2', nodeId: 'lc-particle-entry', stepId: 'step-2', criterionId: 'C_PARTICLE_ENTRY', errorRoot: 'R_CASE', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，"図書館"后面应该配哪个格助词？', context: '要表达"在图书馆看书"，图书馆是动作发生的场所，不是被看的对象。', options: ['で', 'を'], answer: 0,
+    feedback: '在这个语境下：で标记场所/工具，"図書館"是"看书"这一事件发生的地点，用で；を会把"图书馆"误标成被看的对象，角色错误。' },
+  { id: 'ex-lc3-3', nodeId: 'lc-particle-entry', stepId: null, criterionId: 'C_PARTICLE_ENTRY', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '「先生が学生に本をあげた。」这句里，接受书本的人用哪个格助词标记？', context: null, options: ['に', 'を'], answer: 0,
+    feedback: '依据判据C_PARTICLE_ENTRY：に标记接受者/到达点，"学生に"是书本的接受方；を标记的是被给予的物品"本"。' },
+  { id: 'ex-lc3-4', nodeId: 'lc-particle-entry', stepId: null, criterionId: 'C_PARTICLE_ENTRY', errorRoot: 'R_CASE', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）「窓で写真を撮った。」这句里"窓で"，除了"在窗边"之外，还可能有别的合理解读吗？', context: null, options: null, answer: null,
+    feedback: '脱离语境，"窓で"通常理解为地点（在窗边拍照），但也可能被理解为工具/媒介（透过窗户拍照），需要更完整的上下文才能判定唯一含义，此处不判定唯一答案。' },
+
+  // Node 4: lc-wa-topic
+  { id: 'ex-lc4-1', nodeId: 'lc-wa-topic', stepId: 'step-1', criterionId: 'C_WA_TOPIC', errorRoot: 'R_B', certainty: 'A', type: 'judgment',
+    prompt: '在完全没有前文铺垫、单纯回答"发生了什么"的场景里，「田中さんが来た。」和「田中さんは来た。」哪一句更自然？', context: null, options: ['田中さんが来た', '田中さんは来た'], answer: 0,
+    feedback: '依据判据C_WA_TOPIC：没有前文铺垫时，"田中"还不是双方已确立的话题，用が单纯陈述"谁来了"更自然；は需要"田中"已被谈论过。' },
+  { id: 'ex-lc4-2', nodeId: 'lc-wa-topic', stepId: 'step-2', criterionId: 'C_WA_TOPIC', errorRoot: 'R_B', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，"鼻が長い"里的"鼻"扮演什么角色？', context: '这句话出现在"象は鼻が長い"里，说话人先说"要谈的是大象"。', options: ['在"大象"这个话题范围内，真正具有"长"这一性质的主体', '整句话的语法主语，取代了"象"'], answer: 0,
+    feedback: '在这个语境下：は先划定话题"大象"，が再在这个话题内部标出真正的性质主体"鼻"，两者分工不同，が并不会"取代"は成为主语。' },
+  { id: 'ex-lc4-3', nodeId: 'lc-wa-topic', stepId: 'step-3', criterionId: 'C_WA_TOPIC', errorRoot: 'R_B', certainty: 'A', type: 'judgment',
+    prompt: '「誰が学生ですか。」这句疑问句，可以用は替换が吗？', context: null, options: ['不可以，疑问词だれ不能与は共现', '可以，は/が可以自由互换'], answer: 0,
+    feedback: '依据判据C_WA_TOPIC：は要求话题已被双方确立，而疑问词だれ本身代表说话人未知的空位，不满足は的使用条件，只能用が。' },
+  { id: 'ex-lc4-4', nodeId: 'lc-wa-topic', stepId: null, criterionId: 'C_WA_TOPIC', errorRoot: 'R_B', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独看到「これはこれとして、あれはどうする？」，除了"对比两件事"之外，还有别的合理解读吗？', context: null, options: null, answer: null,
+    feedback: '这类连续は句通常带对比色彩，但具体对比的是"处理方式"还是"责任归属"等，需要更完整的对话背景才能确定，脱离语境存在多种合理理解，不判定唯一答案。' },
+
+  // Node 5: lc-ga-newinfo
+  { id: 'ex-lc5-1', nodeId: 'lc-ga-newinfo', stepId: 'step-1', criterionId: 'C_GA_NEWINFO', errorRoot: 'R_D', certainty: 'A', type: 'judgment',
+    prompt: '「どれが好きですか。」这句疑问句的回答，应该用「これが好きです」还是「これは好きです」？', context: null, options: ['これが好きです', 'これは好きです'], answer: 0,
+    feedback: '依据判据C_GA_NEWINFO：疑问词どれ代表未知空位，回答必须用が把具体答案"填入"这个空位，は不能用于疑问词句的直接应答。' },
+  { id: 'ex-lc5-2', nodeId: 'lc-ga-newinfo', stepId: 'step-2', criterionId: 'C_GA_NEWINFO', errorRoot: 'R_D', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「田中さんが学生です。」里的が起什么作用？', context: '在场有好几个人，说话人想从中精确指认出"谁是学生"，排除其他所有人。', options: ['総记：排他性地指认田中是唯一符合条件的人', '单纯介绍田中的身份，不涉及排除其他人'], answer: 0,
+    feedback: '在这个语境下：需要从候选人中精确指认，が的総记（排他性列举）用法正好满足这一需求，隐含"其他人都不是学生"。' },
+  { id: 'ex-lc5-3', nodeId: 'lc-ga-newinfo', stepId: 'step-3', criterionId: 'C_GA_NEWINFO', errorRoot: 'R_D', certainty: 'A', type: 'judgment',
+    prompt: '「あ、雨が降っている。」这句里が的用法属于哪一类？', context: null, options: ['中立叙述：单纯描写眼前发生的状况', '総记：排他性地指认唯一下雨的地方'], answer: 0,
+    feedback: '依据判据C_GA_NEWINFO：这是久野暲分类里的"中立叙述"用法——单纯陈述刚注意到的状况，不隐含"排除其他可能"的総记意味。' },
+  { id: 'ex-lc5-4', nodeId: 'lc-ga-newinfo', stepId: null, criterionId: 'C_GA_NEWINFO', errorRoot: 'R_D', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独听到「本日の議長は鈴木が務めます。」，除了"は划话题、が総记指认"之外，还有别的合理解读吗？', context: null, options: null, answer: null,
+    feedback: '这句话可能是主持人宣布安排（中立通知），也可能带有对比意味（"不是别人，是铃木"），具体侧重需要更完整的会场语境才能判定，脱离语境不判定唯一答案。' },
+
+  // Node 6: lc-verb-engine
+  { id: 'ex-lc6-1', nodeId: 'lc-verb-engine', stepId: 'step-1', criterionId: 'C_CONJ_SINGLE_SLOT', errorRoot: 'R_CONJ', certainty: 'A', type: 'judgment',
+    prompt: '「食べさせられなかった。」这个词形里，一共叠加了几层语法信息（不算词根本身）？', context: null, options: ['四层：使役、被动、过去、否定', '一层：只是过去否定'], answer: 0,
+    feedback: '依据判据C_CONJ_SINGLE_SLOT（活用单槽律）：させ(使役)+られ(被动)+なかっ(过去)+た/否定，一个词根上叠加了四层语法信息，全部靠词尾变化实现。' },
+  { id: 'ex-lc6-2', nodeId: 'lc-verb-engine', stepId: 'step-2', criterionId: 'C_CONJ_SINGLE_SLOT', errorRoot: 'R_CONJ', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，应该怎么处理"了"这个语法信息？', context: '要把"写了"这个意思表达成日语敬体（对长辈/上司说话）。', options: ['靠谓语变形为「書きました」，没有独立对应"了"的词', '在「書きます」后面另加一个表示"了"的词'], answer: 0,
+    feedback: '在这个语境下：日语的"过去+敬体"信息由谓语词尾"〜ました"一体表达，不需要、也不存在另加的独立"了"字对应词。' },
+  { id: 'ex-lc6-3', nodeId: 'lc-verb-engine', stepId: null, criterionId: 'C_CONJ_SINGLE_SLOT', errorRoot: 'R_CONJ', certainty: 'A', type: 'judgment',
+    prompt: '「行かなかった。」这个词形，否定的意思体现在哪里？', context: null, options: ['词尾变化（"なかった"部分）', '句中另加一个独立的否定词'], answer: 0,
+    feedback: '依据判据C_CONJ_SINGLE_SLOT：否定同样通过词尾变化（〜ない/〜なかった）叠加在词根上，而不是像中文"不/没"那样使用独立词。' },
+  { id: 'ex-lc6-4', nodeId: 'lc-verb-engine', stepId: null, criterionId: 'C_CONJ_SINGLE_SLOT', errorRoot: 'R_CONJ', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独看到「飲めない。」，除了"不能喝/喝不了"之外，还有别的合理解读吗？', context: null, options: null, answer: null,
+    feedback: '"飲めない"可能指能力上不能喝（如不会喝酒），也可能指条件上不能喝（如医嘱不能喝、水质不能喝），具体含义依赖语境，脱离语境不判定唯一答案。' },
+
+  // Node 7: lc-te-interface
+  { id: 'ex-lc7-1', nodeId: 'lc-te-interface', stepId: 'step-1', criterionId: 'C_TE_INTERFACE', errorRoot: 'R_TE', certainty: 'A', type: 'judgment',
+    prompt: '「食べて」这个て形单独存在时，能不能看出它是"过去"还是"现在"？', context: null, options: ['不能，て形本身不携带时体信息', '能，て形固定表示"过去"'], answer: 0,
+    feedback: '依据判据C_TE_INTERFACE（て形接口律）：て形本身不表示时体，时体信息由后接成分（如いる、た等）补足，て形只负责"保持开放，等待连接"。' },
+  { id: 'ex-lc7-2', nodeId: 'lc-te-interface', stepId: 'step-2', criterionId: 'C_TE_INTERFACE', errorRoot: 'R_TE', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「疲れて、動けない。」里的て表示什么逻辑关系？', context: '这句话的完整语境是"因为很累，所以站不起来"，前后是因果关系。', options: ['原因', '先后动作'], answer: 0,
+    feedback: '在这个语境下：て形的具体逻辑关系由语境决定，这里前后是因果关系，不能按"然后"这类固定翻译来理解。' },
+  { id: 'ex-lc7-3', nodeId: 'lc-te-interface', stepId: null, criterionId: 'C_TE_INTERFACE', errorRoot: 'R_TE', certainty: 'A', type: 'judgment',
+    prompt: '「窓を開けてもいい。」这句里，"て"后面接的「もいい」表达什么？', context: null, options: ['许可', '进行体'], answer: 0,
+    feedback: '依据判据C_TE_INTERFACE：て形是接口，具体功能由后接成分决定，「てもいい」是"许可"这一固定搭配，与「ている」的进行体是完全不同的功能。' },
+  { id: 'ex-lc7-4', nodeId: 'lc-te-interface', stepId: null, criterionId: 'C_TE_INTERFACE', errorRoot: 'R_TE', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独看到「手紙を書いて、出した。」，除了"先写后寄"这个先后关系外，还有别的合理解读吗？', context: null, options: null, answer: null,
+    feedback: '大多数情况下这是先后动作链，但也可能被理解为"以写信的方式"，具体取决于更完整的上下文，脱离语境存在多种合理解读，不判定唯一答案。' },
+
   {
     id: 'ex-sample-1',
     nodeId: 'sample-node',
