@@ -201,9 +201,32 @@ knowledgePosition: {
     note: '...'
   },
 
-  verification_status: 'source_required'  // rollup = the most cautionary status among the sub-fields above
+  verification_status: 'source_required',  // rollup = the most cautionary status among the sub-fields above
+
+  evidence: [                    // pointers into resources/sources.json — see "Source Library" below
+    { sourceId: 'src-...', note: '...' }  // note explains WHAT the source backs and HOW confident we actually are
+  ],
+  last_verified: null             // 'YYYY-MM-DD' the last time a human/agent actually opened the primary source, or null — a WebSearch cross-check does not count as verification
 }
 ```
+
+### Source Library (`resources/sources.json`)
+
+`evidence[].sourceId` must resolve to an entry in `resources/sources.json`
+— the project's permanent, growing registry of citable external sources
+(official JLPT/textbook sites, corpora, academic references). See
+`resources/README.md` for the full field list and philosophy. `index.html`
+carries a `SOURCES` array (Knowledge Graph Layer section) that is a
+**runtime rendering subset** of that file — only the fields the Knowledge
+Position panel needs to display (title, publisher, url, reliability tier,
+license status). When adding a source, add it to both, keeping `id`
+identical, and never invent an id in one file that doesn't exist in the
+other.
+
+A node only gets an `evidence` entry when its own Layer 2 body already
+names the scholar/framework being cited — never retroactively invent a
+citation for prose that wasn't already grounded in one. `evidence: []` is
+the honest default, not a placeholder to fill in later for its own sake.
 
 ### Trust status vocabulary (exactly these 5, used everywhere — engine, UI, docs)
 

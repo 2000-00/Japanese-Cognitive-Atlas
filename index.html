@@ -125,6 +125,11 @@
   .kp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-3); }
   .kp-field-note { font-size: 0.8rem; color: var(--ink-faint); margin-top: 0.15rem; }
 
+  .evidence-list { display: flex; flex-direction: column; gap: var(--sp-2); }
+  .evidence-item { padding: 0.5rem 0.65rem; border: 1px solid var(--border-soft); border-radius: var(--radius-sm); background: var(--paper-raised); font-size: 0.88rem; }
+  .evidence-item a { color: var(--accent-dark); text-decoration: underline; text-underline-offset: 2px; }
+  .kp-last-verified { font-size: 0.82rem; margin-top: 0.4rem; }
+
   .state-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 999px; flex: none; }
   .dot-locked { background: var(--lock); }
   .dot-available { background: var(--accent); }
@@ -419,7 +424,9 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库（如 BCCWJ）频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 2, note: '概念本身不复杂，主要难度在于替换"位置决定角色"的母语直觉；一旦接受格助词判断法，多数学习者能较快掌握。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'spoken', 'written'], note: '语序调整（尤其强调焦点前置）在口语和书面语中都常见，本节点例句已覆盖全部四种语域。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
     }
   },
 
@@ -465,7 +472,11 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 2, note: '概念直观（三上章的主语废除论），主要难度在于抑制中文"每句话都要主语"的书面语倾向，通过对比练习通常能较快纠正。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'spoken'], note: '论元省略在日常口语对话中最典型，敬语场景同样常见省略主语；本节点例句覆盖这三种语域。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [
+        { sourceId: 'src-mikami-akira-shugohaishiron', note: 'Layer 2 转述三上章"主语废除论"的核心主张；引用尚未核对具体书目/页码，标记为待核验（见 resources/sources.json）。' }
+      ],
+      last_verified: null
     }
   },
 
@@ -511,7 +522,11 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 2, note: '格助词的角色分配本身是机械规则，难度主要来自漏加助词的母语迁移习惯，通过大量填空练习可以较快纠正。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written'], note: '格助词在所有语域中都是强制性的，本节点例句覆盖日常陈述、敬体与书面语三种典型场景。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [
+        { sourceId: 'src-fillmore-case-grammar-1968', note: 'Layer 2 提及格语法（Case Grammar）框架来自 Fillmore 1968；引用尚未核对具体版本/页码，标记为待核验（见 resources/sources.json）。' }
+      ],
+      last_verified: null
     }
   },
 
@@ -564,7 +579,12 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 4, note: 'は/が的区分是日语教学中公认最难掌握的分寸之一（涉及信息结构、对比、总记等多重语用机制），中文母语者尤其容易用"是"字句直觉简化处理，需要反复的语境判断练习才能内化。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '话题化在陈述、敬体对话与书面语中都大量出现；本节点例句覆盖这三种语域，尚未包含纯 plain 体单独例句。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [
+        { sourceId: 'src-kuno-susumu-topic-neutral-description', note: 'Layer 2 转述久野暲"旧情报の主題 / 新情报"框架；引用尚未核对具体书目/页码，标记为待核验（见 resources/sources.json）。' },
+        { sourceId: 'src-kuroda-shigeyuki-judgment', note: 'Layer 2 提及黒田成幸 categorical/thetic judgment 对立作为交叉印证；同样尚未核对具体书目/页码。' }
+      ],
+      last_verified: null
     }
   },
 
@@ -617,7 +637,11 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 4, note: '与は形成系统对立，同样是难度较高的分寸——総记、中立叙述与疑问词应答三种用法容易混淆，中文"是"字句直觉会进一步干扰判断。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['spoken', 'polite', 'written'], note: '中立叙述の が多见于口语突然察觉的场景，総记の が在陈述与书面语中都常见；本节点例句覆盖这三种语域。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [
+        { sourceId: 'src-kuno-susumu-topic-neutral-description', note: 'Layer 2 转述久野暲"中立叙述 / 総记"三分类框架；引用尚未核对具体书目/页码，标记为待核验（见 resources/sources.json）。' }
+      ],
+      last_verified: null
     }
   },
 
@@ -663,7 +687,9 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 3, note: '"活用是发动机"这一认知框架本身不难理解，但为后续具体活用规则的学习打基础，实际难度会随后续内容学习量上升；本节点仅评估框架本身的难度。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'spoken', 'written'], note: '活用是谓语的强制形态，四种语域中都必然出现；本节点例句覆盖全部四种语域。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
     }
   },
 
@@ -709,7 +735,9 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 3, note: 'て形本身规则不复杂，难度在于放弃"て形=某个固定中文虚词"的翻译对应思维，转为依语境判断具体逻辑关系。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['spoken', 'polite', 'written'], note: 'て形连接在口语请求、敬语引导与书面公文体中都大量出现；本节点例句覆盖这三种语域。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
     }
   },
 
@@ -783,7 +811,9 @@ const NODES = [
       frequency: { status: 'source_required', note: '仅用于引擎自测。' },
       difficulty: { status: 'pedagogical_simplification', level: 1, note: '仅用于引擎自测。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite'], note: '仅用于引擎自测。' },
-      verification_status: 'source_required'
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
     }
   }
 ];
@@ -929,6 +959,25 @@ const EXERCISES = [
     answer: null,
     feedback: '脱离语境本身允许多种合理解读，本题不判定唯一答案，仅用于验证 C 级题不进入错题本、不计入 SRS。'
   }
+];
+
+// Runtime rendering subset of resources/sources.json (the Source Library).
+// resources/sources.json is the fuller authoring copy (scope fields,
+// applicable_domains, etc.); this array only carries what the Knowledge
+// Position panel needs to render an evidence entry. Keep ids in sync with
+// resources/sources.json — never add an id here that isn't registered there.
+const SOURCES = [
+  { id: 'src-jlpt-official', title: '日本語能力試験 JLPT 公式サイト', publisher: '国際交流基金・JEES', official_url: 'https://www.jlpt.jp/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-japan-foundation', title: '国際交流基金（The Japan Foundation）', publisher: '国際交流基金', official_url: 'https://www.jpf.go.jp/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-jf-standard', title: 'JF日本語教育スタンダード', publisher: '国際交流基金', official_url: 'https://www.jfstandard.jpf.go.jp/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-ninjal-bccwj', title: '現代日本語書き言葉均衡コーパス（BCCWJ）', publisher: '国立国語研究所（NINJAL）', official_url: 'https://clrd.ninjal.ac.jp/bccwj/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-ninjal-org', title: '国立国語研究所（NINJAL）', publisher: '国立国語研究所', official_url: 'https://www.ninjal.ac.jp/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-bunka-agency', title: '文化庁 国語施策', publisher: '文化庁', official_url: 'https://www.bunka.go.jp/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-nhk-org', title: 'NHK（日本放送協会）', publisher: '日本放送協会', official_url: 'https://www.nhk.or.jp/', reliability_tier: 'official_primary', license_status: 'needs_verification' },
+  { id: 'src-mikami-akira-shugohaishiron', title: '三上章の「主語廃止論」', publisher: '三上章（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
+  { id: 'src-fillmore-case-grammar-1968', title: 'The Case for Case（格语法）', publisher: 'Charles J. Fillmore（学术论文）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
+  { id: 'src-kuno-susumu-topic-neutral-description', title: '久野暲的は/が分析', publisher: '久野暲（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
+  { id: 'src-kuroda-shigeyuki-judgment', title: '黒田成幸的判断类型分析', publisher: '黒田成幸（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' }
 ];
 
 /* =========================================================================
@@ -1269,6 +1318,28 @@ function renderVerificationBadge(status) {
   return `<span class="badge verify-badge ${meta.cls}">${escapeHtml(meta.label)}</span>`;
 }
 
+const SOURCES_BY_ID = {};
+SOURCES.forEach(s => { SOURCES_BY_ID[s.id] = s; });
+
+function renderEvidenceList(evidence) {
+  if (!evidence || evidence.length === 0) {
+    return '<span class="muted">暂无关联来源（尚未引用 resources/sources.json 中的任何条目）</span>';
+  }
+  return evidence.map(ev => {
+    const src = SOURCES_BY_ID[ev.sourceId];
+    if (!src) return `<div class="evidence-item muted">未知来源 id：${escapeHtml(ev.sourceId)}</div>`;
+    const linkHtml = src.official_url
+      ? `<a href="${escapeHtml(src.official_url)}" target="_blank" rel="noopener">${escapeHtml(src.title)}</a>`
+      : `${escapeHtml(src.title)} <span class="faint">（无稳定网址：纸质/期刊文献）</span>`;
+    return `
+      <div class="evidence-item">
+        <div>${linkHtml} <span class="badge">${escapeHtml(src.publisher || '')}</span> ${renderVerificationBadge(src.license_status === 'not_applicable' ? 'needs_verification' : src.license_status)}</div>
+        <div class="kp-field-note">${escapeHtml(ev.note || '')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
 function getKnowledgeRelations(node) {
   const kp = node.knowledgePosition || {};
   return {
@@ -1539,6 +1610,11 @@ function renderKnowledgePositionPanel(node) {
           <div class="kp-field-note">${escapeHtml(kp.typical_contexts.note)}</div>
         </div>
       </div>
+
+      <h4>证据与来源 Evidence</h4>
+      <div class="evidence-list">${renderEvidenceList(kp.evidence)}</div>
+      <p class="muted kp-last-verified">末次核验：${kp.last_verified ? escapeHtml(kp.last_verified) : '尚未核验（Not yet verified）'}</p>
+
       <p class="muted" style="margin-top:0.75rem;">整体校验状态：${renderVerificationBadge(kp.verification_status)}</p>
     </div>
   `;
@@ -1888,7 +1964,7 @@ function renderGraphSidePanel(nodeId) {
       <div>${nextUp.length ? renderNodeIdList(nextUp) : '<span class="muted">暂无（尚未解锁下一节点）</span>'}</div>
 
       <h4>校验状态</h4>
-      <p>${renderVerificationBadge(kp.verification_status)}</p>
+      <p>${renderVerificationBadge(kp.verification_status)} <span class="muted">· ${kp.evidence && kp.evidence.length ? kp.evidence.length + ' 条关联来源' : '暂无关联来源'}</span></p>
 
       <button class="primary" data-action="open-node" data-node-id="${node.id}" style="margin-top:0.5rem; width:100%;">进入完整学习页 →</button>
     </div>
