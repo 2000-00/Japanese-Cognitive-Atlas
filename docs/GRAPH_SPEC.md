@@ -51,11 +51,30 @@ A node's unlock state is derived, not stored:
 
 ## Rendering
 
-The foundation ships a minimal roadmap view: nodes grouped by `module.order`
-then `node.order`, each row showing lock state and its `requires` list. This
-satisfies Part I §4 ("learner always knows current position, next
-destination, and reason") without building a canvas/force-graph — that is
-exactly the kind of "one more elegant abstraction" Part II's anti-pattern
-warning calls out. If real learning practice shows the list view is
-insufficient, that is the concrete problem needed to justify a visual graph
-renderer (Part II Principle 1) — not before.
+The Graph tab (`viewRoadmap`) renders a real tiered DAG, not a flat list:
+nodes are grouped into columns by `computeNodeDepth` (longest `requires`
+chain from a root), and SVG paths are drawn between DOM node positions after
+each render (`drawGraphConnectors`). Four edge types get distinct line
+styles so they read as different relationships, not just "some lines":
+
+| Edge | Line style |
+|---|---|
+| `requires` | solid (unlocked) / dashed gray (locked) |
+| `contrasts` | short dotted, neutral tone, drawn once per symmetric pair |
+| `invokes` | sparse dash, accent tone; skipped if the same pair already has a `requires` edge (avoids drawing two overlapping lines) |
+| `previews` | very sparse dotted, faint |
+
+Each node also shows a small colored category chip for its
+`knowledgePosition.parent_concept.label` (see docs/NODE_SPEC.md), giving a
+visual read of hierarchy grouping without fabricating parent nodes that
+don't exist.
+
+Clicking a node does **not** navigate away from the Graph tab — it opens a
+side panel (`renderGraphSidePanel`, transient `currentGraphNodeId` state)
+showing Knowledge Position, Cognitive/Learning Layer summaries,
+prerequisites, related nodes, next-recommended nodes, and verification
+status, with a button to jump into the full node detail page. This was
+built in response to an explicit product requirement (Knowledge Graph
+Layer), which is exactly the kind of concrete justification Part II
+Principle 1 requires before extending frozen architecture — it isn't a
+speculative addition.

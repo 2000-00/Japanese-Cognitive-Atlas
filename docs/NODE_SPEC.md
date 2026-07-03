@@ -112,12 +112,111 @@ future module, not implemented in the foundation.
   },
 
   criteria: ['C_XX'],                   // criteria this node teaches (see CRITERIA registry)
-  errorRoots: ['R_XX']                  // error roots this node's exercises can classify into
+  errorRoots: ['R_XX'],                  // error roots this node's exercises can classify into
+
+  knowledgePosition: { /* see "Knowledge Position" section below */ }
 }
 ```
 
 Vocabulary rule: every example sentence has exactly one unknown outside the
 target grammar; stay within N5–N4 vocabulary except the grammar under study.
+
+## Knowledge Position (Knowledge Graph Layer)
+
+This is the implementation of the Knowledge Graph Layer described in the
+project principles: "where does this knowledge belong?" Two kinds of data
+answer that question, and they are deliberately **not** stored the same way:
+
+1. **Relationships** (parent/child/prerequisite/unlocks/contrast/similar/
+   related) are *derived*, never separately authored. They already exist as
+   `node.refs` edges (see docs/GRAPH_SPEC.md) plus one small category label.
+   Deriving them means there is exactly one source of truth for the graph —
+   editing `refs` automatically updates every relationship view. Never add a
+   second array that duplicates what `refs` already encodes.
+2. **Metadata** (JLPT relevance, textbook mapping, frequency, difficulty,
+   typical contexts, verification status) is genuinely new per-node data
+   that must be authored, and is exactly the kind of claim the Data
+   Integrity Principles govern — most of it starts out unverified, and must
+   say so rather than guess.
+
+### Relationships — derived via `getKnowledgeRelations(node)`
+
+```js
+function getKnowledgeRelations(node) {
+  return {
+    prerequisite_concepts: node.refs.requires,                    // = refs.requires
+    unlocks: /* nodes whose refs.requires includes this node */,  // reverse lookup, not stored
+    contrast_nodes: node.refs.contrasts,                          // = refs.contrasts
+    similar_nodes: node.refs.invokes,                             // = refs.invokes (borrows this mechanism)
+    related_concepts: node.refs.previews,                         // = refs.previews (forward teaser)
+    parent_concept: node.knowledgePosition.parent_concept,
+    child_concepts: node.knowledgePosition.child_concepts
+  };
+}
+```
+
+`parent_concept`/`child_concepts` are the one relationship type that isn't
+already an edge type in `refs` (hierarchy is a different relation than
+prerequisite/contrast/reference). They are stored directly on
+`knowledgePosition` — see below — but still point at real content, never a
+placeholder node invented just to have something to point at. If no finer
+sub-nodes exist yet, `child_concepts` is honestly `[]`, not a fabricated
+list.
+
+### `knowledgePosition` shape
+
+```js
+knowledgePosition: {
+  semantic_position: '认知层 > 信息结构 > 话题标记（は）',  // authored breadcrumb; our own taxonomy, not an external claim
+
+  parent_concept: {
+    id: null,                    // null = category label, not a clickable node (none exists yet — do not fabricate one)
+    label: '信息结构',
+    type: 'category'
+  },
+  child_concepts: [],            // node ids; [] is a real fact ("no sub-nodes yet"), not an uncertainty
+
+  jlpt_relevance: {
+    status: 'needs_verification',   // one of the 5 trust statuses below
+    category: 'foundational',       // 'foundational' | an actual N5-N1 level, ONLY if checked against a real syllabus
+    note: '...'                     // why it's uncertain / what would resolve it
+  },
+  textbook_mapping: {
+    status: 'mapping_pending',
+    target: '教材名（暂定）' | null,
+    note: '...'
+  },
+  frequency: {
+    status: 'source_required',      // frequency claims ALWAYS start here unless a checkable corpus was actually consulted
+    note: '...'
+  },
+  difficulty: {
+    status: 'pedagogical_simplification',  // this is our instructional judgment, not a sourced fact
+    level: 1-5,                             // for the documented learner profile (Chinese L1)
+    note: '...'                             // the actual reasoning, so it's a judgment call, not a guess
+  },
+  typical_contexts: {
+    status: 'pedagogical_simplification',
+    registers: ['spoken', 'written', 'polite', 'plain'],  // pull straight from this node's own examples.tier2/tier3 registers — never invent a register the node has no example for
+    note: '...'
+  },
+
+  verification_status: 'source_required'  // rollup = the most cautionary status among the sub-fields above
+}
+```
+
+### Trust status vocabulary (exactly these 5, used everywhere — engine, UI, docs)
+
+| status | Chinese badge | Meaning | Used for |
+|---|---|---|---|
+| `verified` | 已验证 | Checked against a real, citable source | Any field, once actually verified |
+| `needs_verification` | 待核验 | Plausible but not checked against an authoritative source | `jlpt_relevance` by default |
+| `mapping_pending` | 教材映射待补 | We know this needs a textbook position, haven't assigned one | `textbook_mapping` by default |
+| `source_required` | 来源待补 | Would need a checkable source (e.g. BCCWJ) to state at all | `frequency` by default — see Real Corpus Principle |
+| `pedagogical_simplification` | 教学简化 | Our own instructional-design judgment, not an external fact | `difficulty`, `typical_contexts` |
+
+Never mark something `verified` without an actual citable source behind it.
+Wrong confidence is worse than an honest `needs_verification`.
 
 ## `Criterion`
 
