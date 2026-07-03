@@ -9,106 +9,257 @@
     --bg: #f3ead9;
     --paper: #faf3e6;
     --paper-dim: #efe4cc;
+    --paper-raised: #fffdf8;
     --ink: #2b2620;
     --ink-soft: #6b6152;
+    --ink-faint: #8a8070;
     --border: #d8c9a8;
+    --border-soft: #e6dcc4;
     --accent: #8a6d3b;
+    --accent-dark: #6e5527;
+    --accent-bg: #f1e6cf;
     --success: #2E7D5B;
     --success-bg: #e9f5ee;
+    --warn: #b8860b;
+    --warn-bg: #fbf1d9;
     --error: #BE3A2B;
     --error-bg: #fbeae7;
     --lock: #9b9384;
+    --lock-bg: #ece6d8;
     --particle-wa: #BE3A2B;
     --particle-ga: #2563A8;
     --particle-wo: #2E7D5B;
     --particle-ni: #6D4FA3;
     --particle-de: #A8641C;
-    --radius: 6px;
+    --radius: 10px;
+    --radius-sm: 6px;
+    --sp-1: 0.25rem;
+    --sp-2: 0.5rem;
+    --sp-3: 0.75rem;
+    --sp-4: 1rem;
+    --sp-5: 1.5rem;
+    --sp-6: 2rem;
+    --shadow-card: 0 1px 2px rgba(43,38,32,0.04), 0 1px 1px rgba(43,38,32,0.03);
+    --shadow-raised: 0 4px 16px rgba(43,38,32,0.08), 0 1px 3px rgba(43,38,32,0.06);
   }
   * { box-sizing: border-box; }
   html, body {
     margin: 0; padding: 0; background: var(--bg); color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-    line-height: 1.6;
+    line-height: 1.65; font-size: 16px; -webkit-font-smoothing: antialiased;
   }
   .jp { font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Songti SC", serif; }
   header {
-    position: sticky; top: 0; z-index: 10;
-    background: var(--paper); border-bottom: 1px solid var(--border);
-    padding: 0.5rem 1rem;
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(250,243,230,0.94); backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+    padding: var(--sp-3) var(--sp-4);
   }
-  header h1 { font-size: 1.05rem; margin: 0 0 0.5rem 0; color: var(--accent); }
-  nav { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+  header h1 {
+    font-size: 1rem; margin: 0 0 var(--sp-2) 0; color: var(--accent-dark);
+    font-weight: 700; letter-spacing: 0.01em;
+  }
+  nav { display: flex; flex-wrap: wrap; gap: var(--sp-1); align-items: center; }
   nav button {
-    background: transparent; border: 1px solid transparent; border-radius: var(--radius);
-    padding: 0.35rem 0.7rem; cursor: pointer; font-size: 0.9rem; color: var(--ink-soft);
+    background: transparent; border: 1px solid transparent; border-radius: var(--radius-sm);
+    padding: 0.4rem 0.75rem; cursor: pointer; font-size: 0.88rem; color: var(--ink-soft);
+    font-weight: 500; transition: background 0.15s, color 0.15s;
   }
-  nav button.active { background: var(--paper-dim); border-color: var(--border); color: var(--ink); font-weight: 600; }
-  nav .devtoggle { margin-left: auto; font-size: 0.8rem; color: var(--ink-soft); display: flex; align-items: center; gap: 0.3rem; }
-  main { max-width: 860px; margin: 0 auto; padding: 1rem; }
+  nav button:hover { background: var(--paper-dim); }
+  nav button.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  nav .devtoggle { margin-left: auto; font-size: 0.78rem; color: var(--ink-faint); display: flex; align-items: center; gap: 0.3rem; }
+  main { max-width: 900px; margin: 0 auto; padding: var(--sp-4); }
+  @media (min-width: 720px) { main { padding: var(--sp-5) var(--sp-5); } }
+
   .card {
     background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 1rem; margin-bottom: 1rem;
+    padding: var(--sp-4); margin-bottom: var(--sp-4); box-shadow: var(--shadow-card);
   }
-  h2 { font-size: 1.1rem; margin: 0 0 0.5rem 0; }
-  h3 { font-size: 1rem; margin: 0.75rem 0 0.35rem 0; }
+  h2 { font-size: 1.15rem; margin: 0 0 var(--sp-2) 0; font-weight: 700; letter-spacing: -0.01em; }
+  h3 { font-size: 1rem; margin: var(--sp-4) 0 var(--sp-2) 0; font-weight: 600; }
+  h4 { font-size: 0.94rem; margin: 0 0 var(--sp-1) 0; font-weight: 600; }
+  p { margin: 0 0 var(--sp-2) 0; }
   .muted { color: var(--ink-soft); font-size: 0.88rem; }
+  .faint { color: var(--ink-faint); font-size: 0.82rem; }
+
   .badge {
-    display: inline-block; font-size: 0.72rem; padding: 0.1rem 0.5rem; border-radius: 999px;
+    display: inline-block; font-size: 0.72rem; padding: 0.15rem 0.55rem; border-radius: 999px;
     border: 1px solid var(--border); color: var(--ink-soft); margin-left: 0.3rem; white-space: nowrap;
+    font-weight: 600;
   }
-  .badge-locked { color: var(--lock); border-color: var(--lock); }
-  .badge-available { color: var(--accent); border-color: var(--accent); }
-  .badge-progress { color: #b8860b; border-color: #b8860b; }
-  .badge-internalized { color: var(--success); border-color: var(--success); }
-  .badge-template { color: var(--error); border-color: var(--error); }
+  .badge-locked { color: var(--lock); border-color: var(--lock); background: var(--lock-bg); }
+  .badge-available { color: var(--accent-dark); border-color: var(--accent); background: var(--accent-bg); }
+  .badge-progress { color: var(--warn); border-color: var(--warn); background: var(--warn-bg); }
+  .badge-internalized { color: var(--success); border-color: var(--success); background: var(--success-bg); }
+  .badge-template { color: var(--error); border-color: var(--error); background: var(--error-bg); }
+  .badge-overdue { color: var(--error); border-color: var(--error); background: var(--error-bg); }
+  .badge-error-count { color: var(--error); border-color: var(--error); }
+
+  .state-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 999px; flex: none; }
+  .dot-locked { background: var(--lock); }
+  .dot-available { background: var(--accent); }
+  .dot-in-progress { background: var(--warn); }
+  .dot-internalized { background: var(--success); }
+
   .node-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 0.55rem 0.25rem; border-bottom: 1px solid var(--border); cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2);
+    padding: 0.6rem var(--sp-1); border-bottom: 1px solid var(--border-soft); cursor: pointer;
   }
   .node-row:last-child { border-bottom: none; }
   .node-row:hover { background: var(--paper-dim); }
-  .step { border-left: 3px solid var(--accent); padding: 0.25rem 0 0.25rem 0.75rem; margin: 0.75rem 0; }
-  .step h4 { margin: 0 0 0.25rem 0; font-size: 0.95rem; }
-  .example-set { margin: 0.35rem 0; font-size: 0.92rem; }
-  .example-set .jp { font-size: 1.02rem; }
-  .exercise { border: 1px dashed var(--border); padding: 0.75rem; border-radius: var(--radius); margin: 0.6rem 0; background: #fffdf8; }
-  .exercise .cert { font-size: 0.7rem; padding: 0.05rem 0.4rem; border-radius: 4px; border: 1px solid var(--border); color: var(--ink-soft); }
+
+  /* ---- node card (course overview + practice weak list) ---- */
+  .node-card-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--sp-3); margin-top: var(--sp-2);
+  }
+  .node-card {
+    background: var(--paper-raised); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: var(--sp-3); cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s, transform 0.1s;
+    display: flex; flex-direction: column; gap: 0.4rem;
+  }
+  .node-card:hover { box-shadow: var(--shadow-raised); border-color: var(--accent); transform: translateY(-1px); }
+  .node-card.is-locked { cursor: default; opacity: 0.72; }
+  .node-card.is-locked:hover { box-shadow: var(--shadow-card); border-color: var(--border); transform: none; }
+  .node-card.state-internalized { border-color: var(--success); background: linear-gradient(180deg, var(--success-bg), var(--paper-raised) 60%); }
+  .node-card-top { display: flex; align-items: center; gap: 0.4rem; }
+  .node-card-title { font-weight: 700; font-size: 0.98rem; }
+  .node-card-title-jp { font-size: 0.8rem; }
+  .node-card-desc { font-size: 0.86rem; color: var(--ink-soft); margin: 0; line-height: 1.5; }
+  .node-card-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: auto; padding-top: 0.3rem; }
+  .meta-item { font-size: 0.78rem; color: var(--ink-soft); white-space: nowrap; }
+  .meta-item.conf { font-weight: 600; }
+  .conf-none { color: var(--ink-faint); }
+  .conf-weak { color: var(--error); }
+  .conf-ok { color: var(--warn); }
+  .conf-strong { color: var(--success); }
+  .node-card-prereq { font-size: 0.78rem; color: var(--lock); background: var(--lock-bg); border-radius: var(--radius-sm); padding: 0.3rem 0.5rem; }
+
+  /* ---- hero / continue-learning ---- */
+  .hero-card { background: linear-gradient(155deg, var(--accent-bg), var(--paper) 55%); border-color: var(--accent); padding: var(--sp-5); }
+  .hero-kicker { font-size: 0.78rem; color: var(--accent-dark); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.2rem; }
+  .hero-title { font-size: 1.35rem; margin-bottom: var(--sp-2); }
+  .hero-l0 { font-size: 1rem; line-height: 1.7; }
+  .hero-example { background: var(--paper-raised); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); padding: var(--sp-3); margin: var(--sp-2) 0; }
+  .hero-example .jp { font-size: 1.05rem; }
+  .hero-meta { display: flex; gap: var(--sp-4); margin: var(--sp-2) 0; font-size: 0.85rem; color: var(--ink-soft); }
+  .hero-objectives { margin: var(--sp-2) 0; padding-left: 1.2rem; font-size: 0.9rem; color: var(--ink-soft); }
+  .hero-objectives li { margin-bottom: 0.25rem; }
+  .hero-progress { display: flex; align-items: center; gap: var(--sp-3); margin: var(--sp-3) 0; }
+  .hero-progress .progress-bar-track { flex: 1; }
+  .hero-cta {
+    font-size: 1rem; padding: 0.7rem 1.5rem; margin-top: var(--sp-2);
+  }
+  .hero-done h2 { color: var(--success); }
+
+  /* ---- overview ---- */
+  .overview-header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: var(--sp-2); }
+  .overview-progress-text { font-size: 0.88rem; color: var(--ink-soft); font-weight: 600; }
+  .overview-bar { margin: var(--sp-2) 0 var(--sp-4) 0; }
+  .module-section { margin-top: var(--sp-4); }
+  .module-section:first-of-type { margin-top: var(--sp-2); }
+  .module-section-head { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--border-soft); padding-bottom: 0.3rem; }
+
+  /* ---- stats rows (practice/review) ---- */
+  .stats-row { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin: var(--sp-2) 0; }
+  .stat { text-align: center; min-width: 72px; }
+  .stat-num { font-size: 1.5rem; font-weight: 700; color: var(--accent-dark); line-height: 1.2; }
+  .stat-num.warn-num { color: var(--error); }
+  .stat-label { font-size: 0.76rem; color: var(--ink-soft); }
+  .weak-list { margin: var(--sp-2) 0; }
+  .weak-item {
+    display: flex; justify-content: space-between; align-items: center; gap: var(--sp-2);
+    padding: 0.5rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem;
+    border: 1px solid var(--border-soft); margin-bottom: 0.35rem;
+  }
+  .weak-item:hover { background: var(--paper-dim); }
+  .rec-review { margin: var(--sp-2) 0; font-size: 0.88rem; }
+
+  /* ---- graph / atlas ---- */
+  .legend-row { display: flex; gap: var(--sp-4); flex-wrap: wrap; margin-top: var(--sp-2); }
+  .legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.82rem; color: var(--ink-soft); }
+  .graph-container { position: relative; overflow-x: auto; padding: var(--sp-2) 0; }
+  .graph-svg { position: absolute; top: 0; left: 0; pointer-events: none; overflow: visible; }
+  .graph-tiers { display: flex; gap: 0.75rem; position: relative; z-index: 1; padding-bottom: var(--sp-2); }
+  .graph-tier { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 150px; max-width: 178px; flex: 1 1 178px; justify-content: center; }
+  .graph-container::after {
+    content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 28px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, var(--paper));
+  }
+  .graph-node {
+    background: var(--paper-raised); border: 2px solid var(--border); border-radius: var(--radius);
+    padding: var(--sp-3); cursor: pointer; transition: box-shadow 0.15s, transform 0.1s; position: relative;
+  }
+  .graph-node:hover { box-shadow: var(--shadow-raised); transform: translateY(-1px); }
+  .graph-node-title { font-weight: 700; font-size: 0.9rem; }
+  .graph-node-jp { font-size: 0.76rem; color: var(--ink-faint); margin: 0.1rem 0 0.3rem 0; }
+  .graph-node-meta { display: flex; }
+  .graph-node.state-locked { border-color: var(--lock); background: var(--lock-bg); opacity: 0.75; cursor: default; }
+  .graph-node.state-locked:hover { box-shadow: none; transform: none; }
+  .graph-node.state-available { border-color: var(--accent); }
+  .graph-node.state-in-progress { border-color: var(--warn); background: var(--warn-bg); }
+  .graph-node.state-internalized { border-color: var(--success); background: var(--success-bg); }
+  .graph-node-contrast {
+    position: absolute; top: -0.5rem; right: -0.5rem; background: var(--paper); border: 1px solid var(--border);
+    border-radius: 999px; font-size: 0.68rem; padding: 0.1rem 0.4rem; color: var(--ink-soft); cursor: help;
+  }
+  .graph-edge { fill: none; stroke-width: 2.5; stroke-linecap: round; }
+  .graph-edge.edge-active { stroke: var(--accent); }
+  .graph-edge.edge-locked { stroke: var(--lock); stroke-dasharray: 5 4; opacity: 0.8; }
+
+  .step { border-left: 3px solid var(--accent); padding: var(--sp-1) 0 var(--sp-1) var(--sp-3); margin: var(--sp-4) 0; }
+  .example-set { margin: var(--sp-2) 0; font-size: 0.92rem; }
+  .example-set .jp { font-size: 1.05rem; }
+  .exercise { border: 1px solid var(--border-soft); padding: var(--sp-3); border-radius: var(--radius); margin: var(--sp-3) 0; background: var(--paper-raised); }
+  .exercise .cert { font-size: 0.7rem; padding: 0.1rem 0.45rem; border-radius: 4px; border: 1px solid var(--border); color: var(--ink-soft); font-weight: 600; }
   .cert-A { border-color: var(--success); color: var(--success); }
-  .cert-B { border-color: #b8860b; color: #b8860b; }
+  .cert-B { border-color: var(--warn); color: var(--warn); }
   .cert-C { border-color: var(--ink-soft); color: var(--ink-soft); }
   .option-btn {
-    display: block; width: 100%; text-align: left; padding: 0.5rem 0.75rem; margin: 0.25rem 0;
-    border: 1px solid var(--border); border-radius: var(--radius); background: #fff; cursor: pointer; font-size: 0.92rem;
+    display: block; width: 100%; text-align: left; padding: 0.6rem 0.8rem; margin: 0.3rem 0;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); background: #fff; cursor: pointer; font-size: 0.92rem;
+    transition: background 0.12s, border-color 0.12s;
   }
-  .option-btn:hover { background: var(--paper-dim); }
+  .option-btn:hover { background: var(--paper-dim); border-color: var(--accent); }
   .option-btn.correct { border-color: var(--success); background: var(--success-bg); }
   .option-btn.incorrect { border-color: var(--error); background: var(--error-bg); }
-  .feedback { margin-top: 0.5rem; padding: 0.5rem 0.6rem; border-radius: var(--radius); font-size: 0.88rem; }
+  .feedback { margin-top: var(--sp-2); padding: 0.6rem 0.7rem; border-radius: var(--radius-sm); font-size: 0.88rem; }
   .feedback.correct { background: var(--success-bg); color: var(--success); }
   .feedback.incorrect { background: var(--error-bg); color: var(--error); }
   .feedback.multi { background: var(--paper-dim); color: var(--ink-soft); }
-  .progress-bar-track { background: #e6dcc4; border-radius: 4px; height: 8px; overflow: hidden; margin: 0.25rem 0; }
-  .progress-bar-fill { background: var(--accent); height: 100%; }
+  .progress-bar-track { background: var(--border-soft); border-radius: 999px; height: 8px; overflow: hidden; margin: 0.3rem 0; }
+  .progress-bar-fill { background: var(--accent); height: 100%; border-radius: 999px; transition: width 0.3s; }
   .progress-bar-fill.done { background: var(--success); }
-  .ref-list { font-size: 0.85rem; margin: 0.25rem 0; }
+  .ref-list { font-size: 0.85rem; margin: var(--sp-2) 0; }
   .ref-capsule {
-    display: inline-block; border: 1px solid var(--border); border-radius: 4px; padding: 0.05rem 0.4rem;
-    margin: 0.1rem; cursor: help; background: var(--paper-dim);
+    display: inline-block; border: 1px solid var(--border); border-radius: 4px; padding: 0.1rem 0.5rem;
+    margin: 0.15rem; cursor: pointer; background: var(--paper-dim); font-size: 0.85rem;
   }
+  .ref-capsule:hover { background: var(--accent-bg); border-color: var(--accent); }
   button.primary {
-    background: var(--accent); color: #fff; border: none; border-radius: var(--radius);
-    padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem;
+    background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm);
+    padding: 0.55rem 1.1rem; cursor: pointer; font-size: 0.92rem; font-weight: 600; transition: background 0.15s;
   }
+  button.primary:hover { background: var(--accent-dark); }
   button.secondary {
-    background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius);
-    padding: 0.5rem 1rem; cursor: pointer; font-size: 0.9rem;
+    background: transparent; color: var(--accent); border: 1px solid var(--accent); border-radius: var(--radius-sm);
+    padding: 0.55rem 1.1rem; cursor: pointer; font-size: 0.92rem; font-weight: 600;
   }
-  textarea { width: 100%; min-height: 140px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem; }
+  button.secondary:hover { background: var(--accent-bg); }
+  textarea { width: 100%; min-height: 140px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--sp-2); }
   .warn-list { color: var(--error); font-size: 0.85rem; }
-  table.compare { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-  table.compare td, table.compare th { border: 1px solid var(--border); padding: 0.4rem; text-align: left; }
-  .back-link { cursor: pointer; color: var(--accent); font-size: 0.88rem; margin-bottom: 0.5rem; display: inline-block; }
+  .back-link { cursor: pointer; color: var(--accent); font-size: 0.88rem; margin-bottom: var(--sp-2); display: inline-block; font-weight: 600; }
+  .back-link:hover { text-decoration: underline; }
+
+  .node-detail-meta { display: flex; flex-wrap: wrap; gap: var(--sp-4); margin-top: var(--sp-2); font-size: 0.85rem; color: var(--ink-soft); }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 0.9rem; }
+    nav button { padding: 0.35rem 0.55rem; font-size: 0.82rem; }
+    .hero-title { font-size: 1.15rem; }
+    .node-card-grid { grid-template-columns: 1fr; }
+    .stats-row { gap: var(--sp-3); }
+  }
 </style>
 </head>
 <body>
@@ -858,6 +1009,103 @@ function validateGraph() {
 }
 
 /* =========================================================================
+   3b. PRESENTATION HELPERS
+   Pure, derived, read-only functions built on top of the engine above.
+   None of these mutate STATE or change engine behavior — they only compute
+   view-layer values (estimates, labels, recommendations) from data that
+   already exists. Safe to extend freely; do not add state mutation here.
+   ========================================================================= */
+
+function estimateNodeMinutes(node) {
+  const stepCount = node.layer1.steps.length;
+  const nodeLevelCount = EXERCISES.filter(e => e.nodeId === node.id && !e.stepId).length;
+  return 4 + stepCount * 4 + nodeLevelCount * 1;
+}
+
+function nodeObjectives(node) {
+  return node.layer1.steps.map(s => s.title.replace(/^完成本步后，你能判断[:：]\s*/, ''));
+}
+
+const CONFIDENCE_LABELS = ['尚未开始', '待加强', '较有把握', '已掌握'];
+const CONFIDENCE_CLASSES = ['conf-none', 'conf-weak', 'conf-ok', 'conf-strong'];
+
+function nodeConfidenceInfo(node) {
+  let level = null;
+  (node.criteria || []).forEach(cid => {
+    const cp = STATE.progress.criteria[cid];
+    const l = (!cp || cp.attempts === 0) ? 0 : (cp.internalized ? 3 : (cp.streak >= 1 ? 2 : 1));
+    if (level === null || l < level) level = l;
+  });
+  if (level === null) level = 0;
+  return { level, label: CONFIDENCE_LABELS[level], cls: CONFIDENCE_CLASSES[level] };
+}
+
+function nodePrereqStatus(node) {
+  const reqs = node.refs.requires || [];
+  if (reqs.length === 0) return { met: true, text: '无前置要求' };
+  const unmet = reqs.filter(id => { const rn = NODES_BY_ID[id]; return !rn || !isNodeInternalized(rn); });
+  if (unmet.length === 0) return { met: true, text: '前置已完成' };
+  return { met: false, text: '需先完成：' + unmet.map(id => NODES_BY_ID[id] ? NODES_BY_ID[id].title.zh : id).join('、') };
+}
+
+function courseProgress() {
+  const nodes = visibleNodes();
+  const done = nodes.filter(isNodeInternalized).length;
+  return { done, total: nodes.length, pct: nodes.length ? Math.round(done / nodes.length * 100) : 0 };
+}
+
+function sortedVisibleNodes() {
+  return visibleNodes().slice().sort((a, b) => {
+    const ma = MODULES_BY_ID[a.module], mb = MODULES_BY_ID[b.module];
+    if (ma.order !== mb.order) return ma.order - mb.order;
+    return a.order - b.order;
+  });
+}
+
+function getRecommendedNode() {
+  const nodes = sortedVisibleNodes();
+  const byState = s => nodes.find(n => computeUnlockState(n) === s);
+  return byState('in-progress') || byState('available') || null;
+}
+
+function todayStats() {
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const todayEntries = STATE.history.filter(h => h.ts >= startOfDay.getTime() && h.certainty !== 'C');
+  const attempts = todayEntries.length;
+  const correct = todayEntries.filter(h => h.correct).length;
+  return { attempts, correct, accuracy: attempts ? Math.round(correct / attempts * 100) : null };
+}
+
+function weakCriteria(limit) {
+  return visibleCriteria()
+    .map(c => ({ c, cp: STATE.progress.criteria[c.id] }))
+    .filter(x => x.cp && x.cp.attempts > 0 && !x.cp.internalized)
+    .sort((a, b) => (a.cp.streak - b.cp.streak) || ((b.cp.lastSeen || 0) - (a.cp.lastSeen || 0)))
+    .slice(0, limit || 5)
+    .map(x => x.c);
+}
+
+const OVERDUE_MS = 24 * 60 * 60 * 1000;
+function isOverdue(cp) {
+  if (!cp || !cp.lastSeen) return false;
+  return (Date.now() - cp.lastSeen) > OVERDUE_MS;
+}
+
+function computeNodeDepth(node, cache) {
+  if (cache[node.id] !== undefined) return cache[node.id];
+  cache[node.id] = 0; // guard against cycles (validateGraph reports these separately)
+  const reqs = node.refs.requires || [];
+  let depth = 0;
+  reqs.forEach(id => {
+    const rn = NODES_BY_ID[id];
+    if (rn) depth = Math.max(depth, 1 + computeNodeDepth(rn, cache));
+  });
+  cache[node.id] = depth;
+  return depth;
+}
+
+/* =========================================================================
    4. UI — router + renderers
    ========================================================================= */
 
@@ -881,6 +1129,7 @@ function navigate(tab) {
 }
 function openNode(nodeId) {
   currentNodeId = nodeId;
+  currentTab = 'study';
   render();
 }
 
@@ -945,11 +1194,101 @@ function renderExercise(ex) {
   `;
 }
 
+function renderNodeCard(node) {
+  const state = computeUnlockState(node);
+  const conf = nodeConfidenceInfo(node);
+  const prereq = nodePrereqStatus(node);
+  const mins = estimateNodeMinutes(node);
+  return `
+    <div class="node-card state-${state} ${state === 'locked' ? 'is-locked' : ''}" data-action="open-node" data-node-id="${node.id}">
+      <div class="node-card-top">
+        <span class="state-dot dot-${state}"></span>
+        <span class="node-card-title">${escapeHtml(node.title.zh)}</span>
+      </div>
+      <span class="jp node-card-title-jp muted">${escapeHtml(node.title.ja)}</span>
+      <p class="node-card-desc">${escapeHtml(node.layer0.body)}</p>
+      <div class="node-card-meta">
+        <span class="meta-item">⏱ ${mins} 分钟</span>
+        <span class="meta-item conf ${conf.cls}">◆ ${escapeHtml(conf.label)}</span>
+        <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
+      </div>
+      ${!prereq.met ? `<div class="node-card-prereq">🔒 ${escapeHtml(prereq.text)}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderContinueLearningHero() {
+  const rec = getRecommendedNode();
+  const progress = courseProgress();
+  if (!rec) {
+    if (progress.total === 0) return '';
+    return `
+      <div class="card hero-card hero-done">
+        <div class="hero-kicker">继续学习</div>
+        <h2>🎉 当前可学习内容已全部完成</h2>
+        <p class="muted">完成度 ${progress.done}/${progress.total}（${progress.pct}%）。等待新的语法模块接入后，这里会出现下一个推荐节点。</p>
+      </div>
+    `;
+  }
+  const objectives = nodeObjectives(rec);
+  const mins = estimateNodeMinutes(rec);
+  const mod = MODULES_BY_ID[rec.module];
+  return `
+    <div class="card hero-card">
+      <div class="hero-kicker">继续学习 · ${escapeHtml(mod.name.zh)}</div>
+      <h2 class="hero-title">${escapeHtml(rec.title.zh)} <span class="jp muted">${escapeHtml(rec.title.ja)}</span></h2>
+      <p class="hero-l0">${escapeHtml(rec.layer0.body)}</p>
+      <div class="hero-example"><span class="jp">${escapeHtml(rec.layer0.example.jp)}</span> — ${escapeHtml(rec.layer0.example.zh)}</div>
+      <div class="hero-meta">
+        <span>⏱ 预计 ${mins} 分钟</span>
+        <span>🎯 ${objectives.length} 个学习目标</span>
+      </div>
+      <ul class="hero-objectives">
+        ${objectives.map(o => `<li>${escapeHtml(o)}</li>`).join('')}
+      </ul>
+      <div class="hero-progress">
+        <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${progress.pct}%"></div></div>
+        <span class="muted" style="white-space:nowrap;">课程总进度 ${progress.done}/${progress.total}</span>
+      </div>
+      <button class="primary hero-cta" data-action="open-node" data-node-id="${rec.id}">继续学习 →</button>
+    </div>
+  `;
+}
+
+function renderCourseOverview() {
+  const mods = visibleModules().slice().sort((a, b) => a.order - b.order);
+  const progress = courseProgress();
+  const header = `
+    <div class="overview-header">
+      <h2>课程总览</h2>
+      <span class="overview-progress-text">${progress.done}/${progress.total} 已完成（${progress.pct}%）</span>
+    </div>
+    <div class="progress-bar-track overview-bar"><div class="progress-bar-fill done" style="width:${progress.pct}%"></div></div>
+  `;
+  const sections = mods.map(mod => {
+    const nodes = visibleNodes().filter(n => n.module === mod.id).sort((a, b) => a.order - b.order);
+    const doneCount = nodes.filter(isNodeInternalized).length;
+    return `
+      <div class="module-section">
+        <div class="module-section-head">
+          <h3>${escapeHtml(mod.name.zh)} ${mod.status === 'template' ? '<span class="badge badge-template">开发用</span>' : ''}</h3>
+          <span class="muted">${doneCount}/${nodes.length}</span>
+        </div>
+        <div class="node-card-grid">${nodes.map(renderNodeCard).join('') || '<p class="muted">本模块暂无节点。</p>'}</div>
+      </div>
+    `;
+  }).join('');
+  return `<div class="card overview-card">${header}${sections || '<p class="muted">尚无内容模块。基础工程已就绪，等待第一个语法模块接入（见 docs/DEV_GUIDE.md）。开启右上角"开发模式"可查看引擎自测用的示例节点。</p>'}</div>`;
+}
+
 function renderNodeDetail(nodeId) {
   const node = NODES_BY_ID[nodeId];
   if (!node) return `<div class="card">未找到节点。</div>`;
   const mod = MODULES_BY_ID[node.module];
   const state = computeUnlockState(node);
+  const conf = nodeConfidenceInfo(node);
+  const prereq = nodePrereqStatus(node);
+  const mins = estimateNodeMinutes(node);
 
   const stepsHtml = node.layer1.steps.map(step => {
     const ex = EXERCISES_BY_ID[step.miniExercise.exerciseId];
@@ -981,13 +1320,18 @@ function renderNodeDetail(nodeId) {
   const nodeLevelExercises = EXERCISES.filter(e => e.nodeId === node.id && !e.stepId).map(renderExercise).join('');
 
   return `
-    <span class="back-link" data-action="nav" data-tab="study">← 返回节点列表</span>
+    <span class="back-link" data-action="nav" data-tab="study">← 返回课程总览</span>
     <div class="card">
       <h2>${escapeHtml(node.title.zh)} <span class="jp muted">${escapeHtml(node.title.ja)}</span>
         <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
         ${mod.status === 'template' ? '<span class="badge badge-template">模板/开发用</span>' : ''}
       </h2>
-      <div class="muted">模块：${escapeHtml(mod.name.zh)} · 状态：${escapeHtml(node.status)}</div>
+      <div class="muted">模块：${escapeHtml(mod.name.zh)}</div>
+      <div class="node-detail-meta">
+        <span>⏱ 预计 ${mins} 分钟</span>
+        <span class="conf ${conf.cls}">◆ 当前把握：${escapeHtml(conf.label)}</span>
+        <span>${prereq.met ? '✓ ' + escapeHtml(prereq.text) : '🔒 ' + escapeHtml(prereq.text)}</span>
+      </div>
       ${renderRefCapsules(node.refs.requires, '前提 requires')}
       ${renderRefCapsules(node.refs.previews, '预告 previews')}
     </div>
@@ -1028,50 +1372,73 @@ function renderNodeDetail(nodeId) {
   `;
 }
 
-function renderNodeList() {
-  const mods = visibleModules().slice().sort((a, b) => a.order - b.order);
-  return mods.map(mod => {
-    const nodes = visibleNodes().filter(n => n.module === mod.id).sort((a, b) => a.order - b.order);
-    const rows = nodes.map(n => {
-      const state = computeUnlockState(n);
-      return `
-        <div class="node-row" data-action="open-node" data-node-id="${n.id}">
-          <span>${escapeHtml(n.title.zh)} <span class="jp muted">${escapeHtml(n.title.ja)}</span></span>
-          <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
-        </div>
-      `;
-    }).join('');
-    return `
-      <div class="card">
-        <h2>${escapeHtml(mod.name.zh)} ${mod.status === 'template' ? '<span class="badge badge-template">开发用</span>' : `<span class="badge">${escapeHtml(mod.status)}</span>`}</h2>
-        <p class="muted">${escapeHtml(mod.description)}</p>
-        ${rows || '<p class="muted">本模块暂无节点。</p>'}
-      </div>
-    `;
-  }).join('') || `<div class="card"><p class="muted">尚无内容模块。基础工程已就绪，等待第一个语法模块接入（见 docs/DEV_GUIDE.md）。开启右上角"开发模式"可查看引擎自测用的示例节点。</p></div>`;
-}
-
 function viewStudy() {
-  return currentNodeId ? renderNodeDetail(currentNodeId) : renderNodeList();
+  if (currentNodeId) return renderNodeDetail(currentNodeId);
+  return renderContinueLearningHero() + renderCourseOverview();
 }
 
 function viewPractice() {
   const exs = visibleExercises();
   if (exs.length === 0) return `<div class="card"><p class="muted">暂无练习题。</p></div>`;
+
+  const stats = todayStats();
+  const weak = weakCriteria(5);
+  const statsCard = `
+    <div class="card stats-card">
+      <h2>今日练习</h2>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num">${stats.attempts}</div><div class="stat-label">今日作答</div></div>
+        <div class="stat"><div class="stat-num">${stats.accuracy === null ? '—' : stats.accuracy + '%'}</div><div class="stat-label">正确率</div></div>
+        <div class="stat"><div class="stat-num">${weak.length}</div><div class="stat-label">薄弱概念</div></div>
+      </div>
+      ${weak.length ? `
+        <h3>薄弱概念</h3>
+        <div class="weak-list">
+          ${weak.map(c => {
+            const node = NODES_BY_ID[c.ownerNodeId];
+            return `<div class="weak-item" data-action="open-node" data-node-id="${c.ownerNodeId}">
+              <span>${escapeHtml(c.name.zh)}</span>
+              <span class="muted">${node ? escapeHtml(node.title.zh) : ''} →</span>
+            </div>`;
+          }).join('')}
+        </div>
+        <button class="secondary" data-action="nav" data-tab="review">前往推荐复习 →</button>
+      ` : `<p class="muted">暂无薄弱概念，继续保持！</p>`}
+    </div>
+  `;
+
   const byNode = {};
   exs.forEach(e => { (byNode[e.nodeId] = byNode[e.nodeId] || []).push(e); });
-  return Object.keys(byNode).map(nodeId => {
+  const exerciseCards = Object.keys(byNode).map(nodeId => {
     const node = NODES_BY_ID[nodeId];
     return `<div class="card"><h2>${escapeHtml(node.title.zh)}</h2>${byNode[nodeId].map(renderExercise).join('')}</div>`;
   }).join('');
+
+  return statsCard + exerciseCards;
 }
 
 function viewErrorBook() {
   const roots = visibleErrorRoots();
   if (roots.length === 0) return `<div class="card"><p class="muted">暂无已注册的错误根。</p></div>`;
-  return roots.map(root => {
-    const entries = (STATE.errorBook[root.id] || []).slice().reverse();
-    const rows = entries.map(e => {
+
+  const withEntries = roots
+    .map(root => ({ root, entries: (STATE.errorBook[root.id] || []).slice().reverse() }))
+    .filter(x => x.entries.length > 0)
+    .sort((a, b) => b.entries.length - a.entries.length);
+  const emptyRoots = roots.filter(r => (STATE.errorBook[r.id] || []).length === 0);
+  const totalErrors = withEntries.reduce((sum, x) => sum + x.entries.length, 0);
+
+  const summary = `
+    <div class="card">
+      <h2>错题本</h2>
+      <p class="muted">错误按认知误区（错误根）归类，而不是按题号归类——同一个误区可能来自不同节点的不同题目。共 ${totalErrors} 条记录，涉及 ${withEntries.length} 个误区。</p>
+    </div>
+  `;
+
+  const rootCards = withEntries.map(({ root, entries }) => {
+    const recNodeIds = [...new Set(entries.map(e => e.nodeId))];
+    const recNodes = recNodeIds.map(id => NODES_BY_ID[id]).filter(Boolean);
+    const rows = entries.slice(0, 10).map(e => {
       const node = NODES_BY_ID[e.nodeId];
       const crit = CRITERIA_BY_ID[e.criterionId];
       return `
@@ -1085,12 +1452,19 @@ function viewErrorBook() {
     }).join('');
     return `
       <div class="card">
-        <h2>${escapeHtml(root.name)} <span class="badge">${entries.length} 条</span></h2>
+        <h2>${escapeHtml(root.name)} <span class="badge badge-error-count">${entries.length} 条</span></h2>
         <p class="muted">${escapeHtml(root.description)}</p>
-        ${rows || '<p class="muted">暂无错误记录。</p>'}
+        ${recNodes.length ? `<div class="rec-review"><span class="muted">推荐复习节点：</span>${recNodes.map(n => `<span class="ref-capsule" data-action="open-node" data-node-id="${n.id}">${escapeHtml(n.title.zh)}</span>`).join('')}</div>` : ''}
+        ${rows}
       </div>
     `;
   }).join('');
+
+  const emptyNote = emptyRoots.length
+    ? `<div class="card"><p class="faint">暂无记录的其他误区类别：${emptyRoots.map(r => escapeHtml(r.name)).join('、')}</p></div>`
+    : '';
+
+  return summary + (rootCards || `<div class="card"><p class="muted">暂无错误记录，继续保持！</p></div>`) + emptyNote;
 }
 
 function viewReview() {
@@ -1099,22 +1473,42 @@ function viewReview() {
     const cp = STATE.progress.criteria[c.id];
     return cp && cp.attempts > 0 && !cp.internalized;
   });
+  const overdue = due.filter(c => isOverdue(STATE.progress.criteria[c.id]));
+  const dueToday = due.filter(c => !overdue.includes(c));
+  const estMinutes = Math.max(1, Math.round(due.length * 0.75));
+
+  const header = `
+    <div class="card">
+      <h2>复习</h2>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num">${dueToday.length}</div><div class="stat-label">今日待复习</div></div>
+        <div class="stat"><div class="stat-num warn-num">${overdue.length}</div><div class="stat-label">已逾期</div></div>
+        <div class="stat"><div class="stat-num">${due.length ? estMinutes : 0}</div><div class="stat-label">预计分钟</div></div>
+      </div>
+    </div>
+  `;
+
   if (due.length === 0) {
-    return `<div class="card"><p class="muted">当前没有需要复习的判据。已内化的判据会在出现新错误时自动重新排入复习队列。</p></div>`;
+    return header + `<div class="card"><p class="muted">🎉 当前没有需要复习的判据，已全部保持在最佳状态。已内化的判据出现新错误时会自动重新排入复习队列。</p></div>`;
   }
-  return due.map(c => {
+
+  const ordered = overdue.concat(dueToday);
+  const items = ordered.map(c => {
     const cp = STATE.progress.criteria[c.id];
     const candidateExercises = visibleExercises().filter(e => e.criterionId === c.id && e.certainty !== 'C');
     const node = NODES_BY_ID[c.ownerNodeId];
+    const overdueTag = isOverdue(cp) ? '<span class="badge badge-overdue">逾期</span>' : '';
     return `
       <div class="card">
-        <h2>${escapeHtml(c.name.zh)} <span class="jp muted">${escapeHtml(c.name.ja)}</span></h2>
+        <h2>${escapeHtml(c.name.zh)} <span class="jp muted">${escapeHtml(c.name.ja)}</span> ${overdueTag}</h2>
         <p class="muted">归属节点：${node ? escapeHtml(node.title.zh) : c.ownerNodeId} · 当前连续正确 ${cp.streak}/3</p>
         <div class="progress-bar-track"><div class="progress-bar-fill" style="width:${Math.min(cp.streak, 3) / 3 * 100}%"></div></div>
         ${candidateExercises.map(renderExercise).join('') || '<p class="muted">暂无可用复习题。</p>'}
       </div>
     `;
   }).join('');
+
+  return header + items;
 }
 
 function viewProgress() {
@@ -1123,7 +1517,7 @@ function viewProgress() {
     const cp = STATE.progress.criteria[c.id] || { streak: 0, attempts: 0, correct: 0, internalized: false };
     const pct = Math.min(cp.streak, 3) / 3 * 100;
     return `
-      <div style="margin-bottom:0.75rem;">
+      <div style="margin-bottom: var(--sp-3);">
         <div>${escapeHtml(c.name.zh)} <span class="jp muted">${escapeHtml(c.name.ja)}</span>
           ${cp.internalized ? '<span class="badge badge-internalized">已内化</span>' : ''}
         </div>
@@ -1139,7 +1533,7 @@ function viewProgress() {
     const doneCount = modCriteria.filter(c => STATE.progress.criteria[c.id] && STATE.progress.criteria[c.id].internalized).length;
     const pct = modCriteria.length ? (doneCount / modCriteria.length * 100) : 0;
     return `
-      <div style="margin-bottom:0.5rem;">
+      <div style="margin-bottom: var(--sp-2);">
         <div>${escapeHtml(mod.name.zh)} — ${doneCount}/${modCriteria.length}</div>
         <div class="progress-bar-track"><div class="progress-bar-fill done" style="width:${pct}%"></div></div>
       </div>
@@ -1152,21 +1546,56 @@ function viewProgress() {
   `;
 }
 
+function renderGraphNode(node) {
+  const state = computeUnlockState(node);
+  const contrasts = node.refs.contrasts || [];
+  const contrastTitle = contrasts.map(id => NODES_BY_ID[id] ? NODES_BY_ID[id].title.zh : id).join('、');
+  return `
+    <div class="graph-node state-${state}" data-action="open-node" data-node-id="${node.id}" data-graph-node="${node.id}">
+      <div class="graph-node-title">${escapeHtml(node.title.zh)}</div>
+      <div class="graph-node-jp jp">${escapeHtml(node.title.ja)}</div>
+      <div class="graph-node-meta"><span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span></div>
+      ${contrasts.length ? `<div class="graph-node-contrast" title="辨析对比：${escapeHtml(contrastTitle)}">⇄ 辨析</div>` : ''}
+    </div>
+  `;
+}
+
 function viewRoadmap() {
   const mods = visibleModules().slice().sort((a, b) => a.order - b.order);
+
+  const legend = `
+    <div class="card graph-legend">
+      <h2>认知图谱</h2>
+      <p class="muted">节点按依赖深度分层排列：同一列内的节点没有先后依赖，箭头表示"完成左侧前提 → 解锁右侧节点"。点击任意已解锁节点即可直接进入学习。</p>
+      <div class="legend-row">
+        <span class="legend-item"><span class="state-dot dot-locked"></span>锁定</span>
+        <span class="legend-item"><span class="state-dot dot-available"></span>可学习</span>
+        <span class="legend-item"><span class="state-dot dot-in-progress"></span>学习中</span>
+        <span class="legend-item"><span class="state-dot dot-internalized"></span>已内化</span>
+      </div>
+    </div>
+  `;
+
   const sections = mods.map(mod => {
     const nodes = visibleNodes().filter(n => n.module === mod.id).sort((a, b) => a.order - b.order);
-    const rows = nodes.map(n => {
-      const state = computeUnlockState(n);
-      const reqTitles = (n.refs.requires || []).map(id => NODES_BY_ID[id] ? NODES_BY_ID[id].title.zh : id).join('、');
-      return `
-        <div class="node-row" data-action="open-node" data-node-id="${n.id}">
-          <span>${escapeHtml(n.title.zh)} ${reqTitles ? `<span class="muted">（前提：${escapeHtml(reqTitles)}）</span>` : ''}</span>
-          <span class="badge ${UNLOCK_BADGE_CLASS[state]}">${UNLOCK_LABEL[state]}</span>
+    if (nodes.length === 0) return `<div class="card"><h2>${escapeHtml(mod.name.zh)}</h2><p class="muted">暂无节点。</p></div>`;
+    const depthCache = {};
+    const tiers = {};
+    nodes.forEach(n => {
+      const d = computeNodeDepth(n, depthCache);
+      (tiers[d] = tiers[d] || []).push(n);
+    });
+    const tierKeys = Object.keys(tiers).map(Number).sort((a, b) => a - b);
+    const tiersHtml = tierKeys.map(d => `<div class="graph-tier" data-tier="${d}">${tiers[d].map(renderGraphNode).join('')}</div>`).join('');
+    return `
+      <div class="card graph-module">
+        <h2>${escapeHtml(mod.name.zh)}</h2>
+        <div class="graph-container" data-graph-container>
+          <svg class="graph-svg"></svg>
+          <div class="graph-tiers">${tiersHtml}</div>
         </div>
-      `;
-    }).join('');
-    return `<div class="card"><h2>${escapeHtml(mod.name.zh)}</h2>${rows || '<p class="muted">暂无节点。</p>'}</div>`;
+      </div>
+    `;
   }).join('');
 
   const warnings = validateGraph();
@@ -1174,7 +1603,41 @@ function viewRoadmap() {
     ? `<div class="card"><h2>图结构校验</h2><ul class="warn-list">${warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul></div>`
     : `<div class="card"><h2>图结构校验</h2><p class="muted">未发现悬空引用 / requires 环 / 不对称 contrasts。</p></div>`;
 
-  return sections + warnHtml;
+  return legend + sections + warnHtml;
+}
+
+function drawGraphConnectors() {
+  document.querySelectorAll('[data-graph-container]').forEach(container => {
+    const svg = container.querySelector('.graph-svg');
+    if (!svg) return;
+    const containerRect = container.getBoundingClientRect();
+    svg.setAttribute('width', container.scrollWidth);
+    svg.setAttribute('height', container.scrollHeight);
+    svg.innerHTML = '';
+    const nodeEls = {};
+    container.querySelectorAll('[data-graph-node]').forEach(el => { nodeEls[el.dataset.graphNode] = el; });
+    Object.keys(nodeEls).forEach(id => {
+      const node = NODES_BY_ID[id];
+      if (!node) return;
+      (node.refs.requires || []).forEach(reqId => {
+        const fromEl = nodeEls[reqId];
+        const toEl = nodeEls[id];
+        if (!fromEl || !toEl) return;
+        const fr = fromEl.getBoundingClientRect();
+        const tr = toEl.getBoundingClientRect();
+        const x1 = fr.right - containerRect.left + container.scrollLeft;
+        const y1 = fr.top - containerRect.top + container.scrollTop + fr.height / 2;
+        const x2 = tr.left - containerRect.left + container.scrollLeft;
+        const y2 = tr.top - containerRect.top + container.scrollTop + tr.height / 2;
+        const midX = (x1 + x2) / 2;
+        const state = computeUnlockState(node);
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`);
+        path.setAttribute('class', 'graph-edge ' + (state === 'locked' ? 'edge-locked' : 'edge-active'));
+        svg.appendChild(path);
+      });
+    });
+  });
 }
 
 function viewData() {
@@ -1215,7 +1678,12 @@ function render() {
   renderNav();
   const view = document.getElementById('view');
   view.innerHTML = VIEW_BUILDERS[currentTab]();
+  if (currentTab === 'roadmap') requestAnimationFrame(drawGraphConnectors);
 }
+
+window.addEventListener('resize', () => {
+  if (currentTab === 'roadmap') drawGraphConnectors();
+});
 
 /* =========================================================================
    5. Data import/export/reset handlers
