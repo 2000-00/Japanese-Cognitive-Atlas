@@ -48,6 +48,29 @@ knowingly, not an oversight.
    - error-book classification (by root)
    - SRS scheduling (by criterion, streak-based)
    - graph traversal/validation (see GRAPH_SPEC.md)
+
+   Built on top of the frozen engine, as separate read-only sections
+   (added later, each justified by an explicit product requirement):
+   - **3b PRESENTATION HELPERS** — derived view values (estimates,
+     confidence labels, progress rollups). Never mutate STATE.
+   - **3c KNOWLEDGE GRAPH LAYER** — `knowledgePosition` metadata rendering,
+     derived relations (`getKnowledgeRelations`), trust badges, Source
+     Library (`SOURCES`, mirrors `resources/sources.json`).
+   - **3d GRAPH INTELLIGENCE ENGINE** — reasoning over graph + SRS state:
+     `computeNodeIntelligence` (state/weak/review-due flags + priority
+     **with human-readable reasons** — the engine must always be able to
+     explain a recommendation, never just emit a score),
+     `recommendNextNodes`, `learningPathTo`, `whyNodeMatters`,
+     reverse-edge lookups (`downstreamNodeIds`, `citedByNodeIds`,
+     `previewedByNodeIds`). Drives the Study hero, the graph flags, and
+     the side panel. Read-only over STATE.
+   - **3e TEXT ANALYZER** — the deterministic scaffold of the future AI
+     parsing layer: surface-pattern detectors (`TEXT_DETECTORS`, one per
+     node, honestly labeled 教学简化) feeding `analyzeText`, which does the
+     permanent part — graph reasoning (mastery lookup, missing-prerequisite
+     detection, dependency-ordered study plan). The detector layer is
+     designed to be replaced by a real parser/LLM backend; everything
+     downstream of the detection result already is the final architecture.
 4. **UI** — tab router + DOM rendering built on top of ENGINE. No virtual
    DOM, no reactive framework — direct `innerHTML`/DOM calls, because the
    whole app is small enough that this stays legible.
