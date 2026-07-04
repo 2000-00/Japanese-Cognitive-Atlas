@@ -410,6 +410,8 @@ const ERROR_ROOTS = [
   { id: 'R_CONN_REGISTER', name: '接续词语体错位', description: 'から/ので、けど/が等成对接续词的语体与主观性差异被当成完全同义随意互换，在正式请求或书面语境中选错档位。', module: 'core-grammar' },
   { id: 'R_COND', name: '条件形选择错误', description: '把中文"如果/一…就"直译到と/ば/たら/なら中的错误一档：忽视と的规律性限制、ば的后件限制、なら的话题性前提，条件四形混选。', module: 'core-grammar' },
   { id: 'R_ASPECT_PURPOSE', name: '目的/意志性误判', description: 'ために与ように按中文"为了"合并处理，忽视前接动词的意志性（意志动词→ために、非意志/可能→ように）这一硬性分工。', module: 'core-grammar' },
+  { id: 'R_ASPECT', name: '体（アスペクト）误判', description: '把ている一律译作"正在"，忽视结果状态读法（結婚している/死んでいる）；或混淆ている/てある的视角差异、误配自他动词。', module: 'core-grammar' },
+  { id: 'R_TIMEPOINT', name: '时点表达混淆', description: 'ところ三时相（るところ/ているところ/たところ）与たばかり的时点定位混选，或经历表达（たことがある）与单纯过去（た）不分。', module: 'core-grammar' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
@@ -447,6 +449,13 @@ const CRITERIA = [
   { id: 'C_TAME_YOU', name: { zh: 'ために/ように目的律', ja: 'タメヨウニ目的則' }, description: '目的表达按前接动词意志性分工：意志动词+ために（为了做…）、非意志动词/可能形+ように（以便能…）；ために另有原因义（名词+のため），靠语境区分。', module: 'core-grammar', ownerNodeId: 'cg-c-tame-you' },
   { id: 'C_COND_TOBA', name: { zh: 'と/ば规律条件律', ja: 'トバ条件則' }, description: 'と=只要前件成立后件必然/习惯性出现（自然规律、机器操作、发现），后件不能接意志/命令；ば=一般假设，焦点在前件条件本身，后件为意志句时前件须是状态性谓语。', module: 'core-grammar', ownerNodeId: 'cg-c-cond-to-ba' },
   { id: 'C_COND_TARANARA', name: { zh: 'たら/なら个别条件律', ja: 'タラナラ条件則' }, description: 'たら=一次性/完成条件（等前件实现之后），最通用、口语首选，还有"结果发现"用法；なら=接过对方话题做条件（"要是说到…的话"），后件动作可先于前件发生（京都に行くなら、新幹線がいい）。', module: 'core-grammar', ownerNodeId: 'cg-c-cond-tara-nara' },
+  { id: 'C_TEIRU', name: { zh: 'ている两读律', ja: 'テイル二義則' }, description: 'ている的读法由动词类型决定：持续动词（読む、走る）→进行中；瞬间动词（結婚する、死ぬ、来る）→动作完成后的结果状态。判断先问动词是过程还是瞬间切换。', module: 'core-grammar', ownerNodeId: 'cg-a-teiru' },
+  { id: 'C_TEARU', name: { zh: 'てある人为痕迹律', ja: 'テアル痕跡則' }, description: '他动词+てある=眼前状态是某人有意行为留下的痕迹（窓が開けてある），宾语升格为が；与自动词+ている的中性状态描写（窓が開いている）构成视角对立。', module: 'core-grammar', ownerNodeId: 'cg-a-tearu' },
+  { id: 'C_TEOKU', name: { zh: 'ておく预置律', ja: 'テオク準備則' }, description: 'ておく=为将来的需要预先完成动作并保持其效果（ホテルを予約しておく）；另有"放任不动"义（そのままにしておく）。口语缩约とく/どく。', module: 'core-grammar', ownerNodeId: 'cg-a-teoku' },
+  { id: 'C_TESHIMAU', name: { zh: 'てしまう完结律', ja: 'テシマウ完了則' }, description: 'てしまう=彻底完结（全部読んでしまった）或不可挽回的懊悔/意外（財布を忘れてしまった）；两读共享"越过临界点、无法回头"。口语缩约ちゃう/じゃう。', module: 'core-grammar', ownerNodeId: 'cg-a-teshimau' },
+  { id: 'C_TEKURU_TEIKU', name: { zh: 'てくる/ていく方向律', ja: 'テクルテイク方向則' }, description: '空间：朝说话人→てくる，离开→ていく；投射到时间：过去至今的变化→てきた，现在向未来→ていく。说话人是坐标原点。', module: 'core-grammar', ownerNodeId: 'cg-a-tekuru-teiku' },
+  { id: 'C_TOKORO_BAKARI', name: { zh: 'ところ/ばかり时点律', ja: 'トコロバカリ時点則' }, description: 'ところ按前接形态定位三时相：るところ（即将）、ているところ（正当中）、たところ（刚刚完毕）；たばかり=说话人主观觉得"没过多久"，客观间隔可长可短。', module: 'core-grammar', ownerNodeId: 'cg-a-tokoro-bakari' },
+  { id: 'C_TAKOTO', name: { zh: 'たことがある经历律', ja: 'タコトガアル経験則' }, description: 'た形+ことがある=把一次性事件登记为人生经历档案（富士山に登ったことがある），与叙述具体过去事件的た形分工；否定=たことがない（从未）。', module: 'core-grammar', ownerNodeId: 'cg-a-takoto' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -2092,6 +2101,347 @@ const NODES = [
     }
   },
 
+  /* ---- PART 2 · 体与时点系统 ---- */
+
+  {
+    id: 'cg-a-teiru', module: 'core-grammar', order: 27, status: 'draft',
+    qualifies: { independentMechanism: 'ている的进行/结果两读由动词的词汇体（过程 vs 瞬间）决定；这一判定机制独立于任何单个动词的记忆。', citedByCount: 2, errorRoot: 'R_ASPECT', mergeNote: null },
+    title: { zh: 'ている：正在，还是已经？', ja: 'テイル', en: 'Te-iru' },
+    refs: { requires: ['lc-te-interface'], invokes: ['lc-te-interface'], contrasts: ['cg-a-tearu'], previews: [] },
+    layer0: {
+      body: 'ている有两副面孔：本を読んでいる=正在读（进行中）；結婚している=已经结婚（结果状态，不是"正在结婚"！）。选哪副面孔不由ている决定，由动词性质决定。',
+      example: { jp: '窓が開いている。', zh: '窗户开着——"开"是一瞬间的事，ている读作"开了之后的状态"，不是"正在开"。' },
+      hook: '为什么死んでいる只能是"死了"，绝不可能是"正在死"？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个ている句该读进行还是结果',
+          body: '判断问动词：这个动作有没有可持续的过程？有过程（読む、書く、走る、食べる——持续动词）→ている=进行中。没有过程、状态一瞬间切换（結婚する、死ぬ、始まる、開く、来る、知る——瞬间动词）→ている=切换完成后的结果状态。結婚している=已婚，来ている=已经来了（人在这里），知っている=知道。中文"在/着/了"的分工与此错位严重，逐词对译必错。',
+          minimalPair: [ { jp: '弟はご飯を食べている。', zh: '弟弟正在吃饭。（持续动词→进行）' }, { jp: '兄は結婚している。', zh: '哥哥已经结婚了。（瞬间动词→结果状态）' } ],
+          miniExercise: { exerciseId: 'ex-cg27-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：ている的第三、第四副面孔——反复与单纯状态',
+          body: 'ている还有两个次要读法：①习惯性反复：毎朝ジョギングをしている（每天晨跑——不是此刻在跑，是反复成习）；②单纯状态（形容词化）：似ている（像）、優れている（优秀）、太っている（胖）——这批动词几乎只以ている形出现，直接当形容词记。四读的判断顺序：先看有没有反复副词（毎日、いつも）→反复；再按动词类型分进行/结果；词典标注"多用ている形"的→单纯状态。',
+          minimalPair: [ { jp: '父は銀行で働いている。', zh: '父亲在银行工作。（职业=习惯性反复）' }, { jp: '彼は母親に似ている。', zh: '他像妈妈。（单纯状态，无进行/结果义）' } ],
+          miniExercise: { exerciseId: 'ex-cg27-2' } }
+      ],
+      hook: '同样描述"窗户开着"，窓が開いている和窓が開けてある差在哪个看不见的地方？'
+    },
+    layer2: {
+      body: '金田一春彦的动词四分类（状态动词/继续动词/瞬间动词/第四种动词）是ている两读律的经典理论来源：继续动词+ている=进行，瞬间动词+ている=结果存续，第四种动词（似る、聳える等）只以ている形表单纯状态。这一分类是日语体（アスペクト）研究的基石。中文对照：中文"在"专司进行、"着"偏状态、"了"偏完成，三者分工由词决定；日语把全部分工压进ている一个形式、由动词的词汇体决定读法——形式极简、判断前置，这正是中文母语者初期大面积误读（把結婚している读成"正在结婚"）的结构性原因。行为方针：背瞬间动词高频清单（結婚・死ぬ・始まる・終わる・開く・閉まる・来る・行く・着く・知る・持つ），清单外默认进行读。',
+      boundaryCases: [
+        { jp: '来ている', zh: '"（人）已经来了、现在在这儿"——来る是瞬间动词，绝无"正在来"的读法；"正在来的路上"须说こちらに向かっている。', note: '来ている/行っている的结果读是考试与日常的双高频陷阱。', source: null },
+        { jp: '知っている／知らない', zh: '"知道"用ている形，否定却是知らない（不是知っていない）——知る一族的不对称是词汇化的固定搭配。', note: '知る的肯否不对称须整体记忆。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '动词类型（同一ている）', sets: [ { jp: '雨が降っている。', zh: '正在下雨。（持续）' }, { jp: '電気がついている。', zh: '灯亮着。（瞬间→结果状态）' } ] } ],
+      tier2: [ { jp: '今、宿題をしています。', zh: '现在正在做作业。', register: 'polite' }, { jp: '妹は東京に住んでいる。', zh: '妹妹住在东京。（结果存续）', register: 'plain' }, { jp: '当店は年中無休で営業している。', zh: '本店全年无休营业。（反复/常态）', register: 'written' } ],
+      tier3: [ { jp: 'あ、財布落ちてるよ。', zh: '啊，钱包掉（在地上）了——口语ている缩约为てる，结果状态读法。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TEIRU'], errorRoots: ['R_ASPECT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > ている（进行/结果）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '进行义惯例归 N5、结果状态义惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '两读判定要求先掌握动词词汇体分类，与中文"在/着/了"错位严重，是体系统的最大难关；瞬间动词清单+最小对立对是主攻手段。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: 'ている遍布全部语域；口语缩约てる已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-a-tearu', module: 'core-grammar', order: 28, status: 'draft',
+    qualifies: { independentMechanism: 'てある把眼前状态归因于某人的有意行为（人为痕迹），并触发宾语升格；与ている的中性状态读构成系统对立。', citedByCount: 0, errorRoot: 'R_ASPECT', mergeNote: null },
+    title: { zh: 'てある：有人特意做的痕迹', ja: 'テアル', en: 'Te-aru' },
+    refs: { requires: ['cg-a-teiru'], invokes: [], contrasts: ['cg-a-teiru'], previews: [] },
+    layer0: {
+      body: '窓が開けてある=窗户开着，而且是有人特意开的（也许为了通风）。てある看到的不只是状态，还有状态背后那只"手"。中性地说"开着"用開いている，暗示人为用開けてある。',
+      example: { jp: 'テーブルに花が飾ってある。', zh: '桌上摆着花——有人特意摆的，てある把"特意"编码进语法。' },
+      hook: '为什么てある只能接他动词，ている两边都能接？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：状态描写该用ている还是てある',
+          body: '同一扇开着的窗，两种说法：窓が開いている（自动词+ている：中性观察，"就是开着"）vs 窓が開けてある（他动词+てある："有人开了它、痕迹还在"）。てある必须接他动词——因为它的语义就是"某人对宾语做了什么"，而原宾语升格为が标记（開ける的宾语"窗"变成了が窓）。选择判断：要不要暗示"背后有人、有目的"？要→てある；只报状态→自动词ている。',
+          minimalPair: [ { jp: 'ドアが閉まっている。', zh: '门关着。（自动词+ている：中性）' }, { jp: 'ドアが閉めてある。', zh: '门（被人特意）关上了。（他动词+てある：人为痕迹）' } ],
+          miniExercise: { exerciseId: 'ex-cg28-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：てある与ておく的分工——痕迹 vs 预备',
+          body: 'てある与ておく是一枚硬币的两面：ておく面向将来（先做好准备：予約しておく"先订好"），てある面向现在（准备的痕迹已在眼前：予約してある"已经订好了"）。做准备时说ておく，检查/汇报准备结果时说てある——会議の資料はもうコピーしてあります（资料已复印好）。两者常在同一场景接力出现：先おく后ある。',
+          minimalPair: [ { jp: 'ホテルを予約しておく。', zh: '（我）先把酒店订好。（面向将来的预备动作）' }, { jp: 'ホテルは予約してある。', zh: '酒店已经订好了。（预备完成的现存状态）' } ],
+          miniExercise: { exerciseId: 'ex-cg28-2' } }
+      ],
+      hook: 'ておく既然专管"预先做好"，它还有哪些不那么显眼的用法？'
+    },
+    layer2: {
+      body: 'てある的语法本质是"结果存续+施事隐退"：施事必然存在（人为性）却不可明说（＊私に開けてある✗），焦点全部让给结果状态——这与被动句保留施事表达位（に）形成微妙分工。宾语升格（を→が）是てある句法上最可靠的识别标志，但口语中也有保留を的用法（窓を開けてある），此时隐含的施事倾向于说话人自己（我把窗开着呢）——が版更客观、を版更"我做的"，这一微差在 N2 语法辨析中出现。自他动词配对（開く/開ける、閉まる/閉める、つく/つける）是てある/ている对立的载体，配对记忆表在此处收益最大化。',
+      boundaryCases: [ { jp: '壁に何か書いてある。', zh: '墙上写着什么——书写/张贴类动词的てある高频到接近中性（"写着"），人为义弱化。', note: '高频搭配中てある的"特意"义会磨损，阅读时按语境权衡。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '视角（ている vs てある，同一状态）', sets: [ { jp: '電気が消えている。', zh: '灯灭着。（中性）' }, { jp: '電気が消してある。', zh: '灯（被人特意）关了。（节电的痕迹）' } ] } ],
+      tier2: [ { jp: '名前が書いてあります。', zh: '写着名字。', register: 'polite' }, { jp: '冷蔵庫にビールが冷やしてある。', zh: '冰箱里冰着啤酒（特意冰的）。', register: 'plain' }, { jp: '会場には椅子が並べてあった。', zh: '会场里摆好了椅子。', register: 'written' } ],
+      tier3: [ { jp: 'ちゃんと鍵かけてある？', zh: '锁好门了吧？——口语检查"预备痕迹"的てある疑问句。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TEARU'], errorRoots: ['R_ASPECT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > てある（人为痕迹）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'てある惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '依赖自他动词配对知识；てある/ている/ておく三方对照是 N4-N3 高频考点群，配对表+对立对练习见效快。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '状态检查、预备汇报、场景描写三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-a-teoku', module: 'core-grammar', order: 29, status: 'draft',
+    qualifies: { independentMechanism: 'ておく将动作定性为"为将来效果而预置"，并派生放任义；预置视角是独立机制。', citedByCount: 1, errorRoot: 'R_ASPECT', mergeNote: null },
+    title: { zh: 'ておく：为将来先做好', ja: 'テオク', en: 'Te-oku' },
+    refs: { requires: ['cg-a-teiru'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: 'ておく=现在做，是为了将来用：会議の前に資料を読んでおく（开会前先把资料读好）。它还有个低调的兄弟义："保持原样别动"——窓は開けておいて（窗就让它开着）。口语缩成とく。',
+      example: { jp: 'ビールを冷やしておく。', zh: '先把啤酒冰上——为了晚上喝，现在动手，效果保持到那时。' },
+      hook: '"先做好"和"放着别动"看似相反，为什么共用一个ておく？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：什么时候该给动作挂ておく',
+          body: 'ておく的判断问题：这个动作的效果是不是为某个将来时点服务？是→挂ておく：試験のために単語を覚えておく（为考试先记住单词）、来客の前に掃除しておく（客人来前先打扫）。不挂ておく的裸动作只陈述发生，挂了就多一层"目的在后头"的规划感。因此ておく天然与に/ため/前に等将来指向成分共现，指令场景（帮我先…）中高频：これ、コピーしておいてください。',
+          minimalPair: [ { jp: '単語を覚える。', zh: '记单词。（就事论事）' }, { jp: '試験の前に単語を覚えておく。', zh: '考试前先把单词记好。（为将来预置）' } ],
+          miniExercise: { exerciseId: 'ex-cg29-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：放任义ておく与口语缩约形',
+          body: '第二义"放任/维持现状"：そのままにしておいて（就那样放着）、電気をつけておく（灯就让它亮着）——本质仍是"为将来保持某效果"，只是动作换成了"不干预"。口语缩约：ておく→とく、でおく→どく：買っとく（先买好）、読んどく（先读好）、やめとく（还是算了——高频拒绝缓和语）。缩约形在会话与社交媒体里比全形更常见，听力必备。',
+          minimalPair: [ { jp: 'エアコンはつけておいてください。', zh: '空调请让它开着。（放任=维持效果）' }, { jp: 'じゃ、これ買っとくね。', zh: '那这个我先买下啦。（とく缩约）' } ],
+          miniExercise: { exerciseId: 'ex-cg29-2' } }
+      ],
+      hook: '预备是面向未来的从容——那"来不及了、糟了"的懊悔，日语交给哪个体标记？'
+    },
+    layer2: {
+      body: 'おく本动词义"放置"是ておく语法化的语义底座：把动作的结果"放"在那里备用——预置义与放任义因此同源（一个放上去、一个不拿走）。ておく在语用上还承担"缓和决断"功能：やめておきます（我还是不要了）比やめます婉转，因为"先搁置"暗示未来还有余地——购物、点菜场景的高频拒绝式。与てある的接力关系（おく做准备、ある查痕迹）构成"预备"语义场的完整闭环，三者（ておく/てある/ている）的对照表是 N4-N3 语法题的常设考区。',
+      boundaryCases: [ { jp: '覚えておいてね。', zh: '你可给我记住了——威胁/叮嘱语气：把"记住"的效果保持到将来某个算账时点，预置义的语用延伸。', note: '叮嘱/威胁义是预置图式在人际域的投射。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '预置 vs 裸动作', sets: [ { jp: '資料をコピーする。', zh: '复印资料。' }, { jp: '会議までに資料をコピーしておく。', zh: '开会前先把资料印好。（服务于将来时点）' } ] } ],
+      tier2: [ { jp: '飲み物を買っておきました。', zh: '饮料已经先买好了。', register: 'polite' }, { jp: 'そのままにしておこう。', zh: '就先那样放着吧。', register: 'plain' }, { jp: '事前に関係者に連絡しておくこと。', zh: '须事先联系相关人员。（规程体）', register: 'written' } ],
+      tier3: [ { jp: '今日はやめとくわ。', zh: '今天还是算了——やめとく：缩约+决断缓和的口语高频组合。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TEOKU'], errorRoots: ['R_ASPECT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > ておく（预置）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'ておく惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '预置图式直观；缩约形とく/どく的听辨与やめとく类语用是实战重点。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '预备指令、放任维持、规程、口语缩约四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-a-teshimau', module: 'core-grammar', order: 30, status: 'draft',
+    qualifies: { independentMechanism: 'てしまう以"越过临界点"统摄彻底完结与不可挽回两读，读法由语境的可控性决定；是独立的体+情态复合机制。', citedByCount: 0, errorRoot: 'R_ASPECT', mergeNote: null },
+    title: { zh: 'てしまう：彻底做完，或再也回不去', ja: 'テシマウ', en: 'Te-shimau' },
+    refs: { requires: ['cg-a-teiru'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: 'てしまう的两副面孔共享一个画面："越过了临界点"。主动越过=彻底完结：全部読んでしまった（一口气读完了）。被动越过=覆水难收：財布を忘れてしまった（把钱包忘了，糟糕）。口语缩成ちゃう/じゃう。',
+      example: { jp: 'ケーキを全部食べてしまった。', zh: '把蛋糕全吃完了——可以是"痛快吃光"，也可以是"不小心吃光了（本想留点）"，语境定夺。' },
+      hook: '同一个食べてしまった，怎么判断说话人是痛快还是懊悔？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：てしまう句的完结读与懊悔读',
+          body: '判断看两点：①动作是否说话人有意为之？有意+完成指向（全部、最後まで共现）→完结读：宿題をやってしまおう（干脆把作业做完）。②无意/事与愿违（うっかり、つい共现，或后果负面）→懊悔/意外读：寝坊してしまった（睡过头了）、大事なファイルを消してしまった（把重要文件删了）。中文没有专职的"懊悔体"标记，只能靠"不小心/竟然/糟了"等词汇手段——日语把这层情绪压进语法，是听力捕捉说话人态度的高价值信号。',
+          minimalPair: [ { jp: 'レポートを書いてしまおう。', zh: '干脆把报告写完吧。（意志+完结）' }, { jp: '弟のケーキを食べてしまった。', zh: '（不小心）把弟弟的蛋糕吃了。（无意+懊悔）' } ],
+          miniExercise: { exerciseId: 'ex-cg30-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：ちゃう/じゃう缩约的对应规则',
+          body: '口语缩约：てしまう→ちゃう、でしまう→じゃう（浊音对应，与て/で分组完全一致）：食べちゃった（吃掉了）、飲んじゃった（喝掉了）、忘れちゃった（忘了）。缩约形保留全部两读，且在日常会话中占绝对多数；女性/儿童语感的刻板印象已过时，男女通用。听力等价练习：ちゃった⇄てしまった的即时换写，直到无需思考。',
+          minimalPair: [ { jp: '宿題、忘れちゃった。', zh: '作业忘（带）了。（=忘れてしまった）' }, { jp: '全部飲んじゃった。', zh: '全喝光了。（=飲んでしまった，で→じゃ浊音对应）' } ],
+          miniExercise: { exerciseId: 'ex-cg30-2' } }
+      ],
+      hook: '完结、懊悔都是"点"上的事——那"变化一路走来/一路走去"的方向感，谁来标记？'
+    },
+    layer2: {
+      body: 'しまう本动词义"收纳、收尾"（店をしまう关店）是语法化起点："收进去了"→动作彻底了结→（负面语境）无法取出=不可挽回。两读的统一图式"越过临界点"解释了为什么完结读偏好意志句（しまおう）而懊悔读偏好过去形（しまった）——连独立感叹词しまった！（糟了！）都是这条语法化链的终端产品。类型学上てしまう常被比作完成体+反预期（mirative）的复合标记；JLPT 听力中ちゃった的情绪判读（痛快 or 懊悔）几乎每年出现，判断锚点是共现副词与语调。',
+      boundaryCases: [ { jp: '風邪を引いてしまいました。', zh: '感冒了（很遗憾）——生病、迟到等负面事件几乎强制挂てしまう，不挂反而显得毫无歉意。', note: '负面事件+てしまう已近乎礼貌规范，是"语法化的歉意"。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '读法（意志完结 vs 无意懊悔）', sets: [ { jp: '本を最後まで読んでしまった。', zh: '把书一口气读完了。（完结）' }, { jp: '電車の中に傘を忘れてしまった。', zh: '把伞忘在电车里了。（懊悔）' } ] } ],
+      tier2: [ { jp: '遅れてしまって、すみません。', zh: '迟到了，真抱歉。', register: 'polite' }, { jp: '先に食べてしまおう。', zh: '咱们先吃完再说。', register: 'plain' }, { jp: '貴重な資料が失われてしまった。', zh: '珍贵的资料永远失去了。', register: 'written' } ],
+      tier3: [ { jp: 'やっちゃった……。', zh: '搞砸了……——ちゃった单用即成句，懊悔读的口语极致形。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TESHIMAU'], errorRoots: ['R_ASPECT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > てしまう（完结/懊悔）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'てしまう惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '两读判断依赖语境线索（意志性、共现副词、语调），需要语料浸泡；缩约对应规则本身机械。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '道歉、决断、书面惋惜、口语感叹四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-a-tekuru-teiku', module: 'core-grammar', order: 31, status: 'draft',
+    qualifies: { independentMechanism: 'てくる/ていく以说话人为原点把空间方向投射到时间变化（既往→てきた、将来→ていく）；坐标原点机制独立成义。', citedByCount: 0, errorRoot: 'R_ASPECT', mergeNote: null },
+    title: { zh: 'てくる・ていく：以我为原点的方向', ja: 'テクル・テイク', en: 'Te-kuru and Te-iku' },
+    refs: { requires: ['cg-a-teiru'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: '空间上：朝我来→てくる（持ってくる拿来），离我去→ていく（持っていく拿去）。妙在时间上也成立：一路变化到现在→てきた（暖かくなってきた），从现在变下去→ていく（減っていく）。',
+      example: { jp: '日本語が上手になってきた。', zh: '日语（这一路）越来越好了——变化从过去朝"现在的我"走来。' },
+      hook: '为什么"渐渐变暖"是なってきた，"将会继续减少"是減っていく——方向到底跟着什么走？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：空间域的てくる/ていく怎么选',
+          body: '坐标原点=说话人（或视角人物）。动作伴随"朝原点移动"→てくる：友達が遊びに来た场景里的持ってくる、帰ってくる（回到我这里）、雨が降ってくる（雨点朝我落下来）。伴随"离开原点"→ていく：持っていく（带走）、出ていく（出去）、飛んでいく（飞走）。中文"来/去"分工与此基本平行，空间域负担不大——真正的增量在下一步的时间投射。',
+          minimalPair: [ { jp: '弁当を持ってくる。', zh: '带便当来（朝我/这里）。' }, { jp: '弁当を持っていく。', zh: '带便当去（离开这里）。' } ],
+          miniExercise: { exerciseId: 'ex-cg31-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：时间域的てきた/ていく怎么选',
+          body: '把时间轴想成一条路，"现在的我"站在原点：从过去延续/变化至今→てきた（ずっと頑張ってきた一路努力过来、寒くなってきた冷起来了、増えてきた多起来了）；从现在延伸向未来→ていく（これからも続けていく今后继续下去、減っていく将不断减少）。新变化的"冒头"也用てくる（お腹が空いてきた开始饿了——饿意朝我袭来）。考试与写作中，段落的时间视角常靠这一对锚定：回顾用てきた、展望用ていく。',
+          minimalPair: [ { jp: '人口が増えてきた。', zh: '人口（一路）多起来了。（过去→现在）' }, { jp: '人口が増えていく。', zh: '人口将不断增加。（现在→未来）' } ],
+          miniExercise: { exerciseId: 'ex-cg31-2' } }
+      ],
+      hook: '方向有了，"此刻正是哪个瞬间"的精确定位——るところ/ているところ/たところ三连拍怎么用？'
+    },
+    layer2: {
+      body: '移动动词くる/いく的语法化保留了指示性（deixis）：原点永远是说话人视角，这与授受动词くれる/あげる的方向系统同构（日语的"以我为圆心"家族）。时间投射的认知基础是"时间即空间"隐喻——过去在身后走来（てきた）、未来在前方延伸（ていく），与中文"走过来/走下去"的隐喻方向完全一致，可直接借力。文体注意：书面论说文的趋势描写几乎必用ていく/てきた锚定视角（少子化が進んでいく中で……），是 N2-N1 读解的高频结构；口语缩约てく（持ってく）也常见。',
+      boundaryCases: [ { jp: '空が明るくなっていった。', zh: '天色渐渐亮了起去（叙述过去场景中远去的变化）——ていく+过去形：视角人物在过去，变化离他而去。', note: '小说叙事中ていった的视角操作是高级读解点。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '时间方向（同一变化）', sets: [ { jp: '暖かくなってきた。', zh: '暖和起来了。（变化走到眼前）' }, { jp: 'これから暖かくなっていく。', zh: '接下来会越来越暖。（变化走向未来）' } ] } ],
+      tier2: [ { jp: '傘を持っていきますか。', zh: '要带伞去吗？', register: 'polite' }, { jp: '風が強くなってきた。', zh: '风大起来了。', register: 'plain' }, { jp: '高齢化は今後も進んでいくと考えられる。', zh: '老龄化预计今后将继续加剧。', register: 'written' } ],
+      tier3: [ { jp: 'だんだん分かってきた。', zh: '渐渐明白过来了——理解的"冒头"朝我走来，认知类动词+てくる的高频组合。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TEKURU_TEIKU'], errorRoots: ['R_ASPECT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > てくる・ていく（方向）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '空间义惯例归 N5-N4、时间投射义惯例归 N4-N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '空间义可借中文"来/去"直觉；时间投射与中文"过来/下去"隐喻同向，迁移成本低，属高性价比语法。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '日常携带、天气变化、论说趋势、认知冒头四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-a-tokoro-bakari', module: 'core-grammar', order: 32, status: 'draft',
+    qualifies: { independentMechanism: 'ところ以前接形态精确定位动作三时相，ばかり以主观近接感标注"刚刚"；两者的时点定位与主观性差异是独立判断点。', citedByCount: 0, errorRoot: 'R_TIMEPOINT', mergeNote: 'ところ（场所名词）与ばかり（限定"净是"）的其他用法另属别处；本节点只管时点用法。' },
+    title: { zh: 'ところ・ばかり：给"此刻"拍特写', ja: 'トコロ・バカリ', en: 'Tokoro and Bakari' },
+    refs: { requires: ['cg-ta-form'], invokes: ['cg-a-teiru'], contrasts: [], previews: [] },
+    layer0: {
+      body: 'ところ给动作拍三连特写：食べるところ（正要吃）、食べているところ（正吃着）、食べたところ（刚吃完）——时相全看前接形态。たばかり也是"刚"：但那是心理上的"没过多久"。',
+      example: { jp: '今、出かけるところです。', zh: '现在正要出门——动作前一刻的特写。' },
+      hook: 'たところ和たばかり都译"刚刚"，为什么"三年前买的"只能配ばかり？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：ところ三时相的形态对应',
+          body: '前接形态锁定时相：辞书形+ところ=动作即将开始的临界点（これから食べるところ正要吃）；ているところ=动作进行正当中（今食べているところ正吃着呢）；た形+ところ=动作刚结束的瞬间（たった今食べたところ刚吃完）。三个特写都强调"恰好此刻"，因此高频出现在电话/敲门等打断场景的应答里：今、会議中でして、終わったところでお電話します。',
+          minimalPair: [ { jp: 'お風呂に入るところだ。', zh: '正要洗澡。（临界点）' }, { jp: 'お風呂に入っているところだ。', zh: '正在洗澡。（正当中）' } ],
+          miniExercise: { exerciseId: 'ex-cg32-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：たところ与たばかり的分工',
+          body: 'たところ=客观的"动作结束后一瞬间"，只能贴在事件刚落幕的时点上。たばかり=说话人主观觉得"没过多久"，客观间隔可以很长：三年前に買ったばかりの車（三年前才买的车——对车而言三年算新）✓，＊三年前に買ったところ✗。判断：真的刚结束几秒几分→两者皆可（たところ更精确）；隔了一段但想强调"还新/还不熟"→只能たばかり。ばかり的主观性使它能配衣服还新、工作还不熟练等评价语境。',
+          minimalPair: [ { jp: 'たった今着いたところです。', zh: '这会儿刚到。（客观瞬间）' }, { jp: '先月日本に来たばかりで、まだ慣れていません。', zh: '上个月才来日本，还不习惯。（主观"没多久"）' } ],
+          miniExercise: { exerciseId: 'ex-cg32-2' } }
+      ],
+      hook: '时点定位收官——把一次经历存进"人生档案"的たことがある，跟单纯过去的た差在哪？'
+    },
+    layer2: {
+      body: 'ところ本义"场所"，语法化为"时间上的位置"——空间→时间的隐喻再次现身（呼应てくる/ていく节点）。三时相系统的精确性使ところ成为日语"时相特写"的标准工具，其后接续还能进一步扩展（ところに/ところへ来客打断、ところで话题转换——后者已完全话语标记化）。ばかり的时点义与其限定义（パンばかり食べる净吃面包）共享"局限于此"的核心：时点义是"时间上还局限在事件近旁"。两词的主观/客观分工在 JLPT 语法辨析题中是固定考点，判断锚点就是"客观间隔多久"与"说话人想不想强调新近感"。',
+      boundaryCases: [ { jp: 'ちょうど今、話していたところです。', zh: '巧了，我们刚才正说着（你）呢——ていたところ：过去进行的特写，来客/来电场景的固定应答。', note: 'ていたところ是三时相的过去平移形。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '时相（同一动词，前接形态不同）', sets: [ { jp: '会議が始まるところだ。', zh: '会议正要开始。' }, { jp: '会議が終わったところだ。', zh: '会议刚结束。' } ] } ],
+      tier2: [ { jp: '今、駅に着いたところです。', zh: '现在刚到车站。', register: 'polite' }, { jp: 'この会社に入ったばかりだ。', zh: '刚进这家公司。', register: 'plain' }, { jp: '発売されたばかりの新製品が話題を集めている。', zh: '刚上市的新品正引发热议。', register: 'written' } ],
+      tier3: [ { jp: '今起きたとこ。', zh: '刚起床。——口语中ところ缩约为とこ。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TOKORO_BAKARI'], errorRoots: ['R_TIMEPOINT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > ところ・ばかり（时点特写）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'ところ三时相/たばかり惯例归 N4-N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '三时相形态对应机械易学；たところ/たばかり主客观分野需最小对立对钉死（三年前…ばかり是关键测试例）。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '电话应答、自我介绍（刚来/刚入职）、新品报道、口语缩约四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-a-takoto', module: 'core-grammar', order: 33, status: 'draft',
+    qualifies: { independentMechanism: 'たことがある把事件从时间线摘出、登记为经历属性，与叙事的た形成"档案 vs 日志"分工；经历化是独立机制。', citedByCount: 0, errorRoot: 'R_TIMEPOINT', mergeNote: null },
+    title: { zh: 'たことがある：人生经历的档案袋', ja: 'タコトガアル', en: 'Ta koto ga aru' },
+    refs: { requires: ['cg-ta-form'], invokes: ['cg-ta-form'], contrasts: [], previews: [] },
+    layer0: {
+      body: '富士山に登ったことがある=爬过富士山（人生清单上有这一项）。た形讲"那天发生了什么"，たことがある讲"我这个人有过这种经历"——一个是日志，一个是档案。',
+      example: { jp: '納豆を食べたことがありますか。', zh: '你吃过纳豆吗？——问的是经历档案，不是问哪一天吃的。' },
+      hook: '为什么"昨天爬了富士山"绝对不能说成昨日富士山に登ったことがある？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：过去事件该走日志（た）还是档案（たことがある）',
+          body: '判断问题：句子的兴趣点在"那次事件本身"还是"主语具有此种经历"？前者→た（昨日映画を見た）；后者→たことがある（この映画は見たことがある这片子我看过）。硬限制随之而来：近期确定时点的事件不能入档案——＊昨日富士山に登ったことがある✗，"昨天"的事还在日志区，经历化要求与当下拉开距离（通常配一度、何度も、昔、子供の頃等）。否定形たことがない=从未：一度も刺身を食べたことがない。',
+          minimalPair: [ { jp: '去年、京都に行った。', zh: '去年去了京都。（日志：叙述那次）' }, { jp: '京都には行ったことがある。', zh: '京都我去过。（档案：我有此经历）' } ],
+          miniExercise: { exerciseId: 'ex-cg33-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：ことがある家族的时态开关',
+          body: '前接形态切换语义：た形+ことがある=经历（做过）；辞书形+ことがある=偶发习惯（有时会做）——たまに朝ごはんを抜くことがある（偶尔不吃早饭）。一字之差（登った/登る），档案袋变成了"偶尔如此"的频率描述，读题时先锁定ことがある前面的形态再判断句义。回答经历疑问句的配套：あります/ありません（ことが省略）——「行ったことがありますか」「はい、あります」。',
+          minimalPair: [ { jp: '寿司を握ったことがある。', zh: '捏过寿司。（经历：た+ことがある）' }, { jp: '朝食を抜くことがある。', zh: '有时不吃早饭。（偶发：辞书形+ことがある）' } ],
+          miniExercise: { exerciseId: 'ex-cg33-2' } }
+      ],
+      hook: '体与时点系统至此闭环——下一战场是模态：たい、らしい、はずだ们如何给命题盖上"我认为"的印章？'
+    },
+    layer2: {
+      body: '类型学上たことがある对应"经历完成体"（experiential perfect）——英语 have ever V-ed、中文"V过"都是同族。中文"过"与たことがある高度平行（爬过/登ったことがある），是少数可直接借力母语的语法点；差异在硬限制：中文"昨天去过了"合法（"过"兼完成义），日语昨日行ったことがある不合法（经历义纯粹，排斥近时点）——"过"的两义在日语里由た（完成）和たことがある（经历）分头承担，这正是母语正迁移里埋着的一颗小雷。ことがある的こと是形式名词"事件"，字面即"存在（过）这样的事"——形式名词系统（こと/の/ところ/わけ）将在名词化模块系统展开。',
+      boundaryCases: [ { jp: '一度だけお会いしたことがございます。', zh: '曾有幸见过您一面——敬语版经历句（ございます），初次寒暄高频。', note: '经历句+敬语的组合是商务初对面的固定装备。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '档案 vs 日志（同一事件域）', sets: [ { jp: '北海道に住んでいた。', zh: '（那段时间）住在北海道。（日志）' }, { jp: '北海道に住んだことがある。', zh: '在北海道住过。（档案）' } ] } ],
+      tier2: [ { jp: '海外へ行ったことがありますか。', zh: '出过国吗？', register: 'polite' }, { jp: '一度も遅刻したことがない。', zh: '一次都没迟到过。', register: 'plain' }, { jp: '同様の障害は過去にも発生したことがある。', zh: '同类故障过去也曾发生过。', register: 'written' } ],
+      tier3: [ { jp: 'それ、聞いたことある！', zh: '那个我听说过！——口语中が常脱落（聞いたことある）。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TAKOTO'], errorRoots: ['R_TIMEPOINT'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 体与时点 > たことがある（经历）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'たことがある惯例归 N5-N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '中文"V过"高度平行可正迁移；唯一雷区是近时点限制（＊昨日…たことがある），一条对立对可排除。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '经历问答、履历陈述、故障报告、口语が脱落四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
   {
     id: 'sample-node',
     module: '_sample',
@@ -2542,6 +2892,77 @@ const EXERCISES = [
   { id: 'ex-cg26-3', nodeId: 'cg-c-cond-tara-nara', stepId: null, criterionId: 'C_COND_TARANARA', errorRoot: 'R_COND', certainty: 'B', type: 'why-not-x',
     prompt: '在这个语境下，「お金があっ＿＿、何がしたい？」应填入？', context: '朋友间闲聊假设性话题："假如你有钱（实现了那个条件之后），想干什么？"', options: ['たら', 'と'], answer: 0,
     feedback: '在这个语境下：一次性假设+意志性提问（想干什么）→たら；と的恒常联动义与意志疑问后件双重不适配。' },
+
+  // ---- 体与时点系统 ----
+  { id: 'ex-cg27-1', nodeId: 'cg-a-teiru', stepId: 'step-1', criterionId: 'C_TEIRU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'judgment',
+    prompt: '「兄は結婚している。」的意思是？', context: null, options: ['哥哥已经结婚了（结果状态）', '哥哥正在举行婚礼（进行中）'], answer: 0,
+    feedback: '依据判据C_TEIRU（ている两读律）：結婚する是瞬间动词（状态一瞬间切换），ている读作切换后的结果状态——"已婚"，绝无"正在结婚"读法。' },
+  { id: 'ex-cg27-2', nodeId: 'cg-a-teiru', stepId: 'step-2', criterionId: 'C_TEIRU', errorRoot: 'R_ASPECT', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「父は銀行で働いています」表达的是？', context: '自我介绍环节，你在介绍家人的职业。', options: ['父亲的职业是银行职员（习惯性反复）', '父亲此刻正在银行上班（进行中）'], answer: 0,
+    feedback: '在这个语境下：介绍职业=习惯性反复读法；ている的进行读需要"此时此刻"的语境支撑，自我介绍场景锁定反复读。' },
+  { id: 'ex-cg27-3', nodeId: 'cg-a-teiru', stepId: null, criterionId: 'C_TEIRU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'judgment',
+    prompt: '「友達が来ている。」的意思是？', context: null, options: ['朋友已经来了（人在这里）', '朋友正在来的路上'], answer: 0,
+    feedback: '依据判据C_TEIRU：来る是瞬间动词，来ている=到达后的结果状态（人已在场）；"正在路上"须说こちらに向かっている。' },
+
+  { id: 'ex-cg28-1', nodeId: 'cg-a-tearu', stepId: 'step-1', criterionId: 'C_TEARU', errorRoot: 'R_ASPECT', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更贴切的说法是？', context: '你回到家发现窗户开着，且窗边放着芳香剂——显然是家人特意开窗通风散味。', options: ['窓が開けてある。', '窓が開いている。'], answer: 0,
+    feedback: '在这个语境下：要表达"有人特意开的、痕迹与目的俱在"→他动词+てある；開いている只做中性观察，丢失"特意"信息。' },
+  { id: 'ex-cg28-2', nodeId: 'cg-a-tearu', stepId: 'step-2', criterionId: 'C_TEARU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '汇报"酒店已经订好了"——「ホテルは予約して＿＿＿」应填入？', context: null, options: ['あります', 'おきます'], answer: 0,
+    feedback: '依据判据C_TEARU（てある人为痕迹律）：汇报预备完成的现存状态→てある；ておく面向将来（"我这就去订好"），时向相反。' },
+  { id: 'ex-cg28-3', nodeId: 'cg-a-tearu', stepId: null, criterionId: 'C_TEARU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个组合合法？', context: null, options: ['ドアが閉めてある（他动词閉める+てある）', 'ドアが閉まってある（自动词閉まる+てある）'], answer: 0,
+    feedback: '依据判据C_TEARU：てある只接他动词（语义要求"某人对宾语做了什么"）；自动词走ている（閉まっている）。' },
+
+  { id: 'ex-cg29-1', nodeId: 'cg-a-teoku', stepId: 'step-1', criterionId: 'C_TEOKU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"开会前先把资料读好"——「会議の前に資料を読んで＿＿＿」应填入？', context: null, options: ['おく', 'しまう'], answer: 0,
+    feedback: '依据判据C_TEOKU（ておく预置律）：为将来时点（开会）预先完成并保持效果→ておく；てしまう表完结/懊悔，无预备义。' },
+  { id: 'ex-cg29-2', nodeId: 'cg-a-teoku', stepId: 'step-2', criterionId: 'C_TEOKU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'judgment',
+    prompt: '口语「買っとく」的完整形是？', context: null, options: ['買っておく', '買っていく'], answer: 0,
+    feedback: '依据判据C_TEOKU：ておく口语缩约为とく（でおく→どく）——買っとく=買っておく；ていく的缩约是てく，形态不同。' },
+  { id: 'ex-cg29-3', nodeId: 'cg-a-teoku', stepId: null, criterionId: 'C_TEOKU', errorRoot: 'R_ASPECT', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「エアコンはつけて＿＿＿ください」应填入？', context: '会议室很热，你先离开一会儿，请同事让空调保持开着、别关。', options: ['おいて', 'しまって'], answer: 0,
+    feedback: '在这个语境下：维持现状（让它一直开着）是ておく的放任义；てしまう会变成"把空调彻底开完"，语义不通。' },
+
+  { id: 'ex-cg30-1', nodeId: 'cg-a-teshimau', stepId: 'step-1', criterionId: 'C_TESHIMAU', errorRoot: 'R_ASPECT', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「大事なファイルを消してしまった」的读法是？', context: '你整理电脑时手滑，把重要文件删了，正向同事求助恢复。', options: ['懊悔/意外（不小心删了，糟糕）', '完结（痛快地删干净了）'], answer: 0,
+    feedback: '在这个语境下：无意+后果负面+求助场景→懊悔读；てしまう的两读由意志性与语境线索定夺，"手滑"锁定意外读。' },
+  { id: 'ex-cg30-2', nodeId: 'cg-a-teshimau', stepId: 'step-2', criterionId: 'C_TESHIMAU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「飲んでしまった」的口语缩约形是？', context: null, options: ['飲んじゃった', '飲んちゃった'], answer: 0,
+    feedback: '依据判据C_TESHIMAU（てしまう完结律）：でしまう→じゃう（浊音对应，与て/で分组一致）——飲んじゃった；ちゃう只配清音て。' },
+  { id: 'ex-cg30-3', nodeId: 'cg-a-teshimau', stepId: null, criterionId: 'C_TESHIMAU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'judgment',
+    prompt: '迟到道歉时说「遅れてしまって、すみません」，てしまう在这里的作用是？', context: null, options: ['表达"事已至此无法挽回"的歉意', '强调"彻底迟到了个够"'], answer: 0,
+    feedback: '依据判据C_TESHIMAU：负面事件+てしまう=不可挽回的懊悔读，道歉场景近乎礼貌规范——不挂てしまう反而显得没有歉意。' },
+
+  { id: 'ex-cg31-1', nodeId: 'cg-a-tekuru-teiku', stepId: 'step-1', criterionId: 'C_TEKURU_TEIKU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '在办公室对同事说"我带便当来了"——「弁当を持って＿＿＿」应填入？', context: null, options: ['きた', 'いった'], answer: 0,
+    feedback: '依据判据C_TEKURU_TEIKU（てくる/ていく方向律）：便当随我朝"这里"（说话现场=原点）移动→てくる。' },
+  { id: 'ex-cg31-2', nodeId: 'cg-a-tekuru-teiku', stepId: 'step-2', criterionId: 'C_TEKURU_TEIKU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"今后人口将不断减少"——「人口は減って＿＿＿だろう」应填入？', context: null, options: ['いく', 'きた'], answer: 0,
+    feedback: '依据判据C_TEKURU_TEIKU：从现在向未来延伸的变化→ていく；てきた是"从过去走到眼前"，方向相反。' },
+  { id: 'ex-cg31-3', nodeId: 'cg-a-tekuru-teiku', stepId: null, criterionId: 'C_TEKURU_TEIKU', errorRoot: 'R_ASPECT', certainty: 'A', type: 'judgment',
+    prompt: '「お腹が空いてきた。」表达的是？', context: null, options: ['开始饿了（饿意冒头，朝我袭来）', '已经饿了很久了'], answer: 0,
+    feedback: '依据判据C_TEKURU_TEIKU：变化的"冒头"用てくる——新状态开始出现并向说话人逼近；"饿了很久"另有ずっと空いている。' },
+
+  { id: 'ex-cg32-1', nodeId: 'cg-a-tokoro-bakari', stepId: 'step-1', criterionId: 'C_TOKORO_BAKARI', errorRoot: 'R_TIMEPOINT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '电话响时你正要出门——「今、出かける＿＿＿です」应填入？', context: null, options: ['ところ', 'ばかり'], answer: 0,
+    feedback: '依据判据C_TOKORO_BAKARI（ところ/ばかり时点律）：辞书形+ところ=动作即将开始的临界点特写；ばかり不接辞书形表时点。' },
+  { id: 'ex-cg32-2', nodeId: 'cg-a-tokoro-bakari', stepId: 'step-2', criterionId: 'C_TOKORO_BAKARI', errorRoot: 'R_TIMEPOINT', certainty: 'A', type: 'judgment',
+    prompt: '"三年前才买的车（对车来说还新）"——正确的说法是？', context: null, options: ['三年前に買ったばかりの車', '三年前に買ったところの車'], answer: 0,
+    feedback: '依据判据C_TOKORO_BAKARI：たばかり=主观"没过多久"，客观间隔可长；たところ只能贴在事件刚落幕的客观瞬间，三年前不成立。' },
+  { id: 'ex-cg32-3', nodeId: 'cg-a-tokoro-bakari', stepId: null, criterionId: 'C_TOKORO_BAKARI', errorRoot: 'R_TIMEPOINT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"正在洗澡（请稍等）"——「今、お風呂に入っている＿＿＿です」应填入？', context: null, options: ['ところ', 'ばかり'], answer: 0,
+    feedback: '依据判据C_TOKORO_BAKARI：ているところ=动作正当中的特写；ばかり无此进行时相用法。' },
+
+  { id: 'ex-cg33-1', nodeId: 'cg-a-takoto', stepId: 'step-1', criterionId: 'C_TAKOTO', errorRoot: 'R_TIMEPOINT', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['富士山に登ったことがある。', '昨日、富士山に登ったことがある。'], answer: 0,
+    feedback: '依据判据C_TAKOTO（たことがある经历律）：经历化要求与当下拉开距离，近期确定时点（昨天）的事件属于日志区，只能用た（昨日登った）。' },
+  { id: 'ex-cg33-2', nodeId: 'cg-a-takoto', stepId: 'step-2', criterionId: 'C_TAKOTO', errorRoot: 'R_TIMEPOINT', certainty: 'A', type: 'judgment',
+    prompt: '「朝食を抜くことがある。」的意思是？', context: null, options: ['有时不吃早饭（偶发习惯）', '曾经不吃过早饭（经历）'], answer: 0,
+    feedback: '依据判据C_TAKOTO：辞书形+ことがある=偶发习惯（有时会）；经历义要求た形+ことがある（抜いたことがある）。前接形态是唯一开关。' },
+  { id: 'ex-cg33-3', nodeId: 'cg-a-takoto', stepId: null, criterionId: 'C_TAKOTO', errorRoot: 'R_TIMEPOINT', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"一次都没吃过刺身"——「一度も刺身を食べた＿＿＿＿」应填入？', context: null, options: ['ことがない', 'ことがある'], answer: 0,
+    feedback: '依据判据C_TAKOTO：经历的全称否定=たことがない（从未），与一度も呼应；ことがある与一度も极性冲突。' },
 
   {
     id: 'ex-sample-1',
@@ -3393,6 +3814,33 @@ CONNECTIVE_NODE_DETECTORS.forEach(cd => {
       let m;
       cd.re.lastIndex = 0;
       while ((m = cd.re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 4);
+    }
+  });
+});
+
+// Aspect/time-point detectors (PART 2 aspect system).
+const ASPECT_NODE_DETECTORS = [
+  { nodeId: 'cg-a-teiru', what: 'ている（进行/结果）', re: /([ぁ-ん]て(?:いる|います|いた|いました)|んで(?:いる|います|いた)|[ぁ-ん]てる)/g },
+  { nodeId: 'cg-a-tearu', what: 'てある（人为痕迹）', re: /([ぁ-ん]て(?:ある|あります|あった)|んで(?:ある|あります))/g },
+  { nodeId: 'cg-a-teoku', what: 'ておく（预置）', re: /([ぁ-ん]て(?:おく|おきます|おきました|おこう|おいた|おいて)|んでお[くき]|[ぁ-ん]と[くき](?=[。、\s]|$))/g },
+  { nodeId: 'cg-a-teshimau', what: 'てしまう（完结/懊悔）', re: /([ぁ-ん]て(?:しまう|しまった|しまいます|しまいました)|んでしま[ういっ]|ちゃっ?た|じゃっ?た)/g },
+  { nodeId: 'cg-a-tekuru-teiku', what: 'てくる/ていく（方向）', re: /([ぁ-ん]て(?:くる|きた|きました|いく|いきます|いった)|んで(?:くる|きた|いく))/g },
+  { nodeId: 'cg-a-tokoro-bakari', what: 'ところ/ばかり（时点）', re: /((?:る|ている|た)ところ|たばかり|たとこ(?=[。、\s]|$))/g },
+  { nodeId: 'cg-a-takoto', what: 'たことがある（经历）', re: /([ただ]こと(?:が|は)?(?:ある|あります|ない|ありません))/g }
+];
+ASPECT_NODE_DETECTORS.forEach(ad => {
+  TEXT_DETECTORS.push({
+    nodeId: ad.nodeId,
+    what: ad.what,
+    detect(text) {
+      const seen = new Set();
+      const out = [];
+      let m;
+      ad.re.lastIndex = 0;
+      while ((m = ad.re.exec(text)) !== null) {
         if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
       }
       return out.slice(0, 4);
