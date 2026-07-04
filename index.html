@@ -376,6 +376,13 @@ const MODULES = [
     description: 'Atlas 的入口模块：不讲孤立语法规则，讲日语组织句子的认知机制——语序、谓语、助词、话题/焦点、活用、连接形，一环扣一环。'
   },
   {
+    id: 'core-grammar',
+    name: { zh: 'PART 2 · 核心语法：谓语类型与活用范式', ja: 'コア文法モジュール' },
+    order: 2,
+    status: 'draft',
+    description: '在 PART 1 认知框架之上展开具体语法系统：三类谓语（动词/形容词/名词+だ）各自的活用范式，动词分类，以及 ます/ない/た/て 四大基础活用形的构成规则。'
+  },
+  {
     id: '_sample',
     name: { zh: '示例模块（开发用，非正式内容）', ja: 'サンプルモジュール' },
     order: 0,
@@ -392,6 +399,12 @@ const ERROR_ROOTS = [
   { id: 'R_D', name: '総记/中立叙述误判', description: '把疑问词句、排他性列举等必须用が的场合误用は，通常源于中文"是"字句不区分単纯陈述与排他指认。', module: 'lang-cognition' },
   { id: 'R_CONJ', name: '活用形态误判为可选装饰', description: '把日语谓语的词尾变化（时体、否定、礼貌等）误当成类似中文"了/不/吗"那样可自由添加/省略的独立虚词，而非强制性形态。', module: 'lang-cognition' },
   { id: 'R_TE', name: 'て形功能范围误判', description: '把て形直接等同于某个固定中文虚词（如"然后"），忽视て形本身不携带具体逻辑关系、需由后续成分或语境决定。', module: 'lang-cognition' },
+  { id: 'R_PREDTYPE', name: '谓语类型混淆', description: '未先判断谓语属于动词/形容词/名词+だ哪一类就套活用规则，或用中文"是/很"结构直觉给错误的谓语类型加系词。', module: 'core-grammar' },
+  { id: 'R_COPULA', name: 'だ/です使用错误', description: '受中文"是"字句位置（主宾之间）影响错置だ/です，或普通体敬体叠加（*学生だです），或忘记だ自身承担时体活用（だった/じゃない）。', module: 'core-grammar' },
+  { id: 'R_ADJCONJ', name: '形容词活用错误', description: '把时体交给です而不变形容词本体（*高いでした），给い形容词加だ（*高いだ），或把な形容词按い形容词范式活用（*きれいくない）。', module: 'core-grammar' },
+  { id: 'R_VGROUP', name: '动词分类误判', description: '未按词尾结构判断动词类别，把帰る/入る等"伪一段"五段动词按一段活用，或对每个活用形死记硬背而不先分类。', module: 'core-grammar' },
+  { id: 'R_POLITE_MIX', name: '普通体敬体混接', description: '把敬体当可选点缀随意叠加或混接（*行くです、*行きますだ），未理解ます/です在谓语活用链中占据固定的礼貌槽位。', module: 'core-grammar' },
+  { id: 'R_ONBIN', name: '音便规则误用', description: 'て形/た形构成时音便分组记错（*買いて、*飲みて），或不知道行く→行って是く组唯一例外。', module: 'core-grammar' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
@@ -403,6 +416,15 @@ const CRITERIA = [
   { id: 'C_GA_NEWINFO', name: { zh: 'が新信息入场律', ja: 'が新情報導入則' }, description: 'が标记第一次被提及的新信息、疑问词的直接应答，或排他性列举（総记）；疑问词句必须用が应答，は不合法。', module: 'lang-cognition', ownerNodeId: 'lc-ga-newinfo' },
   { id: 'C_CONJ_SINGLE_SLOT', name: { zh: '活用单槽律', ja: '活用単一スロット則' }, description: '日语谓语通过词尾变化（活用）在同一词内部叠加时体、否定、礼貌等语法信息，而非像中文那样依靠另加独立虚词。', module: 'lang-cognition', ownerNodeId: 'lc-verb-engine' },
   { id: 'C_TE_INTERFACE', name: { zh: 'て形接口律', ja: 'て形インターフェース則' }, description: 'て形本身不表示时体或句子终结，只负责把谓语变成可以承接后续语法成分的开放接口，具体逻辑关系由后接成分/语境决定。', module: 'lang-cognition', ownerNodeId: 'lc-te-interface' },
+  { id: 'C_PRED_THREE', name: { zh: '谓语三分类律', ja: '述語三類則' }, description: '日语句子的谓语必属于动词句/形容词句/名词句（名词+だ）三类之一，三类各有独立的活用范式，判断类型是套用任何活用规则的前提。', module: 'core-grammar', ownerNodeId: 'cg-pred-three-types' },
+  { id: 'C_COPULA', name: { zh: '系词句尾律', ja: 'コピュラ文末則' }, description: '名词谓语句由「名词+だ/です」构成；だ/です位置固定在句尾，并由自身承担时体与礼貌活用（だった/でした/じゃない/ではありません），不与中文"是"的句中位置对应。', module: 'core-grammar', ownerNodeId: 'cg-copula-da-desu' },
+  { id: 'C_IADJ_SELF', name: { zh: 'い形自活用律', ja: 'イ形自立活用則' }, description: 'い形容词自带谓语活用（〜かった/〜くない），不接だ；敬体仅在其后加です，时体仍由形容词本体的变形承担（高かったです，而非*高いでした）。', module: 'core-grammar', ownerNodeId: 'cg-i-adj-pred' },
+  { id: 'C_NAADJ_DA', name: { zh: 'な形系词范式律', ja: 'ナ形コピュラ活用則' }, description: 'な形容词的谓语活用走だ的范式（静かだった/静かじゃない），与い形容词本体活用不同；词尾是否为い不是分类依据（きれい、嫌い均为な形容词）。', module: 'core-grammar', ownerNodeId: 'cg-na-adj-pred' },
+  { id: 'C_VGROUP', name: { zh: '动词分类判据律', ja: '動詞分類判定則' }, description: '动词分为五段/一段/不规则三类，判据是词尾结构（是否る结尾及る前元音段），而非词义；帰る/入る/知る/走る等る前虽为e/i段但属五段（伪一段）。', module: 'core-grammar', ownerNodeId: 'cg-verb-groups' },
+  { id: 'C_MASU', name: { zh: 'ます形构成律', ja: 'マス形構成則' }, description: 'ます形=动词连用形+ます（五段：词尾变i段；一段：去る）；敬体与时体活用由ます承担（ました/ません/ませんでした），动词本体不再重复变化。', module: 'core-grammar', ownerNodeId: 'cg-masu-form' },
+  { id: 'C_NAI', name: { zh: 'ない形构成律', ja: 'ナイ形構成則' }, description: 'ない形=未然形+ない（五段：词尾变a段，う结尾变わ：買う→買わない；一段：去る）；过去否定由ない→なかった承担。', module: 'core-grammar', ownerNodeId: 'cg-nai-form' },
+  { id: 'C_TA', name: { zh: 'た形音便共用律', ja: 'タ形音便共有則' }, description: 'た形与て形共用同一套音便规则（書いて↔書いた，飲んで↔飲んだ）；普通体过去由た承担，名词句/な形句的过去是だった，不能用でした替代普通体。', module: 'core-grammar', ownerNodeId: 'cg-ta-form' },
+  { id: 'C_TE_FORM', name: { zh: 'て形音便分组律', ja: 'テ形音便分組則' }, description: '五段动词て形按词尾分组音便：う/つ/る→って、ぬ/ぶ/む→んで、く→いて（行く→行って为唯一例外）、ぐ→いで、す→して；一段动词去る+て。', module: 'core-grammar', ownerNodeId: 'cg-te-form-formation' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -772,6 +794,452 @@ const NODES = [
     }
   },
 
+  /* ======================= PART 2 · 核心语法 ======================= */
+
+  {
+    id: 'cg-pred-three-types', module: 'core-grammar', order: 1, status: 'draft',
+    qualifies: { independentMechanism: '日语谓语必属动词句/形容词句/名词句三类之一，每类有独立活用范式；"先判类再活用"是一个独立于任何具体活用规则的判断机制。', citedByCount: 0, errorRoot: 'R_PREDTYPE', mergeNote: '三类谓语的具体活用各自设节点（だ/です、い形、な形），本节点只负责"分类判断"这一上游机制，避免单节点超出 Step 上限。' },
+    title: { zh: '谓语有三种引擎：动词句・形容词句・名词句', ja: '述語の三類型', en: 'Three Types of Predicates' },
+    refs: { requires: ['lc-predicate-core'], invokes: [], contrasts: [], previews: ['cg-copula-da-desu', 'cg-i-adj-pred'] },
+    layer0: {
+      body: '日语句尾的谓语只有三种：动词（行く）、形容词（高い）、名词+だ（学生だ）。三种各配一套完全不同的变形规则——所以拿到句子先问"句尾是哪一类"，再谈怎么变形。',
+      example: { jp: '行く。／高い。／学生だ。', zh: '三个都是完整的句子，分别由动词、い形容词、名词+だ充当谓语，各走各的活用范式。' },
+      hook: '中文"是/很"两个字就搞定判断句和形容句，日语为什么要分三套系统？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个句子的谓语属于哪一类',
+          body: '判断方法看句尾成分本身：①能按动词活用（〜ます/〜ない/〜た）变形的是动词句；②以い结尾且能变〜かった/〜くない的是い形容词句；③名词或な形容词+だ/です收尾的是名词性谓语句。这个判断必须在套用任何活用规则之前完成——三套范式互不通用，判错类则后续全部变形都会错。',
+          minimalPair: [ { jp: '静かだ。', zh: '很安静。（な形容词+だ，走名词句范式）' }, { jp: '高い。', zh: '很贵/很高。（い形容词，自带活用，不加だ）' } ],
+          miniExercise: { exerciseId: 'ex-cg1-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：中文"是/很"直觉会把你带进哪类错误',
+          body: '中文判断句用"是"（他是学生）、形容句用"很"（很贵），两者都不引起谓语变形，所以中文母语者默认"变形与句型无关"。搬到日语的典型错误有两个方向：给い形容词句多加系词（*高いだ），或忘记名词句的时体由だ承担而错借动词范式。正确直觉是：句型类别决定活用范式，判断类别是造句的第一步，不是可跳过的细节。',
+          minimalPair: [ { jp: '彼は学生だ。', zh: '他是学生。（名词句，だ收尾）' }, { jp: '✗ この本は高いだ。', zh: '不合法：い形容词自带谓语功能，不接だ。' } ],
+          miniExercise: { exerciseId: 'ex-cg1-2' } }
+      ],
+      hook: '名词句里那个だ到底是什么？它凭什么能把一个名词变成完整的句子？'
+    },
+    layer2: {
+      body: '学校语法把三类谓语分别叫动詞述語文、形容詞述語文、名詞述語文（含形容動詞）。三分的实质是活用范式的三分：动词有完整的九类活用形，い形容词有自己的く/かっ/けれ系列，名词句借だ的活用（だった/じゃない/なら）完成时体与否定。中文母语者的深层困难在于中文谓语几乎无形态变化，"判断句型"在中文里没有语法后果，因此容易被跳过；而日语里这一步决定了后面所有变形规则的选择，是不可省略的前置判断。',
+      boundaryCases: [ { jp: '彼は元気だ。／彼は元気がない。', zh: '"元気"作な形容词时走だ范式（元気だ），作名词时可配が+ない（没有精神）——同一个词在两类句型间切换。', note: '一词跨类是三分法最重要的边界情况：判断依据是它在当前句中的用法，不是词典标签。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '谓语类型（同一意思域）', sets: [ { jp: '彼は先生だ。', zh: '他是老师。（名词句）' }, { jp: '彼は優しい。', zh: '他很温柔。（い形容词句，无だ）' } ] } ],
+      tier2: [ { jp: '今日は寒いです。', zh: '今天很冷。', register: 'polite' }, { jp: '兄は医者だ。', zh: '哥哥是医生。', register: 'plain' }, { jp: '母は毎朝走る。', zh: '妈妈每天早上跑步。', register: 'written' } ],
+      tier3: [ { jp: '会議は明日だ。', zh: '会议是明天。——时间名词也能直接+だ成句，中文"会议在明天开"的动词直觉在这里用不上。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_PRED_THREE'], errorRoots: ['R_PREDTYPE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 谓语类型 > 三分类总览',
+      parent_concept: { id: null, label: '谓语类型', type: 'category' },
+      child_concepts: ['cg-copula-da-desu', 'cg-i-adj-pred', 'cg-na-adj-pred'],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 1, note: '分类判断本身规则清晰，难点只在建立"先判类再活用"的操作习惯，属于入门级认知框架。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '谓语三分类覆盖一切句子，四种语域必然出现；本节点例句已覆盖全部四种。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-copula-da-desu', module: 'core-grammar', order: 2, status: 'draft',
+    qualifies: { independentMechanism: 'だ/です把名词"焊"成合法谓语并独自承担名词句的时体/礼貌/否定活用；这是名词性谓语如何成句的独立机制。', citedByCount: 1, errorRoot: 'R_COPULA', mergeNote: 'な形容词共用だ范式但分类陷阱独立（きれい等），故另设节点用requires关联而非合并。' },
+    title: { zh: 'だ/です：把名词焊在句尾的系词', ja: 'コピュラだ・です', en: 'The Copula Da/Desu' },
+    refs: { requires: ['cg-pred-three-types'], invokes: [], contrasts: ['cg-i-adj-pred'], previews: [] },
+    layer0: {
+      body: '名词自己当不了谓语，要靠だ（普通体）或です（敬体）收尾才能成句。だ不是中文的"是"：位置固定在句尾，而且名词句的过去、否定全由它变形承担——だった、じゃない。',
+      example: { jp: '学生だ。→ 学生だった。→ 学生じゃない。', zh: '"是学生→曾是学生→不是学生"：中文换动词前的字，日语全在句尾这一个だ上变。' },
+      hook: 'だ和です只是"普通/礼貌"的区别吗？它们的活用是不是完全平行？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：だ/です该放在句子的什么位置、承担哪些变形',
+          body: '中文"是"站在主语和宾语之间（他 是 学生），だ/です永远钉在句尾（彼は学生だ）。更关键的是活用分工：名词句的时体和否定不另找动词，全部由系词自身变形完成——普通体：だ/だった/じゃない/じゃなかった；敬体：です/でした/じゃありません（ではありません）/じゃありませんでした。记住这两条对应链，名词句的全部基础形态就闭环了。',
+          minimalPair: [ { jp: '彼は学生だった。', zh: '他曾是学生。（だ→だった承担过去）' }, { jp: '彼は学生じゃない。', zh: '他不是学生。（だ→じゃない承担否定）' } ],
+          miniExercise: { exerciseId: 'ex-cg2-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：为什么*学生だです是错的',
+          body: 'だ和です占据同一个"系词槽位"，是互斥的两种体裁选择，不能叠加或混搭：*学生だです、*学生ですだ都不合法。中文母语者出这类错，多因把です理解成额外的"礼貌小尾巴"（可以随手挂在任何句子后面），而不是系词本身的敬体形态。同理，动词句普通体后也不能挂です（*行くです✗）——礼貌信息在动词句里由ます承担，走的是另一条槽位。',
+          minimalPair: [ { jp: '学生です。', zh: '是学生。（敬体，です独占系词槽位）' }, { jp: '✗ 学生だです。', zh: '不合法：だ与です互斥，不能叠加。' } ],
+          miniExercise: { exerciseId: 'ex-cg2-2' } }
+      ],
+      hook: 'い形容词句也能加です（高いです），那它的过去式为什么不是*高いでした？'
+    },
+    layer2: {
+      body: '语言学上だ/です称作コピュラ（copula，系词）。它与中文"是"的根本差异有二：①句法位置——中文"是"是句中动词，だ是句尾助动词性成分；②功能负载——だ承担名词句全部时体/否定/推量活用（だった/じゃない/だろう），中文"是"本身无形态变化，时体靠"了/过"等另置虚词。还有一个不对称值得注意：普通体疑问句中だ通常脱落（学生？/学生か？），而です在敬体疑问句保留（学生ですか）——だ并非在一切环境都显形，这是"だ=是"直觉覆盖不到的分布特征。',
+      boundaryCases: [
+        { jp: '明日は雨だ。', zh: '明天（会）下雨。——だ接在"雨"上并不表示"明天=雨"，而是"情况是下雨"：系词句可以表达广义判断，不限于身份等同。', note: '「うなぎ文」（我是鳗鱼=我点鳗鱼）一类广义判断句是だ句最著名的边界现象。', source: null },
+        { jp: '静かだね。／静かですね。', zh: '真安静啊。——な形容词借用だ/です范式收尾，表面看与名词句完全同形。', note: '这正是な形容词单设节点的原因：范式共享但词类不同。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '体裁（普通体 vs 敬体，同一命题）', sets: [ { jp: '彼は医者だ。', zh: '他是医生。（普通体）' }, { jp: '彼は医者です。', zh: '他是医生。（敬体，系词槽位整体替换）' } ] } ],
+      tier2: [ { jp: '私は中国人です。', zh: '我是中国人。', register: 'polite' }, { jp: '昨日は休みだった。', zh: '昨天休息。', register: 'plain' }, { jp: '本日は晴天ではありません。', zh: '今日并非晴天。（ではありません为じゃありません的书面形）', register: 'written' } ],
+      tier3: [ { jp: '「学生？」「うん、学生。」', zh: '"学生吗？""嗯，学生。"——普通体口语中だ常整体脱落，仅剩裸名词也成句。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_COPULA'], errorRoots: ['R_COPULA', 'R_POLITE_MIX'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 谓语类型 > 名词句系词（だ/です）',
+      parent_concept: { id: 'cg-pred-three-types', label: '谓语有三种引擎', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '范式本身是两条固定对应链，难点在克服"是"字句位置直觉与だ/です叠加错误，需专项对比练习。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '系词句在全部语域出现；本节点例句覆盖四种语域，含だ脱落的口语边界。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-i-adj-pred', module: 'core-grammar', order: 3, status: 'draft',
+    qualifies: { independentMechanism: 'い形容词自带完整谓语活用（かった/くない），不依赖系词即可成句并承担时体否定；这是与名词句范式并立的独立机制。', citedByCount: 0, errorRoot: 'R_ADJCONJ', mergeNote: null },
+    title: { zh: 'い形容词：自带活用引擎的谓语', ja: 'イ形容詞述語', en: 'I-Adjectives as Predicates' },
+    refs: { requires: ['cg-pred-three-types'], invokes: [], contrasts: ['cg-copula-da-desu', 'cg-na-adj-pred'], previews: [] },
+    layer0: {
+      body: 'い形容词不需要だ，自己就是完整谓语：高い→过去变高かった→否定变高くない，全部在词内变形。要礼貌就整体加です——但时体仍由形容词本体承担：高かったです，绝不是*高いでした。',
+      example: { jp: '高い。→ 高かった。→ 高くないです。', zh: '贵→（那时）贵→不贵（敬体）：变形全发生在形容词身上，です只管礼貌。' },
+      hook: '既然です不管时体，为什么偏偏"高いです"这种现在形又是合法的？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：い形容词句的时体否定该在哪里变形',
+          body: 'い形容词的活用链：〜い（现在肯定）→〜かった（过去）→〜くない（否定）→〜くなかった（过去否定）。全部变化都在形容词词尾，不借助任何外部成分。敬体规则只有一条：在已完成时体变形的形式后整体加です——高かったです、高くないです。です在形容词句里是纯礼貌标记，没有活用功能，这与它在名词句里承担全部活用（でした/じゃありません）完全不同。',
+          minimalPair: [ { jp: '昨日は寒かったです。', zh: '昨天很冷。（本体变かった，です只加礼貌）' }, { jp: '✗ 昨日は寒いでした。', zh: '不合法：时体不能交给です，必须由形容词本体变形。' } ],
+          miniExercise: { exerciseId: 'ex-cg3-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：为什么*高いだ不成立、高いです却成立',
+          body: '中文形容句"很贵"与判断句"是学生"结构平行（都无谓语变形），母语直觉会推出"形容词句也该配系词"→*高いだ。但い形容词已自带谓语功能，加だ属于双重谓语，普通体中绝对不合法。高いです是历史上为礼貌需求追认的形式：只在敬体、且です不参与活用的条件下成立，是"礼貌槽位"的特例而非系词句。判断口诀：普通体形容词句句尾绝无だ；敬体只在整形后挂です。',
+          minimalPair: [ { jp: 'この店は安い。', zh: '这家店便宜。（普通体，句尾就是形容词本体）' }, { jp: '✗ この店は安いだ。', zh: '不合法：い形容词后不能接だ。' } ],
+          miniExercise: { exerciseId: 'ex-cg3-2' } }
+      ],
+      hook: 'きれい也以い结尾，为什么"きれいくない"是错的？'
+    },
+    layer2: {
+      body: '学校语法称形容詞（い形容词）为可独立活用的用言，与動詞并列；名词与形容動詞（な形容词）则是需要だ支撑的体言性谓语。高いです的历史值得一提：战前规范曾要求形容词敬体用〜うございます（高うございます），1952 年日本国語審議会《これからの敬語》正式承认〜いです形，此后高いです成为标准——但活用仍归本体这一原则从未松动，*高いでした始终不合规范。中文母语者在此处的系统性错误（时体交给です）本质是把です误当成万能的"敬体版だ"，而实际上です在名词句和形容词句里的语法地位完全不同。',
+      boundaryCases: [
+        { jp: 'いい → よかった／よくない', zh: '"好"的活用建立在よい词干上：过去是よかった，否定是よくない，绝不是*いかった。', note: 'いい/よい 是い形容词活用最重要的不规则点。', source: null },
+        { jp: 'ない → なかった', zh: '否定词ない本身按い形容词活用（なかった），所以动词否定过去"行かなかった"实为ない的形容词式变形。', note: '这一点向前呼应ない形节点：否定链的后半段走形容词范式。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '时体（现在 vs 过去，敬体）', sets: [ { jp: '今日は暑いです。', zh: '今天很热。' }, { jp: '昨日は暑かったです。', zh: '昨天很热。（本体变形+です不变）' } ] } ],
+      tier2: [ { jp: 'この問題は難しい。', zh: '这道题很难。', register: 'plain' }, { jp: '値段が高くないです。', zh: '价格不贵。', register: 'polite' }, { jp: '風が強く、波も高かった。', zh: '风强浪高。（连用中止，书面语）', register: 'written' } ],
+      tier3: [ { jp: '寒くない？', zh: '不冷吗？——口语中否定形+升调直接成疑问，无任何附加成分。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_IADJ_SELF'], errorRoots: ['R_ADJCONJ'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 谓语类型 > い形容词谓语',
+      parent_concept: { id: 'cg-pred-three-types', label: '谓语有三种引擎', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '活用链本身规整，*高いでした与*高いだ两类错误极其顽固（中文形容句无变形直觉），需要高频最小对立对练习压制。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '形容词谓语句遍布全部语域；本节点例句覆盖四种语域。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-na-adj-pred', module: 'core-grammar', order: 4, status: 'draft',
+    qualifies: { independentMechanism: 'な形容词语义上是形容词、语法上走だ范式，且分类不能靠词尾判断（きれい陷阱）；这一"语义与范式错位"是独立的判断机制。', citedByCount: 0, errorRoot: 'R_ADJCONJ', mergeNote: '与だ/です节点共享范式但判断问题不同：だ节点管系词本身的活用，本节点管"哪些词该走这条范式"的分类判断。' },
+    title: { zh: 'な形容词：披着形容词外衣的名词性谓语', ja: 'ナ形容詞述語', en: 'Na-Adjectives as Predicates' },
+    refs: { requires: ['cg-copula-da-desu'], invokes: ['cg-copula-da-desu'], contrasts: ['cg-i-adj-pred'], previews: [] },
+    layer0: {
+      body: '静か、元気、きれい这类词意思像形容词，语法上却按"名词+だ"活用：静かだった、静かじゃない。最大陷阱：きれい、嫌い以い结尾却是な形容词——分类不能看词尾，要看活用行为。',
+      example: { jp: 'きれいだった。／ ✗ きれいかった。', zh: '"（那时）很漂亮"必须走だ范式变だった；按い形容词变*きれいかった是典型错误。' },
+      hook: '连日本小孩都会说错的きれいくない，为什么词典不干脆把它标成い形容词？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个形容意义的词该走哪套活用范式',
+          body: 'な形容词的谓语活用与名词句完全同构：〜だ/〜だった/〜じゃない/〜じゃなかった；敬体〜です/〜でした/〜じゃありません。与い形容词的区别在修饰位置最直观：な形容词修饰名词用な（静かな町），い形容词直接连体（高い山）。判断类别的可靠办法是查活用行为或修饰形态，不是看词尾——以い收尾的な形容词（きれい、嫌い、有名※ゆうめい）会让"看词尾"的策略系统性翻车。',
+          minimalPair: [ { jp: '町は静かだった。', zh: '镇子（那时）很安静。（だ范式）' }, { jp: '✗ 町は静かかった。', zh: '不合法：な形容词没有かった活用。' } ],
+          miniExercise: { exerciseId: 'ex-cg4-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：きれい类陷阱词为什么必然踩、怎么防',
+          body: 'きれい（綺麗）、嫌い（嫌い）、幸い等词的い是汉字词读音的一部分，不是い形容词的活用词尾——但学习者眼中它们与高い、寒い外形无异。防错方法是建立一个"高频陷阱词白名单"（きれい・嫌い・有名・親切・便利・元気・暇・大丈夫），遇到形容意义的词先过一遍名单，再默认按词尾判断。错误输出（*きれいくない、*嫌いかった）一旦形成口癖非常顽固，初期就要用最小对立对刻意区分。',
+          minimalPair: [ { jp: '彼女は歌が嫌いじゃない。', zh: '她不讨厌唱歌。（嫌い走だ范式否定）' }, { jp: '✗ 彼女は歌が嫌いくない。', zh: '不合法：嫌い是な形容词，无くない活用。' } ],
+          miniExercise: { exerciseId: 'ex-cg4-2' } }
+      ],
+      hook: '谓语三类都各就各位了，那动词那一类的变形，为什么还要先给动词分组？'
+    },
+    layer2: {
+      body: '学校语法称な形容词为形容動詞，这一命名本身就体现其骑墙性质：语义上是属性词（形容），形态上接近体言+だ（動詞栏里的だ活用）。语言学界甚至长期存在"形容動詞是否该独立为一个词类"的争论——正因为它的活用完全寄生于だ。对中文学习者，な形容词其实是三类谓语里最"友好"的：中文形容词同样无本体活用，把它当成"名词式使用的形容词"反而顺应母语直觉；真正的失分点几乎全部集中在与い形容词的边界（词尾误判），所以本节点把contrast练习而非范式本身作为重心。',
+      boundaryCases: [
+        { jp: '同じだ → 同じ人', zh: '"同じ"修饰名词时不加な（同じ人，不是*同じな人），是な形容词连体形的特例。', note: '同じ是な形容词中连体形不规则的著名个例。', source: null },
+        { jp: '大きい／大きな、小さい／小さな', zh: '大きい、小さい本是い形容词，却另有大きな、小さな两个只能连体修饰的形态。', note: '两套形态并存提示：い/な的边界在历史上并不整齐。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '范式归属（な形 vs い形，同为否定）', sets: [ { jp: '便利じゃない。', zh: '不方便。（な形，だ范式否定）' }, { jp: '安くない。', zh: '不便宜。（い形，本体否定）' } ] } ],
+      tier2: [ { jp: 'この街は静かです。', zh: '这条街很安静。', register: 'polite' }, { jp: '彼は有名だ。', zh: '他很有名。', register: 'plain' }, { jp: '交通の便が非常に不便であった。', zh: '交通极为不便。（である体，だ的书面变体）', register: 'written' } ],
+      tier3: [ { jp: '大丈夫？うん、大丈夫。', zh: '"没事吧？""嗯，没事。"——口语中な形容词与名词一样可裸词成句（だ脱落）。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_NAADJ_DA'], errorRoots: ['R_ADJCONJ'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 谓语类型 > な形容词谓语',
+      parent_concept: { id: 'cg-pred-three-types', label: '谓语有三种引擎', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '范式借用だ节点已学内容、本身无新规则；难度集中在きれい类词尾陷阱的辨识，靠白名单+对立对练习可控。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: 'な形容词谓语遍布全部语域；书面语另有である变体，已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-verb-groups', module: 'core-grammar', order: 5, status: 'draft',
+    qualifies: { independentMechanism: '一切动词活用规则都以"五段/一段/不规则"分类为输入参数；分类判据（词尾结构而非词义）是独立于任何具体活用形的上游机制。', citedByCount: 2, errorRoot: 'R_VGROUP', mergeNote: null },
+    title: { zh: '动词三分类：所有活用规则的入口参数', ja: '動詞の三分類', en: 'The Three Verb Groups' },
+    refs: { requires: ['lc-verb-engine'], invokes: [], contrasts: [], previews: ['cg-masu-form', 'cg-te-form-formation'] },
+    layer0: {
+      body: '日语动词只分三类：五段（書く、買う）、一段（食べる、見る）、不规则（する、来る）。之后学的每一个活用形，规则都按这三类分别给出——先判类，再变形，永远是这个顺序。',
+      example: { jp: '書く→書きます／食べる→食べます／する→します', zh: '同样变ます形，三类动词各走各的路：五段换词尾，一段去る，不规则死记。' },
+      hook: '食べる和帰る都以る结尾，凭什么一个去る、一个变ります？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个动词属于五段、一段还是不规则',
+          body: '判类流程：①する、来る→不规则（仅两个）；②不以る结尾→必是五段；③以る结尾→看る前假名：a/u/o段（乗る、作る）→五段；e/i段（食べる、見る）→原则上一段，但存在一批"伪一段"五段动词需白名单排除。整个判断只看词形，与词义完全无关——这是中文（动词无形态分类）里不存在的操作，必须刻意建立。',
+          minimalPair: [ { jp: '食べる → 食べます', zh: '一段：去る+ます。' }, { jp: '乗る → 乗ります', zh: '五段：る前是o段（の），词尾る→り+ます。' } ],
+          miniExercise: { exerciseId: 'ex-cg5-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：帰る类"伪一段"动词怎么防',
+          body: 'る前为e/i段却属五段的高频动词有一批固定成员：帰る、入る、走る、知る、切る、要る、喋る、限る等。它们的活用全按五段走：帰る→帰ります（不是*帰ます）、入る→入って（不是*入て）。防错策略与きれい陷阱同构：背高频白名单，白名单外的e/i段る动词默认一段。错判的代价很高——分类错则后续每一个活用形都错，所以这份名单值得在入门期一次性记牢。',
+          minimalPair: [ { jp: '帰る → 帰ります', zh: '五段（伪一段白名单成员）。' }, { jp: '✗ 帰る → 帰ます', zh: '不合法：按一段去る活用是最高频的分类错误。' } ],
+          miniExercise: { exerciseId: 'ex-cg5-2' } }
+      ],
+      hook: '分类搞定之后，第一个要学的活用形是哪个？为什么教材都从ます形开始？'
+    },
+    layer2: {
+      body: '"五段/一段"的命名来自活用时词尾在五十音图上的移动范围：五段动词词尾在同行 a/i/u/e/o 五个段上变化（書か・書き・書く・書け・書こ），一段动词词干固定、只在る后接续（食べ+ます/ない/て），活用踪迹只占一"段"。教材别名 Group I/II/III、u-verb/ru-verb 与五段/一段/不规则完全对应。理解"五段=词尾在移动、一段=词干不动"这一实质，比死记分类标签更能支撑后续所有活用形的学习——每个新活用形的"五段规则"本质都是"词尾移到某段+接续"，而"一段规则"永远是"去る+接续"。',
+      boundaryCases: [ { jp: '行く／ある／くれる', zh: '行く（て形音便例外）、ある（否定用ない不用あらない）、くれる（命令形くれ）——三类划分之外还散布着个别点状不规则。', note: '点状例外在各活用形节点各自处理，分类层面仍视为五段/一段。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '分类判据（る前元音段）', sets: [ { jp: '見る → 見ます', zh: '一段：る前是i段（み）。' }, { jp: '作る → 作ります', zh: '五段：る前是u段（く）。' } ] } ],
+      tier2: [ { jp: '毎日日本語を勉強する。', zh: '每天学习日语。（する不规则）', register: 'plain' }, { jp: '明日友達が来ます。', zh: '明天朋友要来。（来る不规则）', register: 'polite' }, { jp: '知る者は言わず。', zh: '知者不言。（知る：伪一段五段动词）', register: 'written' } ],
+      tier3: [ { jp: 'もう帰る？', zh: '要回去了？——口语高频动词帰る恰是伪一段名单成员，日常对话中反复出现。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_VGROUP'], errorRoots: ['R_VGROUP'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 活用范式 > 动词分类',
+      parent_concept: { id: null, label: '活用范式', type: 'category' },
+      child_concepts: ['cg-masu-form', 'cg-nai-form', 'cg-ta-form', 'cg-te-form-formation'],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '规则三步清晰，难点只有伪一段白名单的记忆负担；但本节点是后续全部活用形的地基，投入产出比最高。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '动词分类是元知识，覆盖一切含动词的语域；例句已覆盖四种。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-masu-form', module: 'core-grammar', order: 6, status: 'draft',
+    qualifies: { independentMechanism: 'ます占据动词活用链的礼貌槽位并接管时体（ました/ません），动词本体降级为连用形词干；这是敬体动词句的构成机制。', citedByCount: 0, errorRoot: 'R_POLITE_MIX', mergeNote: null },
+    title: { zh: 'ます形：动词的敬体接口', ja: 'マス形', en: 'The Masu Form' },
+    refs: { requires: ['cg-verb-groups'], invokes: ['lc-verb-engine'], contrasts: [], previews: [] },
+    layer0: {
+      body: '把动词变礼貌不是加一个词，而是换接口：动词本体变成连用形（書く→書き、食べる→食べ），礼貌与时体全部交给挂上来的ます承担——ます/ました/ません/ませんでした，四个形态一组闭环。',
+      example: { jp: '書きます→書きました→書きません', zh: '写→写了→不写（敬体）：动词本体定格在"書き"，一切变化都发生在ます上。' },
+      hook: '既然ます把时体全包了，普通体的"写了""不写"又由谁来管？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：任何动词的ます形怎么构成',
+          body: '构成规则按三类分派：五段动词词尾从u段移到i段再接ます（書く→書き+ます、買う→買い+ます）；一段动词去る接ます（食べ+ます、見+ます）；不规则死记（する→します、来る→きます）。接上ます之后，时体否定全在ます一侧展开：ました（过去）、ません（否定）、ませんでした（过去否定）——动词本体自始至终保持连用形不再变化。',
+          minimalPair: [ { jp: '買う → 買います', zh: '五段：う→い+ます。' }, { jp: '見る → 見ます', zh: '一段：去る+ます。' } ],
+          miniExercise: { exerciseId: 'ex-cg6-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：敬体与普通体为什么不能混接',
+          body: 'ます与です一样占据固定的礼貌槽位：一个谓语只有一个槽位，同一句内不能既走普通体又挂敬体标记。高频错误有三种：*行くです（普通体动词+です）、*行きますだ（ます后再接だ）、*行きましたです（叠加）。判断方法：先定这句话的体裁（对谁说），再选整条活用链——体裁是句级决策，不是词级装饰。中文没有形态化的敬体系统，"礼貌=多加点什么"的直觉正是这三类错误的来源。',
+          minimalPair: [ { jp: '明日行きます。', zh: '明天去。（敬体链）' }, { jp: '✗ 明日行くです。', zh: '不合法：普通体动词后不能挂です补礼貌。' } ],
+          miniExercise: { exerciseId: 'ex-cg6-2' } }
+      ],
+      hook: '普通体的否定要动词本体自己变形——变到哪一段、接什么？'
+    },
+    layer2: {
+      body: 'ます历史上源于谦让动词参らす，语法化为纯礼貌助动词后仍保留完整活用（ます/ました/ませんし/ましょう），这解释了为什么时体信息能"寄生"在它身上。体裁选择的本质是对听话人的社会关系判断：敬体（です/ます体）用于非亲密或正式场合，普通体用于亲密或独白/从句内部——值得注意的是从句谓语通常回到普通体（行くと言いました，而非*行きますと言いました），敬体标记只出现在句末主句，这是"体裁是句级决策"的最有力证据，也是中文母语者从"逐词礼貌"转向"句级体裁"的关键观察点。',
+      boundaryCases: [ { jp: '行くと言いました。', zh: '说了要去。——从句内动词保持普通体，敬体只标记在句末主句上。', note: '从句普通体化是ます形分布最重要的边界规律。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '时体（ます侧变化，本体不动）', sets: [ { jp: '毎日走ります。', zh: '每天跑步。' }, { jp: '昨日走りました。', zh: '昨天跑了。（本体"走り"不变，ます→ました）' } ] } ],
+      tier2: [ { jp: '何を食べますか。', zh: '吃什么？', register: 'polite' }, { jp: '窓を開けます。', zh: '开窗。', register: 'polite' }, { jp: '来週の会議には出席しません。', zh: '下周会议我不出席。', register: 'polite' } ],
+      tier3: [ { jp: '『それでは、始めましょうか』', zh: '"那么，我们开始吧"——ます链的意志形ましょう，预告后续劝诱表达节点。', register: 'polite', source: null } ]
+    },
+    criteria: ['C_MASU'], errorRoots: ['R_POLITE_MIX', 'R_VGROUP'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 活用范式 > ます形（敬体接口）',
+      parent_concept: { id: 'cg-verb-groups', label: '动词三分类', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '构成规则依赖动词分类（已前置），本身机械；难点在建立"体裁是句级决策"的观念以杜绝混接。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite'], note: 'ます形定义上属敬体语域；从句回归普通体的边界现象已入 Layer 2。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-nai-form', module: 'core-grammar', order: 7, status: 'draft',
+    qualifies: { independentMechanism: '普通体否定由动词未然形+ない构成且ない自身再按い形容词活用；否定不是外加虚词而是两段式形态变化，这是独立机制。', citedByCount: 0, errorRoot: 'R_CONJ', mergeNote: null },
+    title: { zh: 'ない形：否定是变形，不是加"不"', ja: 'ナイ形', en: 'The Nai Form' },
+    refs: { requires: ['cg-verb-groups'], invokes: ['lc-verb-engine', 'cg-i-adj-pred'], contrasts: [], previews: [] },
+    layer0: {
+      body: '中文否定加个"不"就完事，日语否定要动词先变形：五段词尾移到a段（書く→書か）、一段去る，再接ない。更妙的是ない自己还能继续变——行かなかった（没去），后半段走的是い形容词的路。',
+      example: { jp: '行く→行かない→行かなかった', zh: '去→不去→没去：先动词变形接ない，再ない自身变かった。' },
+      hook: '为什么買う的否定是買わない，而不是按规则推出来的*買あない？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：任何动词的ない形怎么构成',
+          body: '规则：五段动词词尾移到a段+ない（書く→書かない、飲む→飲まない）；一段去る+ない（食べない、見ない）；不规则：する→しない、来る→こない（读音变化注意）。唯一的构成陷阱在う结尾五段动词：う的"a段"用わ不用あ——買う→買わない、言う→言わない。这是历史音变的遗留，规则本身固定，直接作为附加条款记忆即可。',
+          minimalPair: [ { jp: '買う → 買わない', zh: 'う结尾五段：a段取わ。' }, { jp: '✗ 買う → 買あない', zh: '不合法：不存在あ形接续。' } ],
+          miniExercise: { exerciseId: 'ex-cg7-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：否定句的过去时该在哪一段变形',
+          body: 'ない接上之后，语法上表现为一个い形容词：过去否定是ない→なかった（行かなかった），不是在动词侧再动手脚，更不是加でした（*行かないでした✗）。敬体否定的过去同理走ます链（行きませんでした）。于是普通体动词的四个基本形态构成 2×2 矩阵：行く/行かない/行った/行かなかった——肯定与否定各自的过去由不同成分承担（动词本体た vs ない→なかった），这个不对称是中文"了/没"系统里完全没有的。',
+          minimalPair: [ { jp: '昨日は行かなかった。', zh: '昨天没去。（ない→なかった）' }, { jp: '✗ 昨日は行かないでした。', zh: '不合法：普通体否定过去不能借でした。' } ],
+          miniExercise: { exerciseId: 'ex-cg7-2' } }
+      ],
+      hook: '肯定句的过去形行った，那个促音便是从哪来的？'
+    },
+    layer2: {
+      body: '否定链"未然形+ない+形容词式活用"体现了日语形态学的层叠性：每个语法成分挂上来之后自身又成为新的活用宿主（膠着语的核心特征，呼应 PART 1 活用发动机节点）。買わない的わ来自古典日语ワ行五段动词（買ふ→買はず）的历史残留。另一个系统区分点：存在动词ある的否定不用*あらない而直接用形容词ない（本がない），这也是"ない本质上是形容词"的又一证据——动词否定后缀ない与存在否定形容词ない在历史上同源，共时语法中已合流为同一套活用。',
+      boundaryCases: [
+        { jp: 'ある → ない', zh: '"有"的否定直接用形容词ない：お金がない（没钱），不存在*あらない。', note: 'ある的否定并入形容词ない是动词否定系统唯一的整词替换。', source: null },
+        { jp: '行かないで／行かなくて', zh: '否定的连接形有で/くて两条路，功能分工（请求 vs 原因）留待连接系统节点处理。', note: '预告：否定含形还会接续更多语法。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '动词类别（同为否定）', sets: [ { jp: '飲む → 飲まない', zh: '五段：m行a段。' }, { jp: '起きる → 起きない', zh: '一段：去る。' } ] } ],
+      tier2: [ { jp: '朝ご飯を食べない。', zh: '不吃早饭。', register: 'plain' }, { jp: 'お酒は飲みません。', zh: '我不喝酒。（敬体否定走ます链）', register: 'polite' }, { jp: '彼は何も言わなかった。', zh: '他什么也没说。', register: 'written' } ],
+      tier3: [ { jp: '知らない。', zh: '不知道。——高频口语，知る是伪一段五段动词，否定按五段变知らない。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_NAI'], errorRoots: ['R_CONJ', 'R_VGROUP'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 活用范式 > ない形（否定）',
+      parent_concept: { id: 'cg-verb-groups', label: '动词三分类', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '两段式变形（动词未然形+ない自身活用）对"加不"直觉冲击较大，かなかった链需要专门操练；買わない例外点固定易记。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '否定遍布全部语域；敬体否定走ます链的分工已在例句中体现。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-te-form-formation', module: 'core-grammar', order: 8, status: 'draft',
+    qualifies: { independentMechanism: '五段动词接て时发生系统性音便（词尾辅音决定って/んで/いて/いで/して分组）；音便分组规则独立于て形的功能（后者归 PART 1 接口节点）。', citedByCount: 1, errorRoot: 'R_ONBIN', mergeNote: '功能（接口性）与构成（音便）分属两个节点：lc-te-interface 讲"て形是什么"，本节点讲"て形怎么变出来"。' },
+    title: { zh: 'て形的构成：五段动词的音便法则', ja: 'テ形の音便', en: 'Te-Form Formation' },
+    refs: { requires: ['cg-verb-groups'], invokes: ['lc-te-interface'], contrasts: [], previews: ['cg-ta-form'] },
+    layer0: {
+      body: '一段动词的て形很乖：去る加て（食べて）。五段动词则集体"变音"：買う→買って、飲む→飲んで、書く→書いて。听起来乱，其实只按词尾分四组，每组一条固定规则。',
+      example: { jp: '買って・飲んで・書いて・話して', zh: '促音便、拨音便、い音便、す例外——五段て形全部音便不出这四张面孔。' },
+      hook: '为什么行く不变*行いて，偏偏变成行って？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：任何五段动词的て形属于哪个音便组',
+          body: '按词尾辅音分组：①う・つ・る→って（買って、待って、乗って，促音便）；②ぬ・ぶ・む→んで（死んで、遊んで、飲んで，拨音便+浊化）；③く→いて（書いて）、ぐ→いで（泳いで，い音便，浊音保留）；④す→して（話して，无音便直接接续）。一段动词、する（して）、来る（きて）不参与音便。四组规则覆盖全部五段动词，只有一个例外藏在下一步。',
+          minimalPair: [ { jp: '飲む → 飲んで', zh: 'む组：拨音便+で。' }, { jp: '✗ 飲む → 飲みて', zh: '不合法：连用形直接+て是古典语残留，现代语必须音便。' } ],
+          miniExercise: { exerciseId: 'ex-cg8-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：行く例外与音便错误的高发点在哪',
+          body: '唯一例外：行く按く组本应变*行いて，实际变行って（促音便）——高频动词，必须单记。中文母语者音便错误的高发点有二：①按ます形词干直接加て（*買いて、*飲みて），因为教材先教ます形，"い段+て"顺手成自然；②く/ぐ两组的清浊对应记反（*泳いて）。防错方法：て形永远从辞书形出发按词尾查组，不要从ます形逆推。',
+          minimalPair: [ { jp: '行く → 行って', zh: '唯一的く组促音便例外。' }, { jp: '✗ 行く → 行いて', zh: '不合法：规则形态恰恰是错的，例外才是标准。' } ],
+          miniExercise: { exerciseId: 'ex-cg8-2' } }
+      ],
+      hook: '同样这套音便，换个尾巴就是过去式——て变た有多少额外成本？'
+    },
+    layer2: {
+      body: '音便（おんびん）是平安时代以来的历史语音简化在现代活用表中的固化：促音便（っ）源于塞音脱落、拨音便（ん）源于鼻音化、い音便源于软腭音弱化，ぬ/ぶ/む组的で浊化则是鼻音环境同化的结果。共时层面无需推导，按组记忆即可，但了解"音便=历史快读的化石"有助于接受它的任意性。行って的例外历史上也是规则音便（行きて→行って的促音路线），只是与其他く组走了不同路径。这套分组将在た形节点原样复用——音便是て/た共享的一次性投资。',
+      boundaryCases: [ { jp: '問う → 問うて、請う → 請うて', zh: '问、请求——う组个别文语残留动词用うて不用って，现代语中罕见。', note: '问うて类是促音便组的边缘残留，考试与日常几乎不遇，登记以备查。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '音便组（词尾辅音）', sets: [ { jp: '待つ → 待って', zh: 'つ组：促音便。' }, { jp: '泳ぐ → 泳いで', zh: 'ぐ组：い音便+浊音保留。' } ] } ],
+      tier2: [ { jp: '手を洗ってください。', zh: '请洗手。', register: 'polite' }, { jp: '新聞を読んでいる。', zh: '正在看报。', register: 'plain' }, { jp: '資料を確認して、報告した。', zh: '确认资料后做了汇报。', register: 'written' } ],
+      tier3: [ { jp: 'ちょっと待って！', zh: '等一下！——待つ的促音便て形，口语最高频用例之一。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TE_FORM'], errorRoots: ['R_ONBIN', 'R_VGROUP'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 活用范式 > て形构成（音便）',
+      parent_concept: { id: 'cg-verb-groups', label: '动词三分类', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '四组规则+一个例外，记忆量明确但初期极易与ます形词干串线（*買いて），需要大量机械操练固化。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: 'て形接续遍布全部语域；例句覆盖四种。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-ta-form', module: 'core-grammar', order: 9, status: 'draft',
+    qualifies: { independentMechanism: 'た形复用て形音便并承担普通体过去/完成；三类谓语的普通体过去各有归属（た/かった/だった）构成一个系统对照，是独立的判断机制。', citedByCount: 0, errorRoot: 'R_CONJ', mergeNote: 'た形音便规则与て形完全共享（invokes），本节点的独立价值在"过去由谁承担"的三谓语对照判断。' },
+    title: { zh: 'た形：过去式与て形共用一套音便', ja: 'タ形', en: 'The Ta Form' },
+    refs: { requires: ['cg-te-form-formation'], invokes: ['cg-te-form-formation', 'cg-copula-da-desu'], contrasts: [], previews: [] },
+    layer0: {
+      body: '会了て形，た形免费：把て换成た、で换成だ，音便分组一模一样——買って→買った、飲んで→飲んだ。普通体的"过去"就由这个た承担，不用也不能借でした。',
+      example: { jp: '書いて→書いた／飲んで→飲んだ', zh: '清对清（て→た）、浊对浊（で→だ），一次投资两个活用形。' },
+      hook: '动词句的过去是た，那形容词句和名词句的过去分别是谁的地盘？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：任何动词的た形怎么构成',
+          body: '规则只有一条映射：て形的て→た、で→だ，音便分组原样保留——買って→買った（促音便）、死んで→死んだ（拨音便）、書いて→書いた（い音便）、話して→話した（す组）、行って→行った（例外同步）。一段动词食べて→食べた，する→した、来る→きた。因此た形的正确率完全取决于て形：て形错则た形必错，两者要当同一笔记忆资产来维护。',
+          minimalPair: [ { jp: '遊んで → 遊んだ', zh: 'で→だ，浊音对应。' }, { jp: '✗ 遊ぶ → 遊びた', zh: '不合法：从ます形词干逆推是音便错误的复发形态。' } ],
+          miniExercise: { exerciseId: 'ex-cg9-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：三类谓语的普通体过去各由谁承担',
+          body: '过去承担者对照表：动词句→た（行った）；い形容词句→かった（高かった）；名词句/な形容词句→だった（学生だった、静かだった）。三条互不通用：*高いだった、*静かかった都是跨范式的典型错。中文"了"是一个通用后缀，日语的"过去"却分散在三套范式各自的形态里——遇到过去时态，先回到谓语三分类，再取对应形态，这条判断链必须成为条件反射。',
+          minimalPair: [ { jp: '昨日は寒かった。', zh: '昨天很冷。（い形句过去=かった）' }, { jp: '✗ 昨日は寒いだった。', zh: '不合法：だった是名词句/な形句的过去，不能跨给い形容词。' } ],
+          miniExercise: { exerciseId: 'ex-cg9-2' } }
+      ],
+      hook: 'た形除了"过去"还能表示"完成、发现、命令"——这些扩展用法什么时候展开？'
+    },
+    layer2: {
+      body: 'た历史上源自完成助动词たり，因此现代た形兼有"过去时"（テンス）与"完成态"（アスペクト）两重身份：昨日食べた是过去，もう食べた是完成，発見のた（あ、あった！"啊，找到了"）甚至不指过去——这些区分在体系统（ている等）节点将系统展开，本节点先立住"普通体过去/完成的形态载体"这一核心。三谓语过去对照（た/かった/だった）值得与否定对照（ない/くない/じゃない）并排记忆：两张 3×1 表合起来就是普通体谓语形态的全景图，也是 JLPT 语法题最底层的判断依据。',
+      boundaryCases: [ { jp: 'あ、バスが来た！', zh: '啊，公交来了！——眼前正在发生的事用た，表"预期实现/发现"而非过去。', note: '発見・実現のた是"た=过去"直觉最重要的反例。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '谓语类型（同为过去）', sets: [ { jp: '映画を見た。', zh: '看了电影。（动词た）' }, { jp: '映画は面白かった。', zh: '电影很有意思。（い形かった）' } ] } ],
+      tier2: [ { jp: '昨日、友達と話した。', zh: '昨天和朋友聊了。', register: 'plain' }, { jp: '週末はどこかへ行きましたか。', zh: '周末去哪儿了吗？（敬体过去走ます链）', register: 'polite' }, { jp: '事件は深夜に起こった。', zh: '事件发生于深夜。', register: 'written' } ],
+      tier3: [ { jp: 'わかった、わかった。', zh: '知道了知道了。——口语中た表"当下达成理解"，不是叙述过去。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TA'], errorRoots: ['R_CONJ', 'R_ONBIN'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 活用范式 > た形（过去/完成）',
+      parent_concept: { id: 'cg-verb-groups', label: '动词三分类', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方自 2010 年改制后不再公布语法大纲，无法对照官方大纲核实，故标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '音便已在て形节点付清成本，本节点新增量只有て→た映射与三谓语过去对照表；后者是高频考点值得反复。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '过去叙述遍布全部语域；発見のた等语用扩展已入边界案例。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
   {
     id: 'sample-node',
     module: '_sample',
@@ -947,6 +1415,106 @@ const EXERCISES = [
   { id: 'ex-lc7-4', nodeId: 'lc-te-interface', stepId: null, criterionId: 'C_TE_INTERFACE', errorRoot: 'R_TE', certainty: 'C', type: 'multi-reading',
     prompt: '（脱离语境）单独看到「手紙を書いて、出した。」，除了"先写后寄"这个先后关系外，还有别的合理解读吗？', context: null, options: null, answer: null,
     feedback: '大多数情况下这是先后动作链，但也可能被理解为"以写信的方式"，具体取决于更完整的上下文，脱离语境存在多种合理解读，不判定唯一答案。' },
+
+  // ============ PART 2 · 核心语法 ============
+  // Node: cg-pred-three-types
+  { id: 'ex-cg1-1', nodeId: 'cg-pred-three-types', stepId: 'step-1', criterionId: 'C_PRED_THREE', errorRoot: 'R_PREDTYPE', certainty: 'A', type: 'judgment',
+    prompt: '「この部屋は静かだ。」的谓语属于哪一类？', context: null, options: ['名词性谓语（な形容词+だ，走だ范式）', 'い形容词谓语（本体活用）'], answer: 0,
+    feedback: '依据判据C_PRED_THREE（谓语三分类律）：静か是な形容词，句尾靠だ收尾、走名词句范式——它没有かった/くない这样的本体活用。' },
+  { id: 'ex-cg1-2', nodeId: 'cg-pred-three-types', stepId: 'step-2', criterionId: 'C_PRED_THREE', errorRoot: 'R_PREDTYPE', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子不合法？', context: null, options: ['この本は高いだ。', 'この本は高い。'], answer: 0,
+    feedback: '依据判据C_PRED_THREE：い形容词自带谓语功能，句尾直接收束，不接だ。给形容词句加系词是中文"是"字直觉的典型迁移。' },
+  { id: 'ex-cg1-3', nodeId: 'cg-pred-three-types', stepId: null, criterionId: 'C_PRED_THREE', errorRoot: 'R_PREDTYPE', certainty: 'A', type: 'judgment',
+    prompt: '「会議は明日だ。」这句话的谓语类型是？', context: null, options: ['名词句（名词+だ）', '动词句（省略了动词）'], answer: 0,
+    feedback: '依据判据C_PRED_THREE：明日+だ直接构成名词性谓语句，"会议是明天"不需要任何动词，这正是三分类里名词句独立成类的原因。' },
+
+  // Node: cg-copula-da-desu
+  { id: 'ex-cg2-1', nodeId: 'cg-copula-da-desu', stepId: 'step-1', criterionId: 'C_COPULA', errorRoot: 'R_COPULA', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"他（那时）还不是老师"——「彼はまだ先生＿＿＿」应填入？', context: null, options: ['じゃなかった', 'じゃないでした'], answer: 0,
+    feedback: '依据判据C_COPULA（系词句尾律）：名词句过去否定由だ链自身完成——じゃない→じゃなかった；借でした叠加是范式混接。' },
+  { id: 'ex-cg2-2', nodeId: 'cg-copula-da-desu', stepId: 'step-2', criterionId: 'C_COPULA', errorRoot: 'R_POLITE_MIX', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['私は学生です。', '私は学生だです。'], answer: 0,
+    feedback: '依据判据C_COPULA：だ与です是同一系词槽位的互斥选择，不能叠加。礼貌不是"多加一个词"，而是整体替换活用链。' },
+  { id: 'ex-cg2-3', nodeId: 'cg-copula-da-desu', stepId: null, criterionId: 'C_COPULA', errorRoot: 'R_COPULA', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，句尾更自然的说法是？', context: '朋友之间随意聊天，对方问「あの人、学生？」，你想回答"嗯，是学生"。', options: ['うん、学生。', 'うん、学生でございます。'], answer: 0,
+    feedback: '在这个语境下：普通体对话中だ常整体脱落，裸名词应答最自然；でございます是郑重语体，用在朋友闲聊中体裁错位。' },
+
+  // Node: cg-i-adj-pred
+  { id: 'ex-cg3-1', nodeId: 'cg-i-adj-pred', stepId: 'step-1', criterionId: 'C_IADJ_SELF', errorRoot: 'R_ADJCONJ', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"昨天很热（敬体）"——「昨日は＿＿＿」应填入？', context: null, options: ['暑かったです', '暑いでした'], answer: 0,
+    feedback: '依据判据C_IADJ_SELF（い形自活用律）：时体由形容词本体承担（暑い→暑かった），です只加礼貌不参与活用；*暑いでした把时体错交给です。' },
+  { id: 'ex-cg3-2', nodeId: 'cg-i-adj-pred', stepId: 'step-2', criterionId: 'C_IADJ_SELF', errorRoot: 'R_ADJCONJ', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['この店は安い。', 'この店は安いだ。'], answer: 0,
+    feedback: '依据判据C_IADJ_SELF：い形容词自身就是完整谓语，句尾加だ构成双重谓语，普通体中绝对不合法。' },
+  { id: 'ex-cg3-3', nodeId: 'cg-i-adj-pred', stepId: null, criterionId: 'C_IADJ_SELF', errorRoot: 'R_ADJCONJ', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"好"（いい）的过去形是？', context: null, options: ['よかった', 'いかった'], answer: 0,
+    feedback: '依据判据C_IADJ_SELF：いい的活用一律建立在よい词干上——よかった/よくない；*いかった不存在，这是い形容词唯一的重要不规则点。' },
+
+  // Node: cg-na-adj-pred
+  { id: 'ex-cg4-1', nodeId: 'cg-na-adj-pred', stepId: 'step-1', criterionId: 'C_NAADJ_DA', errorRoot: 'R_ADJCONJ', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"镇子（那时）很安静"——「町は＿＿＿」应填入？', context: null, options: ['静かだった', '静かかった'], answer: 0,
+    feedback: '依据判据C_NAADJ_DA（な形系词范式律）：な形容词的时体活用走だ范式（だ→だった），没有かった这种い形容词式的本体活用。' },
+  { id: 'ex-cg4-2', nodeId: 'cg-na-adj-pred', stepId: 'step-2', criterionId: 'C_NAADJ_DA', errorRoot: 'R_ADJCONJ', certainty: 'A', type: 'judgment',
+    prompt: '「きれい」的否定形是？', context: null, options: ['きれいじゃない', 'きれいくない'], answer: 0,
+    feedback: '依据判据C_NAADJ_DA：きれい的い是汉字词"綺麗"读音的一部分，不是活用词尾——它是な形容词，否定走じゃない，不存在くない活用。' },
+  { id: 'ex-cg4-3', nodeId: 'cg-na-adj-pred', stepId: null, criterionId: 'C_NAADJ_DA', errorRoot: 'R_ADJCONJ', certainty: 'A', type: 'judgment',
+    prompt: '下列哪个词是な形容词？', context: null, options: ['嫌い（きらい）', '偉い（えらい）'], answer: 0,
+    feedback: '依据判据C_NAADJ_DA：词尾是否为い不是分类依据——嫌い是な形容词（嫌いだった/嫌いじゃない），偉い是い形容词（偉かった/偉くない）；判断靠活用行为或白名单，不靠外形。' },
+
+  // Node: cg-verb-groups
+  { id: 'ex-cg5-1', nodeId: 'cg-verb-groups', stepId: 'step-1', criterionId: 'C_VGROUP', errorRoot: 'R_VGROUP', certainty: 'A', type: 'judgment',
+    prompt: '「乗る」（のる）属于哪一类动词？', context: null, options: ['五段动词', '一段动词'], answer: 0,
+    feedback: '依据判据C_VGROUP（动词分类判据律）：る前是o段假名（の），o/a/u段+る一律五段——一段动词要求る前是e/i段。' },
+  { id: 'ex-cg5-2', nodeId: 'cg-verb-groups', stepId: 'step-2', criterionId: 'C_VGROUP', errorRoot: 'R_VGROUP', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「帰る」的ます形是？', context: null, options: ['帰ります', '帰ます'], answer: 0,
+    feedback: '依据判据C_VGROUP：帰る的る前虽是e段（え），但它是"伪一段"白名单成员，按五段活用——る→り+ます。按一段去る是最高频的分类错误。' },
+  { id: 'ex-cg5-3', nodeId: 'cg-verb-groups', stepId: null, criterionId: 'C_VGROUP', errorRoot: 'R_VGROUP', certainty: 'A', type: 'judgment',
+    prompt: '「見る」（みる）属于哪一类动词？', context: null, options: ['一段动词', '五段动词'], answer: 0,
+    feedback: '依据判据C_VGROUP：る前是i段（み）且不在伪一段白名单内，默认一段——見ます/見ない/見て全部去る接续。' },
+
+  // Node: cg-masu-form
+  { id: 'ex-cg6-1', nodeId: 'cg-masu-form', stepId: 'step-1', criterionId: 'C_MASU', errorRoot: 'R_VGROUP', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「買う」的ます形是？', context: null, options: ['買います', '買えます'], answer: 0,
+    feedback: '依据判据C_MASU（ます形构成律）：五段动词词尾u段→i段+ます，買う→買い+ます；買えます是可能形，属于另一个活用范畴。' },
+  { id: 'ex-cg6-2', nodeId: 'cg-masu-form', stepId: 'step-2', criterionId: 'C_MASU', errorRoot: 'R_POLITE_MIX', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['明日行きます。', '明日行くです。'], answer: 0,
+    feedback: '依据判据C_MASU：动词句的礼貌槽位由ます承担，普通体动词后挂です是槽位混接——礼貌是整条活用链的选择，不是句尾贴纸。' },
+  { id: 'ex-cg6-3', nodeId: 'cg-masu-form', stepId: null, criterionId: 'C_MASU', errorRoot: 'R_POLITE_MIX', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"昨天没喝（敬体）"——「昨日は＿＿＿」应填入？', context: null, options: ['飲みませんでした', '飲みませんかった'], answer: 0,
+    feedback: '依据判据C_MASU：敬体链的过去否定是ません+でした；ません不是い形容词，不能接かった——普通体（なかった）与敬体（ませんでした）两条链不能互相借件。' },
+
+  // Node: cg-nai-form
+  { id: 'ex-cg7-1', nodeId: 'cg-nai-form', stepId: 'step-1', criterionId: 'C_NAI', errorRoot: 'R_CONJ', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「言う」的ない形是？', context: null, options: ['言わない', '言あない'], answer: 0,
+    feedback: '依据判据C_NAI（ない形构成律）：う结尾五段动词的a段用わ——言う→言わない。这是历史ワ行音变的固定遗留，无例外。' },
+  { id: 'ex-cg7-2', nodeId: 'cg-nai-form', stepId: 'step-2', criterionId: 'C_NAI', errorRoot: 'R_CONJ', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"昨天没去"（普通体）——「昨日は＿＿＿」应填入？', context: null, options: ['行かなかった', '行かないでした'], answer: 0,
+    feedback: '依据判据C_NAI：ない自身按い形容词活用，过去否定=ない→なかった；*ないでした是把名词句范式错接到否定链上。' },
+  { id: 'ex-cg7-3', nodeId: 'cg-nai-form', stepId: null, criterionId: 'C_NAI', errorRoot: 'R_VGROUP', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「知る」的ない形是？', context: null, options: ['知らない', '知ない'], answer: 0,
+    feedback: '依据判据C_NAI：知る是伪一段白名单里的五段动词，未然形词尾r行a段——知ら+ない；按一段去る得出的*知ない不合法。' },
+
+  // Node: cg-te-form-formation
+  { id: 'ex-cg8-1', nodeId: 'cg-te-form-formation', stepId: 'step-1', criterionId: 'C_TE_FORM', errorRoot: 'R_ONBIN', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「飲む」的て形是？', context: null, options: ['飲んで', '飲みて'], answer: 0,
+    feedback: '依据判据C_TE_FORM（て形音便分组律）：ぬ/ぶ/む组走拨音便+浊化——飲んで；*飲みて是从ます形词干逆推的典型错误，现代语必须音便。' },
+  { id: 'ex-cg8-2', nodeId: 'cg-te-form-formation', stepId: 'step-2', criterionId: 'C_TE_FORM', errorRoot: 'R_ONBIN', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「行く」的て形是？', context: null, options: ['行って', '行いて'], answer: 0,
+    feedback: '依据判据C_TE_FORM：行く是く组唯一例外，走促音便行って；按规则推出的*行いて恰恰是错的——高频动词，必须单记。' },
+  { id: 'ex-cg8-3', nodeId: 'cg-te-form-formation', stepId: null, criterionId: 'C_TE_FORM', errorRoot: 'R_ONBIN', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「泳ぐ」的て形是？', context: null, options: ['泳いで', '泳いて'], answer: 0,
+    feedback: '依据判据C_TE_FORM：ぐ组い音便保留浊音——泳いで；清浊对应（く→いて/ぐ→いで）记反是音便第二高发错误。' },
+
+  // Node: cg-ta-form
+  { id: 'ex-cg9-1', nodeId: 'cg-ta-form', stepId: 'step-1', criterionId: 'C_TA', errorRoot: 'R_ONBIN', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「遊ぶ」的た形是？', context: null, options: ['遊んだ', '遊びた'], answer: 0,
+    feedback: '依据判据C_TA（た形音便共用律）：た形完全复用て形音便——遊んで→遊んだ，で对だ、て对た；从ます形词干逆推的*遊びた不合法。' },
+  { id: 'ex-cg9-2', nodeId: 'cg-ta-form', stepId: 'step-2', criterionId: 'C_TA', errorRoot: 'R_CONJ', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"昨天很冷"（普通体）——「昨日は＿＿＿」应填入？', context: null, options: ['寒かった', '寒いだった'], answer: 0,
+    feedback: '依据判据C_TA：三类谓语的过去各有归属——动词た、い形かった、名词/な形だった；把だった跨给い形容词是范式混用。' },
+  { id: 'ex-cg9-3', nodeId: 'cg-ta-form', stepId: null, criterionId: 'C_TA', errorRoot: 'R_CONJ', certainty: 'C', type: 'multi-reading',
+    prompt: '（脱离语境）单独看「あ、来た。」这句话，说话人表达的一定是"过去发生的事"吗？', context: null, options: null, answer: null,
+    feedback: '不一定。た形除了叙述过去，还可表示"预期实现/当场发现"（眼前公交进站时说来た），甚至催促（どいたどいた）。脱离语境无法唯一判定，属于多种合理解读——た的体（アスペクト）用法将在体系统模块展开。' },
 
   {
     id: 'ex-sample-1',
@@ -1650,6 +2218,95 @@ const TEXT_DETECTORS = [
         if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
       }
       return out.slice(0, 5);
+    }
+  },
+  {
+    nodeId: 'cg-copula-da-desu',
+    what: '系词だ/です（名词性谓语）',
+    detect(text) {
+      const re = /(でした|ではありません|じゃありません|じゃなかった|じゃない|だった|です(?=[。！？\s、]|$)|(?<=[一-龯々ァ-ヶー])だ(?=[。！？\s、]|$))/g;
+      const seen = new Set();
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 5);
+    }
+  },
+  {
+    nodeId: 'cg-masu-form',
+    what: 'ます形（敬体动词链）',
+    detect(text) {
+      const re = /(ませんでした|ました|ません(?=[。！？\s、]|$)|ます(?=[。！？\s、か]|$)|ましょう)/g;
+      const seen = new Set();
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 5);
+    }
+  },
+  {
+    nodeId: 'cg-nai-form',
+    what: 'ない形（普通体否定）',
+    detect(text) {
+      // hiragana before ない = likely verb negative stem; may still catch い-adj ない — surface-level caveat applies
+      const re = /([ぁ-ん](?:ない(?=[。、！？\s]|$)|なかった))/g;
+      const seen = new Set();
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 5);
+    }
+  },
+  {
+    nodeId: 'cg-ta-form',
+    what: 'た形（普通体过去/完成）',
+    detect(text) {
+      // hiragana+た sentence-finally, or んだ (拨音便浊尾); きれいだ-type copula won't match (only んだ allowed for だ)
+      const re = /([ぁ-ん]た(?=[。、！？\s]|$)|んだ(?=[。、！？\s]|$))/g;
+      const seen = new Set();
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        // した preceded by まし/で belongs to the polite ました/でした chains, not plain-form た
+        if (m[1][0] === 'し' && (text[m.index - 1] === 'ま' || text[m.index - 1] === 'で')) continue;
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 5);
+    }
+  },
+  {
+    nodeId: 'cg-i-adj-pred',
+    what: 'い形容词本体活用（かった/くない）',
+    detect(text) {
+      const re = /(くなかった|かった(?=[。、！？\sで]|$)|くない(?=[。、！？\sで]|$))/g;
+      const seen = new Set();
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      // なかった alone is the ない-form's past — only claim i-adj when a く-based form is present
+      return out.some(s => s.startsWith('く') || s === 'かった') ? out.slice(0, 5) : [];
+    }
+  },
+  {
+    nodeId: 'cg-te-form-formation',
+    what: '五段音便（って/んで/いて/いで/して）',
+    detect(text) {
+      const re = /(って|んで|[ぁ-ん]いて|[ぁ-ん]いで|して)(?=[ぁ-ん、。！？\s]|$)/g;
+      const seen = new Set();
+      const out = [];
+      let m;
+      while ((m = re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 4);
     }
   }
 ];

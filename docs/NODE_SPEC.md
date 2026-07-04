@@ -178,7 +178,13 @@ knowledgePosition: {
 
   jlpt_relevance: {
     status: 'needs_verification',   // one of the 5 trust statuses below
-    category: 'foundational',       // 'foundational' | an actual N5-N1 level, ONLY if checked against a real syllabus
+    category: 'foundational',       // 'foundational' (framework nodes) | an N5-N1 level.
+                                    // A level may be 'verified' ONLY against a real checked syllabus.
+                                    // Since JLPT stopped publishing an official grammar syllabus after
+                                    // the 2010 revision, a conventional level (the classification used
+                                    // consistently across mainstream textbooks/prep books) IS allowed,
+                                    // but then status MUST stay needs_verification and the note MUST
+                                    // say the level is conventional, not official.
     note: '...'                     // why it's uncertain / what would resolve it
   },
   textbook_mapping: {
