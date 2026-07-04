@@ -13,11 +13,19 @@
       "license_note": "官网版权与转载条款未逐条核对，暂不假设内容可自由转载，仅作为公开可查阅的参考来源使用。",
       "copyright_status": "版权归主办方所有，具体使用条款待核验。",
       "reliability_tier": "official_primary",
-      "applicable_jlpt_levels": ["N1", "N2", "N3", "N4", "N5"],
+      "applicable_jlpt_levels": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ],
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["exam_prep"],
+      "applicable_contexts": [
+        "exam_prep"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "WebSearch 交叉核实域名与主办方，多个独立搜索结果一致确认 jlpt.jp 由国际交流基金与 JEES 运营；沙盒网络策略阻止对该站点的直接 WebFetch，未做实时抓取核验。",
       "notes": "尚未据此核对任何具体节点的 JLPT 级别归属或语法条目映射；仅记录为将来核验时使用的官方入口。"
@@ -33,11 +41,22 @@
       "license_note": "官网版权与转载条款未逐条核对。",
       "copyright_status": "版权归国际交流基金所有，具体使用条款待核验。",
       "reliability_tier": "official_primary",
-      "applicable_jlpt_levels": ["N1", "N2", "N3", "N4", "N5"],
+      "applicable_jlpt_levels": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ],
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
-      "applicable_textbooks": ["まるごと（Marugoto，JF Standard 対応教材）"],
-      "applicable_contexts": ["exam_prep", "curriculum_standard"],
+      "applicable_textbooks": [
+        "まるごと（Marugoto，JF Standard 対応教材）"
+      ],
+      "applicable_contexts": [
+        "exam_prep",
+        "curriculum_standard"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "WebSearch 交叉核实，多个独立搜索结果一致确认该域名为国际交流基金官方站点；未做直接 WebFetch 抓取核验。",
       "notes": "JLPT 的共同主办方，也是 JF Standard（JF日本語教育スタンダード）与《まるごと》教材的发布机构。"
@@ -56,8 +75,12 @@
       "applicable_jlpt_levels": [],
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
-      "applicable_textbooks": ["まるごと（Marugoto）"],
-      "applicable_contexts": ["curriculum_standard"],
+      "applicable_textbooks": [
+        "まるごと（Marugoto）"
+      ],
+      "applicable_contexts": [
+        "curriculum_standard"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "WebSearch 交叉核实域名与内容简介；未做直接 WebFetch 抓取核验。",
       "notes": "课程设计/教学评估框架，非 JLPT 大纲本身；不可直接当作 JLPT 级别映射的依据。"
@@ -77,7 +100,10 @@
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["corpus_frequency", "written_register"],
+      "applicable_contexts": [
+        "corpus_frequency",
+        "written_register"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "WebSearch 交叉核实域名（clrd.ninjal.ac.jp、shonagon.ninjal.ac.jp 均为 .ac.jp 学术域名，多个独立结果一致）；未做直接 WebFetch 抓取核验，也尚未实际检索过任何具体词条频率。",
       "notes": "本项目目前所有 frequency 字段仍标注 source_required，正是因为尚未实际使用本语料库检索过任何数据；本条目只是记录'如果要核实频率，应该用这个'，不能倒推为'已核实'。"
@@ -97,7 +123,9 @@
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["linguistic_research"],
+      "applicable_contexts": [
+        "linguistic_research"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "WebSearch 交叉核实其下属子站（clrd.ninjal.ac.jp 等）均挂在 ninjal.ac.jp 之下；未直接 WebFetch 该顶层域名。",
       "notes": "日本国立语言学研究机构，BCCWJ 语料库的建设与维护单位。"
@@ -117,7 +145,9 @@
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["language_policy"],
+      "applicable_contexts": [
+        "language_policy"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "WebSearch 搜索结果中出现 bunka.go.jp 下属文件（国語分科会相关 PDF），确认该域名归属文化庁；未直接 WebFetch 核验。",
       "notes": "日本语言政策主管机构，可用于核验外来语/敬语等规范性表述，尚未在任何节点中实际引用。"
@@ -137,7 +167,10 @@
       "applicable_grammar_domains": [],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["listening", "news_register"],
+      "applicable_contexts": [
+        "listening",
+        "news_register"
+      ],
       "last_verified_date": "2026-07-03",
       "verification_method": "www.nhk.or.jp 为日本放送協会广为人知的官方顶层域名，具备高置信度；但其'やさしいことばニュース/NEWS WEB EASY'具体子栏目的当前 URL 在本次检索中出现结果不一致（不同搜索均返回 news.web.nhk 而非预期的 www3.nhk.or.jp/news/easy），且直接 WebFetch 被环境拒绝，故子栏目 URL 暂不写入，标记为 needs_verification，避免记录一个可能过时或错误的深链接。",
       "notes": "未来用于听力/新闻语域素材时，需先重新核实具体子栏目 URL，不可直接照抄本条目的顶层域名后自行拼接路径。"
@@ -154,10 +187,15 @@
       "copyright_status": "版权归作者/原出版社所有，本项目仅在 layer2 正文中转述其学术观点，不摘录原文长段落。",
       "reliability_tier": "academic_secondary_citation",
       "applicable_jlpt_levels": [],
-      "applicable_grammar_domains": ["谓语中心性", "主语省略"],
+      "applicable_grammar_domains": [
+        "谓语中心性",
+        "主语省略"
+      ],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["linguistic_theory"],
+      "applicable_contexts": [
+        "linguistic_theory"
+      ],
       "last_verified_date": null,
       "verification_method": "未核验：本次会话未查证具体书目/出版社/年份/页码，仅基于该学者与理论在日语语言学教学中被广泛引用这一常识性认知转述其核心主张。",
       "notes": "对应节点：lc-predicate-core。在核实具体版本信息前，不得将该节点的相关表述标记为 verified。"
@@ -174,10 +212,15 @@
       "copyright_status": "版权归作者/原出版方所有，本项目仅转述其理论框架名称。",
       "reliability_tier": "academic_secondary_citation",
       "applicable_jlpt_levels": [],
-      "applicable_grammar_domains": ["格助词", "论元结构"],
+      "applicable_grammar_domains": [
+        "格助词",
+        "论元结构"
+      ],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["linguistic_theory"],
+      "applicable_contexts": [
+        "linguistic_theory"
+      ],
       "last_verified_date": null,
       "verification_method": "未核验：本次会话未逐一核对出版年份/文集/页码等细节（正文提及的'1968'为学界通行说法），仅基于常识性认知转述。",
       "notes": "对应节点：lc-particle-entry。在核实具体版本信息前，不得将该节点的相关表述标记为 verified。"
@@ -194,10 +237,16 @@
       "copyright_status": "版权归作者/原出版社所有，本项目仅在 layer2 正文中转述其学术观点。",
       "reliability_tier": "academic_secondary_citation",
       "applicable_jlpt_levels": [],
-      "applicable_grammar_domains": ["は", "が", "信息结构"],
+      "applicable_grammar_domains": [
+        "は",
+        "が",
+        "信息结构"
+      ],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["linguistic_theory"],
+      "applicable_contexts": [
+        "linguistic_theory"
+      ],
       "last_verified_date": null,
       "verification_method": "未核验：本次会话未查证具体书目/出版社/年份/页码，仅基于该学者与理论在日语语用学教学中被广泛引用这一常识性认知转述其核心主张。",
       "notes": "对应节点：lc-wa-topic、lc-ga-newinfo。在核实具体版本信息前，不得将这两个节点的相关表述标记为 verified。"
@@ -214,13 +263,70 @@
       "copyright_status": "版权归作者/原出版社所有，本项目仅在 layer2 正文中转述其学术观点。",
       "reliability_tier": "academic_secondary_citation",
       "applicable_jlpt_levels": [],
-      "applicable_grammar_domains": ["は", "が", "判断类型"],
+      "applicable_grammar_domains": [
+        "は",
+        "が",
+        "判断类型"
+      ],
       "applicable_vocabulary_domains": [],
       "applicable_textbooks": [],
-      "applicable_contexts": ["linguistic_theory"],
+      "applicable_contexts": [
+        "linguistic_theory"
+      ],
       "last_verified_date": null,
       "verification_method": "未核验：本次会话未查证具体书目/出版社/年份/页码，仅基于该学者与理论在日语语言学教学中被广泛引用这一常识性认知转述其核心主张。",
       "notes": "对应节点：lc-wa-topic。在核实具体版本信息前，不得将该节点的相关表述标记为 verified。"
+    },
+    {
+      "id": "src-kindaichi-verb-classes",
+      "kind": "academic_reference",
+      "title": "金田一春彦的动词四分类（アスペクト研究）",
+      "author": "金田一春彦（Kindaichi Haruhiko）",
+      "publisher": null,
+      "official_url": null,
+      "license_status": "not_applicable",
+      "license_note": "纸质学术著作，非本项目网络转载对象，仅作引用来源记录。",
+      "copyright_status": "版权归作者/原出版社所有，本项目仅在 layer2 正文中转述其学术观点。",
+      "reliability_tier": "academic_secondary_citation",
+      "applicable_jlpt_levels": [],
+      "applicable_grammar_domains": [
+        "ている",
+        "动词词汇体"
+      ],
+      "applicable_vocabulary_domains": [],
+      "applicable_textbooks": [],
+      "applicable_contexts": [
+        "linguistic_theory"
+      ],
+      "last_verified_date": null,
+      "verification_method": "未核验：本次会话未查证具体书目/出版社/年份/页码，仅基于该学者与理论在日语语言学教学中被广泛引用这一常识性认知转述其核心主张。",
+      "notes": "对应节点：cg-a-teiru。在核实具体版本信息前，不得将相关表述标记为 verified。"
+    },
+    {
+      "id": "src-kamio-territory",
+      "kind": "academic_reference",
+      "title": "神尾昭雄「情報のなわ張り理論」（信息领地理论）",
+      "author": "神尾昭雄（Kamio Akio）",
+      "publisher": null,
+      "official_url": null,
+      "license_status": "not_applicable",
+      "license_note": "纸质学术著作，非本项目网络转载对象，仅作引用来源记录。",
+      "copyright_status": "版权归作者/原出版社所有，本项目仅在 layer2 正文中转述其学术观点。",
+      "reliability_tier": "academic_secondary_citation",
+      "applicable_jlpt_levels": [],
+      "applicable_grammar_domains": [
+        "たい・ほしい",
+        "证据性",
+        "第一人称限制"
+      ],
+      "applicable_vocabulary_domains": [],
+      "applicable_textbooks": [],
+      "applicable_contexts": [
+        "linguistic_theory"
+      ],
+      "last_verified_date": null,
+      "verification_method": "未核验：本次会话未查证具体书目/出版社/年份/页码，仅基于该学者与理论在日语语言学教学中被广泛引用这一常识性认知转述其核心主张。",
+      "notes": "对应节点：cg-m-tai-hoshii。在核实具体版本信息前，不得将相关表述标记为 verified。"
     }
   ]
 }

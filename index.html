@@ -412,6 +412,8 @@ const ERROR_ROOTS = [
   { id: 'R_ASPECT_PURPOSE', name: '目的/意志性误判', description: 'ために与ように按中文"为了"合并处理，忽视前接动词的意志性（意志动词→ために、非意志/可能→ように）这一硬性分工。', module: 'core-grammar' },
   { id: 'R_ASPECT', name: '体（アスペクト）误判', description: '把ている一律译作"正在"，忽视结果状态读法（結婚している/死んでいる）；或混淆ている/てある的视角差异、误配自他动词。', module: 'core-grammar' },
   { id: 'R_TIMEPOINT', name: '时点表达混淆', description: 'ところ三时相（るところ/ているところ/たところ）与たばかり的时点定位混选，或经历表达（たことがある）与单纯过去（た）不分。', module: 'core-grammar' },
+  { id: 'R_MODALITY', name: '推量/证据性混淆', description: 'そうだ两义（样态/传闻）接续不分，ようだ/らしい/みたい的证据来源差异被当成同义替换，或はず/べき、かも/に違いない的确信度档位错位。', module: 'core-grammar' },
+  { id: 'R_DESIRE', name: '愿望表达误用', description: 'たい/ほしい直接用于第三者（＊彼は行きたい单句断言他人内心），忽视たがる/ほしがる的旁观形态；或たい句的が/を交替、ほしい前接形态（てほしい）配置错误。', module: 'core-grammar' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
@@ -456,6 +458,13 @@ const CRITERIA = [
   { id: 'C_TEKURU_TEIKU', name: { zh: 'てくる/ていく方向律', ja: 'テクルテイク方向則' }, description: '空间：朝说话人→てくる，离开→ていく；投射到时间：过去至今的变化→てきた，现在向未来→ていく。说话人是坐标原点。', module: 'core-grammar', ownerNodeId: 'cg-a-tekuru-teiku' },
   { id: 'C_TOKORO_BAKARI', name: { zh: 'ところ/ばかり时点律', ja: 'トコロバカリ時点則' }, description: 'ところ按前接形态定位三时相：るところ（即将）、ているところ（正当中）、たところ（刚刚完毕）；たばかり=说话人主观觉得"没过多久"，客观间隔可长可短。', module: 'core-grammar', ownerNodeId: 'cg-a-tokoro-bakari' },
   { id: 'C_TAKOTO', name: { zh: 'たことがある经历律', ja: 'タコトガアル経験則' }, description: 'た形+ことがある=把一次性事件登记为人生经历档案（富士山に登ったことがある），与叙述具体过去事件的た形分工；否定=たことがない（从未）。', module: 'core-grammar', ownerNodeId: 'cg-a-takoto' },
+  { id: 'C_TAI_HOSHII', name: { zh: '愿望第一人称律', ja: '願望一人称則' }, description: 'たい（想做）/ほしい（想要）直接断言的只能是说话人（疑问句中为听话人）的内心；第三者的愿望须经旁观化（たがっている/ほしがっている）或引用（たいと言っている）。', module: 'core-grammar', ownerNodeId: 'cg-m-tai-hoshii' },
+  { id: 'C_SOU_SAMA', name: { zh: 'そうだ样态律', ja: 'ソウダ様態則' }, description: '样态そうだ=眼前迹象引发的直感预判（雨が降りそうだ要下雨了），接连用形/形容词词干（高そう、よさそう）；与传闻そうだ靠接续形态区分。', module: 'core-grammar', ownerNodeId: 'cg-m-souda-sama' },
+  { id: 'C_SOU_DENBUN', name: { zh: 'そうだ传闻律', ja: 'ソウダ伝聞則' }, description: '传闻そうだ=原样转述他处信息（雨が降るそうだ听说要下雨），接普通体完整句，そうだ自身无活用无否定；信息源常配によると。', module: 'core-grammar', ownerNodeId: 'cg-m-souda-denbun' },
+  { id: 'C_YOUDA', name: { zh: 'ようだ推断律', ja: 'ヨウダ推定則' }, description: 'ようだ=基于说话人自身观察证据的推断（人の気配…誰かいるようだ），另有比况义（まるで…のようだ）；みたい是其口语形，接续更随意（名词直接+みたい）。', module: 'core-grammar', ownerNodeId: 'cg-m-youda-mitai' },
+  { id: 'C_RASHII', name: { zh: 'らしい传闻推断律', ja: 'ラシイ推定則' }, description: 'らしい=以间接信息（听闻+零星迹象）为据的推断，说话人与结论保持距离；另有典型性接尾词用法（男らしい像个男子汉的样子）。', module: 'core-grammar', ownerNodeId: 'cg-m-rashii' },
+  { id: 'C_HAZU_BEKI', name: { zh: 'はず/べき当为律', ja: 'ハズベキ当為則' }, description: 'はずだ=依据事实推算"理应如此"（8時発だから9時に着くはず）；べきだ=依据规范主张"应当去做"（謝るべきだ）；推算落空=はずなのに，规范違反=べきではない。', module: 'core-grammar', ownerNodeId: 'cg-m-hazu-beki' },
+  { id: 'C_KAMO_CHIGAI', name: { zh: '确信度两极律', ja: '確信度両極則' }, description: 'かもしれない=可能性存在但不高（50%以下的直感），に違いない=近乎断定的强确信；两者构成认识情态确信度轴的两端，中间地带由だろう/でしょう承担。', module: 'core-grammar', ownerNodeId: 'cg-m-kamo-chigai' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -2149,7 +2158,9 @@ const NODES = [
       difficulty: { status: 'pedagogical_simplification', level: 4, note: '两读判定要求先掌握动词词汇体分类，与中文"在/着/了"错位严重，是体系统的最大难关；瞬间动词清单+最小对立对是主攻手段。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: 'ている遍布全部语域；口语缩约てる已入例句。' },
       verification_status: 'source_required',
-      evidence: [],
+      evidence: [
+        { sourceId: 'src-kindaichi-verb-classes', note: 'Layer 2 转述金田一春彦动词四分类作为ている两读律的理论来源；引用尚未核对具体书目/页码，标记为待核验（见 resources/sources.json）。' }
+      ],
       last_verified: null
     }
   },
@@ -2436,6 +2447,346 @@ const NODES = [
       frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
       difficulty: { status: 'pedagogical_simplification', level: 2, note: '中文"V过"高度平行可正迁移；唯一雷区是近时点限制（＊昨日…たことがある），一条对立对可排除。' },
       typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '经历问答、履历陈述、故障报告、口语が脱落四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  /* ---- PART 2 · 模态系统 ---- */
+
+  {
+    id: 'cg-m-tai-hoshii', module: 'core-grammar', order: 34, status: 'draft',
+    qualifies: { independentMechanism: '愿望表达受"内心直接可及性"约束：たい/ほしい只能直接断言自己（或问句中对方）的内心，第三者须旁观化；这是日语证据性系统的入口机制。', citedByCount: 0, errorRoot: 'R_DESIRE', mergeNote: 'たい（动作愿望）与ほしい（事物愿望/てほしい他人行为愿望）共享第一人称限制与い形容词活用，合设一节。' },
+    title: { zh: 'たい・ほしい：愿望只能替自己说', ja: 'タイ・ホシイ', en: 'Tai and Hoshii' },
+    refs: { requires: ['cg-masu-form', 'cg-i-adj-pred'], invokes: ['cg-i-adj-pred'], contrasts: [], previews: [] },
+    layer0: {
+      body: '想做→连用形+たい（行きたい）；想要东西→名词が+ほしい。两个都按い形容词活用（たかった/たくない）。铁律：只能直说自己的愿望——"他想去"不能说＊彼は行きたい单句断言。',
+      example: { jp: '水が飲みたい。／新しい靴がほしい。', zh: '想喝水／想要新鞋——愿望对象常用が标记（を也可）。' },
+      hook: '为什么日语连"他想回家"都不许直接说？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：たい/ほしい句怎么构成、按什么活用',
+          body: 'たい=动词连用形+たい（買いたい、食べたい、したい），语法上变身い形容词：買いたかった（当时想买）、買いたくない（不想买）、敬体买いたいです。愿望对象的助词可が可を（水が飲みたい/水を飲みたい，が更传统、语感更聚焦对象）。ほしい直接是い形容词：名词+が+ほしい（車がほしい/ほしかった/ほしくない）。第三形：て形+ほしい=希望别人做（手伝ってほしい希望你帮忙）。',
+          minimalPair: [ { jp: '日本に行きたかった。', zh: '（当时）想去日本。（たい按い形活用出かった）' }, { jp: '✗ 日本に行きたいでした。', zh: '不合法：たい是い形容词范式，过去由本体变形承担。' } ],
+          miniExercise: { exerciseId: 'ex-cg34-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：第三者的愿望怎么合法表达',
+          body: '日语的原则：别人的内心你无法直接看见，所以不能像自己的愿望那样直接断言——＊彼は行きたい（单句）在标准语中不成立。三条合法通道：①旁观化：たがっている/ほしがっている（他表现出想去的样子）：彼は日本に行きたがっている；②引用：行きたいと言っている（他说想去）；③推断：行きたいようだ/らしい（似乎想去）。这条"证据性"约束覆盖所有内心谓语（嬉しい、悲しい、痛い同理），是日语与中文最深的差异之一——中文"他想去/他很高兴"毫无限制。',
+          minimalPair: [ { jp: '妹は犬をほしがっている。', zh: '妹妹（表现出）想要狗。（旁观化合法）' }, { jp: '✗ 妹は犬がほしい。', zh: '不合法（单句断言他人内心）：须转たがる/引用/推断通道。' } ],
+          miniExercise: { exerciseId: 'ex-cg34-2' } }
+      ],
+      hook: '内心不可直视——那"看起来要下雨"这种对外部迹象的直感，用什么表达？'
+    },
+    layer2: {
+      body: '第一人称限制的理论背景是日语的证据性（evidentiality）敏感：内部状态谓语（愿望/感情/感觉）默认只对体验者本人开放，他人内心必须经过可观察证据的中介——たがる（行为迹象）、そうだ/ようだ/らしい（推断）、と言う（言语证据）各对应一种证据类型。神尾昭雄的"情报のなわ張り理论"（信息领地理论）是这一现象的经典分析框架：信息属于谁的领地，决定谁有权直接断言。疑问句中第二人称合法（行きたいですか——邀请对方报告自己的内心），叙述文/小说中第三人称たい也可出现（视角人物化），这些扩展在语用层面统一于"谁的领地谁发言"。',
+      boundaryCases: [ { jp: '（小説）太郎はどうしても彼女に会いたかった。', zh: '（小说）太郎无论如何都想见她——叙事文体中叙述者潜入人物内心，第三人称たい合法化。', note: '小说的视角潜入是第一人称限制的系统性例外。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '人称（同一愿望）', sets: [ { jp: '私はケーキが食べたい。', zh: '我想吃蛋糕。（直接断言✓）' }, { jp: '娘はケーキを食べたがっている。', zh: '女儿（一个劲儿）想吃蛋糕。（旁观化）' } ] } ],
+      tier2: [ { jp: '週末はゆっくり休みたいです。', zh: '周末想好好休息。', register: 'polite' }, { jp: '新しいパソコンがほしい。', zh: '想要台新电脑。', register: 'plain' }, { jp: '政府には早急な対応をしてほしい。', zh: '希望政府尽快应对。（てほしい对机构）', register: 'written' } ],
+      tier3: [ { jp: '何が食べたい？', zh: '想吃什么？——疑问句中たい指向听话人，第二人称合法化的典型。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TAI_HOSHII'], errorRoots: ['R_DESIRE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 愿望（たい・ほしい）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'たい/ほしい惯例归 N5-N4、たがる惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '构成与活用简单（复用い形范式）；第一人称限制是中文完全没有的约束，需要把"别人的心不可直说"内化为条件反射。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '愿望陈述、购物、社论呼吁、口语提问四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [
+        { sourceId: 'src-kamio-territory', note: 'Layer 2 转述神尾昭雄"情報のなわ張り理論"作为第一人称限制的理论框架；引用尚未核对具体书目/页码，标记为待核验（见 resources/sources.json）。' }
+      ],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-m-souda-sama', module: 'core-grammar', order: 35, status: 'draft',
+    qualifies: { independentMechanism: '样态そうだ以眼前迹象作直感预判，接续锁定连用形/词干；与传闻そうだ构成同形异构对，接续位置是唯一判据。', citedByCount: 1, errorRoot: 'R_MODALITY', mergeNote: '与传闻そうだ分设节点：两者语义、接续、活用全不同，同形是最大陷阱，分开建立再contrasts互链。' },
+    title: { zh: 'そうだ（样态）：看起来就要', ja: 'ソウダ（様態）', en: 'Souda (Appearance)' },
+    refs: { requires: ['cg-masu-form', 'cg-i-adj-pred'], invokes: [], contrasts: ['cg-m-souda-denbun'], previews: [] },
+    layer0: {
+      body: '样态そうだ=眼前迹象触发的直感："眼看要…""看上去很…"。雨が降りそうだ（乌云压顶，要下了）、おいしそうなケーキ（看着就好吃的蛋糕）。接在连用形/形容词词干上——接得短，是它的胎记。',
+      example: { jp: 'この本、面白そうだね。', zh: '这本书看起来挺有意思——凭封面/翻两页的直感，还没读过。' },
+      hook: '同一个そうだ，为什么降りそうだ是"要下了"、降るそうだ却是"听说要下"？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：样态そうだ的接续与含义',
+          body: '接续（比传闻短一截）：动词连用形+そうだ（降り+そうだ眼看要下、倒れそうだ眼看要倒）；い形容词去い+そうだ（高そう看着贵、おいし+そう）；な形容词词干+そうだ（元気そう看着挺精神）。两个特例：いい→よさそう、ない→なさそう（补さ）。含义两支：动词侧=事态临近的预感（"眼看要"），形容词侧=外观印象（"看上去很"）——都源于"凭眼前迹象打直感分"。',
+          minimalPair: [ { jp: '荷物が落ちそうだ。', zh: '行李眼看要掉。（连用形+そう：临近预感）' }, { jp: 'このスープ、熱そう。', zh: '这汤看着很烫。（词干+そう：外观印象）' } ],
+          miniExercise: { exerciseId: 'ex-cg35-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：样态そうだ的否定与连体用法',
+          body: '否定两条路：动词侧用そうにない/そうもない（雨は降りそうにない看这天不像要下）；形容词侧用なさそう（おいしくなさそう看着不好吃）。连体修饰：そうな+名词（おいしそうなケーキ、倒れそうな木）；连用：そうに+动词（嬉しそうに笑う开心地笑——他人感情的合法出口之一，呼应たい节点的旁观化通道）。样态そうだ自身按な形容词活用，这也是它与传闻そうだ（无活用）的又一区别。',
+          minimalPair: [ { jp: '今日は雨が降りそうにない。', zh: '今天不像要下雨。（动词侧否定）' }, { jp: '彼は嬉しそうに笑った。', zh: '他开心地笑了。（そうに连用：他人感情的观察式表达）' } ],
+          miniExercise: { exerciseId: 'ex-cg35-2' } }
+      ],
+      hook: '直感是我看出来的——那"我听来的"消息用什么打包转述？'
+    },
+    layer2: {
+      body: '样态そうだ的证据类型是"直接知觉+即时推断"：说话人正目睹迹象（乌云、倾斜、色泽）并输出预判，因此它天然排斥已确认的事实（＊雨が降っていそうだ眼看正在下✗——正在下是观察结论不是预感）。与ようだ的分工：そうだ是"抢在事实前面的直感"（降りそうだ还没下），ようだ是"综合证据后的判断"（濡れているから、降ったようだ地面湿了，看来下过）——时间指向一前一后。形容词侧そう不能接在直接可见属性上：＊赤そう（红不红一眼可见，无需推断）✓高そう（价格需要推测）——"可直接观测的属性不用样态"这条限制是理解其证据性本质的钥匙。',
+      boundaryCases: [ { jp: '死にそうだ。', zh: '要死了（累死了/疼死了）——生理极限的夸张表达，样态そうだ高度惯用化的口语延伸。', note: '夸张用法保留"临界预感"核心义。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '证据时点（そうだ vs ようだ）', sets: [ { jp: '雨が降りそうだ。', zh: '眼看要下雨。（事前直感）' }, { jp: '雨が降ったようだ。', zh: '看来下过雨了。（事后综合判断）' } ] } ],
+      tier2: [ { jp: '美味しそうですね。', zh: '看起来很好吃啊。', register: 'polite' }, { jp: 'ボタンが取れそうだよ。', zh: '扣子快掉了。', register: 'spoken' }, { jp: '両社の交渉は決裂しそうだ。', zh: '两家公司的谈判眼看要破裂。', register: 'written' } ],
+      tier3: [ { jp: '泣きそうになった。', zh: '差点哭出来——そうになる：临界点逼近又收回的固定搭配。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_SOU_SAMA'], errorRoots: ['R_MODALITY'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 样态（そうだ）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '样态そうだ惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '接续规则+よさそう/なさそう特例+否定双轨有一定记忆量；与传闻そうだ的同形对立靠接续一刀切。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '外观评价、临界预警、新闻预判三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-m-souda-denbun', module: 'core-grammar', order: 36, status: 'draft',
+    qualifies: { independentMechanism: '传闻そうだ原样转述外部信息、自身零活用；与样态そうだ同形而接续/活用/语义全异，接续判读是独立机制。', citedByCount: 0, errorRoot: 'R_MODALITY', mergeNote: null },
+    title: { zh: 'そうだ（传闻）：听说', ja: 'ソウダ（伝聞）', en: 'Souda (Hearsay)' },
+    refs: { requires: ['cg-m-souda-sama'], invokes: ['cg-p-to'], contrasts: ['cg-m-souda-sama'], previews: [] },
+    layer0: {
+      body: '传闻そうだ=把听来/读来的消息原样转出去："听说…"。天気予報によると、明日は雨が降るそうだ。接普通体完整句——接得长，是它与样态最醒目的分界线。',
+      example: { jp: '田中さんは来月結婚するそうだ。', zh: '听说田中下个月结婚——消息从别处来，我只负责转播。' },
+      hook: '降りそうだ vs 降るそうだ，一字之差，信息来源天差地别——怎么秒判？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：同形そうだ的秒判法',
+          body: '判读只看そうだ前面一格：连用形/词干（降り、高、元気）→样态（我看出来的）；普通体完整形（降る、降った、高い、雨だ）→传闻（我听来的）。降りそうだ（眼看要下）vs 降るそうだ（听说要下）、高そう（看着贵）vs 高いそうだ（听说贵）。传闻そうだ通常配信息源短语：〜によると/〜の話では（天気予報によると…そうだ），样态永远不配——信息源的有无是第二判据。',
+          minimalPair: [ { jp: 'この店は美味しそうだ。', zh: '这家店看着好吃。（词干接续=样态）' }, { jp: 'この店は美味しいそうだ。', zh: '听说这家店好吃。（完整形接续=传闻）' } ],
+          miniExercise: { exerciseId: 'ex-cg36-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：传闻そうだ的"零活用"限制',
+          body: '传闻そうだ是纯转播器，自身不做任何变化：没有过去形（＊降るそうだった✗——要说"当时听说"需改结构）、没有否定形（＊降るそうじゃない✗——否定放进被转述内容：降らないそうだ听说不下）、没有连体形（＊降るそうな天気✗）。这与样态そうだ的完整な形容词活用（そうだった/そうな/そうに）形成全面对照——活用能力的有无是第三判据，也是语法题最爱考的一刀。',
+          minimalPair: [ { jp: '明日は降らないそうだ。', zh: '听说明天不下雨。（否定进内容✓）' }, { jp: '✗ 明日は降るそうじゃない。', zh: '不合法：传闻そうだ自身无否定活用。' } ],
+          miniExercise: { exerciseId: 'ex-cg36-2' } }
+      ],
+      hook: '"听说"是零加工转播——那带着自己三分判断的"好像/似乎"，交给ようだ和らしい。'
+    },
+    layer2: {
+      body: '传闻そうだ的证据类型是"纯言语证据+零说话人加工"——这解释了零活用（转播器不对内容负责，也就没有自己的时体否定）与信息源短语的高共现（转播需注明出处）。与らしい的分界：らしい也可基于听闻，但掺入了说话人的推断整合（"综合听到的种种，我判断大概如此"），そうだ则是单一信息源的直接转写。因此新闻转述固定用そうだ/ということだ/とのこと（零加工三件套），而闲谈中的"好像听说"多用らしい。书面语替代形：ということだ、とのことだ（商务邮件高频），三者在"转播纯度"上等价。',
+      boundaryCases: [ { jp: '昔、ここは海だったそうだ。', zh: '据说这里从前是海——被转述内容自带过去形（だった），传闻标记仍是现在形そうだ：时体属于内容，不属于转播器。', note: '内容时体 vs 转播器零时体的分工样本。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '接续（同一命题，样态 vs 传闻）', sets: [ { jp: '彼は元気そうだ。', zh: '他看着挺精神。（词干=样态）' }, { jp: '彼は元気だそうだ。', zh: '听说他挺好的。（普通体だ=传闻）' } ] } ],
+      tier2: [ { jp: 'ニュースによると、台風が来るそうです。', zh: '据新闻说台风要来。', register: 'polite' }, { jp: 'あの二人、別れたそうだよ。', zh: '听说那两人分了。', register: 'spoken' }, { jp: '会議は延期になったとのことだ。', zh: '据悉会议已延期。（书面等价形とのこと）', register: 'written' } ],
+      tier3: [ { jp: '先生の話では、試験は難しくないそうだ。', zh: '照老师的说法，考试不难——信息源短语+传闻そうだ的完整转播链。', register: 'plain', source: null } ]
+    },
+    criteria: ['C_SOU_DENBUN'], errorRoots: ['R_MODALITY'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 传闻（そうだ）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '传闻そうだ惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '三判据（接续长短/信息源短语/活用有无）可把同形对立变成机械判断；与样态そうだ的contrast练习是本节点全部重心。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written', 'plain'], note: '新闻转述、八卦、商务书面、引源转播四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-m-youda-mitai', module: 'core-grammar', order: 37, status: 'draft',
+    qualifies: { independentMechanism: 'ようだ基于第一手观察证据做推断并兼营比况；证据来源（自己观察 vs 听闻）是它与らしい分工的独立判据。', citedByCount: 0, errorRoot: 'R_MODALITY', mergeNote: 'みたい是ようだ的口语等价形（接续更简），并入本节而非独立节点。' },
+    title: { zh: 'ようだ・みたい：我观察，我推断', ja: 'ヨウダ・ミタイ', en: 'Youda and Mitai' },
+    refs: { requires: ['cg-m-souda-sama'], invokes: [], contrasts: ['cg-m-rashii'], previews: [] },
+    layer0: {
+      body: 'ようだ=亲眼所见的证据+自己的头脑="好像"：玄関に靴がある。誰か来ているようだ（门口有鞋，看来有人来了）。口语说みたい。另一职：比况"像…一样"（まるで夢のようだ）。',
+      example: { jp: '電気がついている。誰かいるようだ。', zh: '灯亮着——（我据此推断）里面好像有人。证据是我自己看到的。' },
+      hook: '"好像有人"的ようだ和"听说有人"的らしい，证据从哪来是分水岭——怎么用？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：推断ようだ的接续与使用条件',
+          body: '接续（连体形逻辑）：动词/い形普通体+ようだ（来ているようだ、高いようだ）；な形+な+ようだ（静かなようだ）；名词+の+ようだ（学生のようだ）。使用条件：说话人手头有第一手观察证据（看到、听到、闻到、试过），据此下判断——医生查体后说风邪のようですね（应该是感冒）正是这个证据结构：亲自检查（第一手）+专业推断。口语中みたい全面替换：来ているみたい、学生みたい（接续更简：名词直接接）。',
+          minimalPair: [ { jp: '道が濡れている。雨が降ったようだ。', zh: '路面湿了——看来下过雨。（自己观察→推断）' }, { jp: '天気予報によると、雨が降ったらしい。', zh: '据天气预报说好像下过雨。（听闻→らしい更贴）' } ],
+          miniExercise: { exerciseId: 'ex-cg37-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：比况ようだ与例示ような/ように',
+          body: 'ようだ的第二职：比况（比喻）——まるで夢のようだ（简直像做梦）、雪のように白い（像雪一样白）。まるで是比况的信号词，出现即锁定比喻读。派生用法：例示のような（田中さんのような人"像田中那样的人"）与样态副词ように（言われたようにやる"按说的那样做"）。みたい完全平行：夢みたい、雪みたいに白い。推断/比况两职的区分靠语境：证据推理→推断；まるで/明显不可能为真→比况。',
+          minimalPair: [ { jp: 'あの人はモデルのようだ。', zh: '那人好像是模特。（推断：综合观察）' }, { jp: 'あの人はまるでモデルのようだ。', zh: '那人像模特一样（漂亮）。（比况：まるで锁定）' } ],
+          miniExercise: { exerciseId: 'ex-cg37-2' } }
+      ],
+      hook: '第一手证据归ようだ——那道听途说加零星迹象的"据说好像"，らしい怎么接手？'
+    },
+    layer2: {
+      body: '日语推量系统的证据性分工图：様態そうだ（直接知觉的即时预感）→ようだ（第一手证据的综合推断）→らしい（第二手信息的距离化推断）→传闻そうだ（零加工转播），构成"说话人加工度递减、信息距离递增"的连续统。ようだ在其中占据"最负责任的推断"位置：说话人愿为判断背书（医生、侦探的用词）。文体对照：ようだ书面/正式，みたい口语/随意，两者语义等价但接续不同（ようだ要の/な中介，みたい裸接名词）——句尾体裁一致性要求前后统一（です体配ようです，普通体闲聊配みたい）。委婉判断的扩展用法（お疲れのようですね您好像累了）是日语"断言回避"礼貌策略的标准装备。',
+      boundaryCases: [ { jp: '風邪を引いたみたいで、喉が痛い。', zh: '好像感冒了，嗓子疼——对自己身体状态也用推断形：内部感觉+外部化表达的委婉惯例。', note: '对自身状态的みたい是"断言回避"文化的深层样本。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '证据来源（ようだ vs らしい）', sets: [ { jp: '（足跡を見て）猫が入ったようだ。', zh: '（看着脚印）好像有猫进来了。（第一手）' }, { jp: '（近所の話で）猫が入ったらしい。', zh: '（听邻居说）好像有猫进来了。（第二手）' } ] } ],
+      tier2: [ { jp: '少し熱があるようですね。', zh: '您好像有点发烧。（医生语体）', register: 'polite' }, { jp: 'なんか変な音がするみたい。', zh: '好像有奇怪的声音。', register: 'spoken' }, { jp: '景気は回復しつつあるようだ。', zh: '经济似乎正在复苏。', register: 'written' } ],
+      tier3: [ { jp: 'まるで映画のワンシーンのようだった。', zh: '简直像电影里的一幕——まるで+ようだ的比况满配。', register: 'written', source: null } ]
+    },
+    criteria: ['C_YOUDA'], errorRoots: ['R_MODALITY'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 推断（ようだ・みたい）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'ようだ/みたい惯例归 N4-N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '与らしい/そうだ的证据性分工是 N3-N2 语法辨析核心难点；"证据从哪来"一问是判断主轴，需大量语境题内化。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '诊断判断、口语观察、书面趋势、比况修辞四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-m-rashii', module: 'core-grammar', order: 38, status: 'draft',
+    qualifies: { independentMechanism: 'らしい以第二手信息为据做距离化推断，并另营典型性接尾职（男らしい）；信息距离感是与ようだ分工的独立判据。', citedByCount: 0, errorRoot: 'R_MODALITY', mergeNote: null },
+    title: { zh: 'らしい：据说好像，与我无关', ja: 'ラシイ', en: 'Rashii' },
+    refs: { requires: ['cg-m-youda-mitai'], invokes: [], contrasts: ['cg-m-youda-mitai'], previews: [] },
+    layer0: {
+      body: 'らしい=以听来的信息为主料的推断："据说好像…"。彼は会社を辞めるらしい（听说他要辞职）。说话人与结论保持一臂距离——信不信由你，我只是综合了听到的。另一职：典型性（春らしい天気）。',
+      example: { jp: '隣の家、引っ越すらしいよ。', zh: '隔壁好像要搬家——从哪听来的零零碎碎，综合起来大概如此。' },
+      hook: '医生看完检查说ようですね，邻居八卦说らしいよ——为什么不能互换？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：推断らしい的证据结构与接续',
+          body: '接续与传闻そうだ同型：普通体+らしい（辞めるらしい、高いらしい），名词/な形直接接（学生らしい、元気らしい——注意无の/な中介，与ようだ的接续差是识别点）。证据结构：第二手信息（听闻、传言、报道）为主+可有零星自见迹象，说话人做了轻度整合但不为结论背书——"距离感"是らしい的灵魂。因此转述八卦、小道消息天然用らしい；自己亲手查证过的事用らしい反而显得推卸责任。',
+          minimalPair: [ { jp: '（検査結果を見て）インフルエンザのようですね。', zh: '（医生看着结果）应该是流感。（第一手+背书→ようだ）' }, { jp: '（噂で）あの店、閉店するらしい。', zh: '（据传言）那家店好像要关。（第二手+距离→らしい）' } ],
+          miniExercise: { exerciseId: 'ex-cg38-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：典型性らしい（接尾词职）怎么用',
+          body: '第二职完全不同：名词+らしい=具备该名词的典型特质——男らしい（有男子汉样）、春らしい天気（很有春天味道的天气）、君らしくない（不像你的作风）。判别法：能否翻译成"像个…样/有…风范"→典型性；"据说好像"→推断。典型性らしい可自由活用（らしく/らしさ：自分らしさ做自己的风格），推断らしい活用受限——两职在形态行为上也分道扬镳。N1 高频派生：らしい的否定形らしくない几乎只出现在典型性职（君らしくない）。',
+          minimalPair: [ { jp: '今日は春らしい天気だ。', zh: '今天是很有春意的天气。（典型性："像春天该有的样子"）' }, { jp: '明日は春になるらしい。', zh: '听说明天入春。（推断："据说"）' } ],
+          miniExercise: { exerciseId: 'ex-cg38-2' } }
+      ],
+      hook: '推断家族到齐——下一站换赛道："理应到了"和"应当道歉"，はず与べき的两种"应该"。'
+    },
+    layer2: {
+      body: 'らしい的两职在历史上同源：接尾词らしい（典型性）先行，推断助动词化后语义漂白为"符合所闻迹象的样子"——"像"的核心一以贯之。证据性坐标上らしい与ようだ的分界不是绝对二分而是倾向连续统：证据越间接、说话人越想撇清责任，越偏らしい；实际语料两者重叠区不小，考题只考两端清晰案例（医生场景锁ようだ、传言场景锁らしい）。与传闻そうだ的分界更清晰：そうだ零加工（连"好像"都不加），らしい有轻度整合（"综合各方说法大概如此"）——转播纯度是判据。',
+      boundaryCases: [ { jp: 'どうやら本当らしい。', zh: '看来八成是真的——どうやら是らしい/ようだ的信号副词，强化"综合迹象"的整合义。', note: 'どうやら〜らしい是推断句的高频搭配模板。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '两职（推断 vs 典型性）', sets: [ { jp: '彼は学生らしい。', zh: '他好像是学生。（推断）' }, { jp: '彼は学生らしい服装だ。', zh: '他一身学生气的打扮。（典型性）' } ] } ],
+      tier2: [ { jp: '来週から寒くなるらしいですよ。', zh: '听说下周开始变冷。', register: 'polite' }, { jp: 'あいつ、彼女ができたらしい。', zh: '那家伙好像交女朋友了。', register: 'spoken' }, { jp: '容疑者は海外に逃亡したらしい。', zh: '嫌疑人似已逃往海外。（报道体）', register: 'written' } ],
+      tier3: [ { jp: '自分らしく生きる。', zh: '活出自己的样子——らしく连用+らしさ名词化，典型性职的现代高频语域。', register: 'written', source: null } ]
+    },
+    criteria: ['C_RASHII'], errorRoots: ['R_MODALITY'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 距离化推断（らしい）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '推断らしい惯例归 N4-N3、典型性らしい惯例归 N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '与ようだ的证据性分工是推量系统最难一刀；两职分辨（推断/典型性）靠翻译测试可快速判定。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '传闻转述、八卦、报道体、自我风格四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-m-hazu-beki', module: 'core-grammar', order: 39, status: 'draft',
+    qualifies: { independentMechanism: 'はず（事实推算的"理应"）与べき（规范主张的"应当"）分掌认识域与义务域的两种"应该"；域判断是独立机制。', citedByCount: 0, errorRoot: 'R_MODALITY', mergeNote: '中文"应该"一词双域是合设一节的理由：对照本身就是教学单元。' },
+    title: { zh: 'はずだ・べきだ："应该"的两个世界', ja: 'ハズダ・ベキダ', en: 'Hazu da and Beki da' },
+    refs: { requires: ['cg-m-youda-mitai'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: '中文"应该"一词管两件事，日语分两家：推算的"理应"→はずだ（8点发车，9点理应到了）；规范的"应当"→べきだ（做错了就应当道歉）。用错家，句子意思整个换频道。',
+      example: { jp: 'もう着くはずだ。／謝るべきだ。', zh: '理应到了（我算出来的）／应当道歉（我主张的）——一个是推理，一个是价值判断。' },
+      hook: '"他应该在家"到底是"我推算他在家"还是"他有义务在家"？中文含糊，日语必须选边。'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：はずだ的推算结构与落空形',
+          body: 'はずだ=手头事实+逻辑推算→"理应如此"：便は8時発だから、もう着いたはずだ（8点发车这一事实推出理应到了）。接续走连体形（着くはず、高いはず、静かなはず、学生のはず）。推算落空的两个形：はずなのに（理应如此却…——呼应のに的预期落空）、はずがない（推算上不可能：彼が犯人のはずがない他不可能是凶手——比单纯否定强烈得多）。はず的底气永远来自"有据可推"，没有依据的场合用はず会显得武断。',
+          minimalPair: [ { jp: '薬を飲んだから、治るはずだ。', zh: '吃了药，理应会好。（有据推算）' }, { jp: '彼がそんなことを言うはずがない。', zh: '他不可能说那种话。（推算上排除）' } ],
+          miniExercise: { exerciseId: 'ex-cg39-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：べきだ的规范结构与语气强度',
+          body: 'べきだ=社会规范/道理→"应当去做"：約束は守るべきだ（承诺应当遵守）。接辞书形（する→するべき/すべき两形并存）。否定：すべきではない（不应当做）——注意否定的是"当为"不是"能力"。语气警告：べき是强规范主张，对上级/长辈直接说〜べきです有说教感，日常建议软化为〜たほうがいい（还是…为好）——べき/ほうがいい的强度阶梯是语用必修。落空形：べきだった（当初就该…——悔恨的定式：もっと勉強すべきだった）。',
+          minimalPair: [ { jp: '学生はもっと本を読むべきだ。', zh: '学生应当多读书。（规范主张）' }, { jp: '疲れているなら、早く寝たほうがいいよ。', zh: '累了的话还是早点睡吧。（软化建议，非べき场合）' } ],
+          miniExercise: { exerciseId: 'ex-cg39-2' } }
+      ],
+      hook: '推算与规范都断得很满——那"可能吧"和"肯定没错"这对确信度两极呢？'
+    },
+    layer2: {
+      body: '语言学把两种"应该"归入不同模态域：はず=认识模态（epistemic，关于"世界大概是什么样"），べき=义务模态（deontic，关于"世界应当被弄成什么样"）。中文"应该"双域兼营（"他应该到了/你应该道歉"），日语强制分流——这是中文母语者少数"母语更粗、目标语更细"的模态区，判断口诀：能加"按理说"→はず；能换"有义务/理当"→べき。はずだ与だろう的分工：はず有可复述的推算依据，だろう是无需依据的主观推测——考题以"因为8点发车"这类依据句为はず的锁定信号。べき的文语源（べし）解释了すべき的残留形与其书面/庄重色彩。',
+      boundaryCases: [ { jp: 'そんなはずはない。', zh: '不可能是那样！——はずはない：对眼前信息与自己推算冲突时的抗议，日剧高频台词。', note: 'はずがない/はずはない的微差（が中立、は对比抗议）呼应は/が节点。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '模态域（同一个"应该"）', sets: [ { jp: '彼はもう家にいるはずだ。', zh: '他这会儿理应在家。（推算）' }, { jp: '彼はもっと家にいるべきだ。', zh: '他应当多待在家里。（规范）' } ] } ],
+      tier2: [ { jp: '予約したはずなのに、席がなかった。', zh: '明明订了位，却没有座。（推算落空+のに）', register: 'polite' }, { jp: '嘘をつくべきじゃない。', zh: '不应当撒谎。', register: 'plain' }, { jp: '政府は国民に説明すべきである。', zh: '政府应当向国民作出说明。（である体社论）', register: 'written' } ],
+      tier3: [ { jp: 'もっと早く病院に行くべきだった。', zh: '当初就该早点去医院——べきだった：悔恨的标准定式。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_HAZU_BEKI'], errorRoots: ['R_MODALITY'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 当为（はずだ・べきだ）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N3', note: 'はずだ/べきだ惯例归 N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '中文"应该"双域合流是唯一难点；"按理说/有义务"替换测试可机械判定，落空形（はずなのに/べきだった）是考点常客。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '推算申诉、规范主张、社论、悔恨自白四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-m-kamo-chigai', module: 'core-grammar', order: 40, status: 'draft',
+    qualifies: { independentMechanism: 'かもしれない与に違いない占据认识确信度轴两端，与だろう构成三档刻度；确信度标定是独立机制。', citedByCount: 0, errorRoot: 'R_MODALITY', mergeNote: null },
+    title: { zh: 'かもしれない・に違いない：从"说不定"到"准没错"', ja: 'カモシレナイ・ニチガイナイ', en: 'Kamo shirenai and Ni chigainai' },
+    refs: { requires: ['cg-m-youda-mitai'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: '确信度刻度盘：かもしれない="说不定"（可能性在，但不高）；だろう="大概吧"（居中）；に違いない="准没错"（近乎断定）。三档接普通体，口语里かも单飞（行くかも）。',
+      example: { jp: '雨かもしれない。／雨だろう。／雨に違いない。', zh: '说不定下雨／大概要下雨／肯定是雨——同一命题，三档下注。' },
+      hook: '为什么天气预报说だろう，侦探指认凶手说に違いない，而借口开脱用かもしれない？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：かもしれない的低下注结构',
+          body: '接续：普通体+かもしれない，名词/な形直接接（雨かもしれない、暇かもしれない——无だ中介，识别点）。语义：把可能性放上台面但不押注——"也可能如此（也可能不）"。因此天然用于：留余地的提醒（間に合わないかもしれないよ可能赶不上哦）、委婉的异议（そうかもしれませんが、…也许是这样，但是……——商务反驳的标准缓冲垫）。口语缩约かも可单独成句（「行く？」「うん、行くかも」）。',
+          minimalPair: [ { jp: '彼は来ないかもしれない。', zh: '他说不定不来。（可能性提示，不押注）' }, { jp: '彼は来ないだろう。', zh: '他大概不会来。（中档推测，倾向明确）' } ],
+          miniExercise: { exerciseId: 'ex-cg40-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：に違いない的高确信结构与使用限度',
+          body: '接续同かも：普通体/名词直接+に違いない（犯人はあの男に違いない）。语义：证据在手、近乎断定，但形式上仍留一线（毕竟没亲眼确认）——侦探指认、恍然大悟（そうか、彼が言ったに違いない原来如此，肯定是他说的）是主场。使用限度：确信度高≠礼貌度高，对上位者断言他人内心（お疲れに違いありません）显得越界，敬语场合改用でしょう/かと思います。书面强化形：に相違ない（公文）、はずだ（有推算依据时）与に違いない（直觉确信）的分工呼应上一节点。',
+          minimalPair: [ { jp: 'この字は田中さんのに違いない。', zh: '这字迹肯定是田中的。（证据+直觉断定）' }, { jp: 'この字は田中さんのかもしれない。', zh: '这字迹说不定是田中的。（同证据，低下注）' } ],
+          miniExercise: { exerciseId: 'ex-cg40-2' } }
+      ],
+      hook: '模态刻度盘校准完毕——最后一个大系统：请求、许可、义务、劝诱，日语怎么在人际之间递话？'
+    },
+    layer2: {
+      body: '认识模态确信度轴的完整刻度：かもしれない（≈可能）＜だろう/でしょう（≈大概）＜に違いない（≈必定）＜断定形（だ/です）。中文对应词（可能/大概/一定）分布平行，正迁移可用——但两个日语特有点需注意：①かもしれない的"缓冲垫"语用（そうかもしれませんが）在中文"也许吧，但是"中语气更让步，日语版更中性礼貌，商务必备；②に違いない几乎只用于说话人内部推理的输出（侦探独白、恍然大悟），不用于对听话人的说服（中文"肯定是"可以用来说服人）——说服场合日语用はずです（给出推算依据）。这条"独白 vs 说服"的分工是 N2 语用题的隐藏考点。',
+      boundaryCases: [ { jp: 'ひょっとしたら優勝するかもしれない。', zh: '搞不好会夺冠——ひょっとしたら/もしかしたら是かも的信号副词，进一步压低下注额。', note: '信号副词+かも的搭配模板（另有きっと+だろう、絶対+に違いない的强化链）。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '确信度（同一证据）', sets: [ { jp: '電気がついている。誰かいるかもしれない。', zh: '灯亮着，说不定有人。（低）' }, { jp: '電気がついている。誰かいるに違いない。', zh: '灯亮着，肯定有人。（高）' } ] } ],
+      tier2: [ { jp: '明日は雪が降るかもしれません。', zh: '明天可能下雪。', register: 'polite' }, { jp: '犯人はこの中にいるに違いない。', zh: '凶手一定就在这些人里。', register: 'plain' }, { jp: '交渉は長期化する可能性があるとみられる。', zh: '谈判可能长期化。（新闻体的第三方推测形）', register: 'written' } ],
+      tier3: [ { jp: '「来る？」「うーん、無理かも。」', zh: '"来吗？""唔，可能够呛。"——かも单飞成句的口语终点形。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_KAMO_CHIGAI'], errorRoots: ['R_MODALITY'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 模态系统 > 确信度两极（かも・に違いない）',
+      parent_concept: { id: null, label: '模态系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'かもしれない惯例归 N4、に違いない惯例归 N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '中文"可能/大概/一定"刻度平行可正迁移；两个语用点（缓冲垫かも、独白型に違いない）需专项提示。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '天气预报、推理独白、新闻推测、口语单飞四类场景已入例句。' },
       verification_status: 'source_required',
       evidence: [],
       last_verified: null
@@ -2964,6 +3315,77 @@ const EXERCISES = [
     prompt: '"一次都没吃过刺身"——「一度も刺身を食べた＿＿＿＿」应填入？', context: null, options: ['ことがない', 'ことがある'], answer: 0,
     feedback: '依据判据C_TAKOTO：经历的全称否定=たことがない（从未），与一度も呼应；ことがある与一度も极性冲突。' },
 
+  // ---- 模态系统 ----
+  { id: 'ex-cg34-1', nodeId: 'cg-m-tai-hoshii', stepId: 'step-1', criterionId: 'C_TAI_HOSHII', errorRoot: 'R_DESIRE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"（当时）想去日本"——「日本に＿＿＿＿」应填入？', context: null, options: ['行きたかった', '行きたいでした'], answer: 0,
+    feedback: '依据判据C_TAI_HOSHII（愿望第一人称律）：たい按い形容词活用，过去由本体变形（たかった）承担；たいでした是范式混接。' },
+  { id: 'ex-cg34-2', nodeId: 'cg-m-tai-hoshii', stepId: 'step-2', criterionId: 'C_TAI_HOSHII', errorRoot: 'R_DESIRE', certainty: 'A', type: 'judgment',
+    prompt: '"妹妹想要狗"，下面哪个说法合法？', context: null, options: ['妹は犬をほしがっている。', '妹は犬がほしい。（单句断言）'], answer: 0,
+    feedback: '依据判据C_TAI_HOSHII：他人内心不可直接断言，须旁观化（ほしがる：从行为迹象看出）、引用或推断。' },
+  { id: 'ex-cg34-3', nodeId: 'cg-m-tai-hoshii', stepId: null, criterionId: 'C_TAI_HOSHII', errorRoot: 'R_DESIRE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"希望你帮我一下"——「ちょっと手伝っ＿＿＿＿」应填入？', context: null, options: ['てほしい', 'たい'], answer: 0,
+    feedback: '依据判据C_TAI_HOSHII：希望别人做某事=て形+ほしい；たい只能表达自己要做的动作（手伝いたい=我想帮忙）。' },
+
+  { id: 'ex-cg35-1', nodeId: 'cg-m-souda-sama', stepId: 'step-1', criterionId: 'C_SOU_SAMA', errorRoot: 'R_MODALITY', certainty: 'A', type: 'cloze-prediction',
+    prompt: '看着乌云密布的天说"眼看要下雨"——「雨が＿＿＿そうだ」应填入？', context: null, options: ['降り', '降る'], answer: 0,
+    feedback: '依据判据C_SOU_SAMA（そうだ样态律）：眼前迹象的直感预判接连用形（降り+そうだ）；接辞书形（降る+そうだ）会变成"听说要下"。' },
+  { id: 'ex-cg35-2', nodeId: 'cg-m-souda-sama', stepId: 'step-2', criterionId: 'C_SOU_SAMA', errorRoot: 'R_MODALITY', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"这个看起来不错"——「これ、＿＿＿そうだ」应填入？', context: null, options: ['よさ', 'いい'], answer: 0,
+    feedback: '依据判据C_SOU_SAMA：いい接样态そう须补さ→よさそう；ない同理→なさそう。这是样态接续仅有的两个特例。' },
+  { id: 'ex-cg35-3', nodeId: 'cg-m-souda-sama', stepId: null, criterionId: 'C_SOU_SAMA', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '"看这天不像要下雨"，正确的说法是？', context: null, options: ['雨は降りそうにない。', '雨は降りそうじゃないだ。'], answer: 0,
+    feedback: '依据判据C_SOU_SAMA：动词侧样态的否定用そうにない/そうもない；第二项在そう后乱接じゃない+だ双重不合法。' },
+
+  { id: 'ex-cg36-1', nodeId: 'cg-m-souda-denbun', stepId: 'step-1', criterionId: 'C_SOU_DENBUN', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '「この店は美味しいそうだ。」的意思是？', context: null, options: ['听说这家店好吃（传闻）', '这家店看着好吃（样态）'], answer: 0,
+    feedback: '依据判据C_SOU_DENBUN（そうだ传闻律）：そうだ前是完整形（美味しい）→传闻；样态须接词干（美味しそうだ）。接续长短一刀判。' },
+  { id: 'ex-cg36-2', nodeId: 'cg-m-souda-denbun', stepId: 'step-2', criterionId: 'C_SOU_DENBUN', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '"听说明天不下雨"，正确的说法是？', context: null, options: ['明日は降らないそうだ。', '明日は降るそうじゃない。'], answer: 0,
+    feedback: '依据判据C_SOU_DENBUN：传闻そうだ零活用，否定必须放进被转述内容（降らない+そうだ）；そうだ自身不能变じゃない。' },
+  { id: 'ex-cg36-3', nodeId: 'cg-m-souda-denbun', stepId: null, criterionId: 'C_SOU_DENBUN', errorRoot: 'R_MODALITY', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「彼は元気＿そうだ」应填入？', context: '你刚收到老家朋友的来信，向家人转述朋友的近况。', options: ['だ', '（不填，元気直接+そうだ）'], answer: 0,
+    feedback: '在这个语境下：来信=言语信息源→传闻そうだ，な形容词须带だ（元気だそうだ）；直接接词干（元気そうだ）是样态"看着挺精神"，与"转述来信"语境不符。' },
+
+  { id: 'ex-cg37-1', nodeId: 'cg-m-youda-mitai', stepId: 'step-1', criterionId: 'C_YOUDA', errorRoot: 'R_MODALITY', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更贴切的说法是？', context: '你摸了摸孩子的额头觉得烫，又看了体温计，对家人说"孩子好像发烧了"。', options: ['熱があるようだ。', '熱があるらしい。'], answer: 0,
+    feedback: '在这个语境下：亲手摸+亲眼看=第一手观察证据→ようだ；らしい的距离感（"据说好像"）与亲自查证的语境矛盾。' },
+  { id: 'ex-cg37-2', nodeId: 'cg-m-youda-mitai', stepId: 'step-2', criterionId: 'C_YOUDA', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '「彼女はまるで人形のようだ。」的ようだ是？', context: null, options: ['比况（像玩偶一样）', '推断（可能是玩偶）'], answer: 0,
+    feedback: '依据判据C_YOUDA（ようだ推断律）：まるで是比况的信号词，且"她是玩偶"显然不可能为真——双重锁定比喻读。' },
+  { id: 'ex-cg37-3', nodeId: 'cg-m-youda-mitai', stepId: null, criterionId: 'C_YOUDA', errorRoot: 'R_MODALITY', certainty: 'A', type: 'cloze-prediction',
+    prompt: '口语"好像是学生"——「あの人、学生＿＿＿」最自然填入？', context: null, options: ['みたい', 'のようだ'], answer: 0,
+    feedback: '依据判据C_YOUDA：みたい是ようだ的口语形，名词直接接（学生みたい）；のようだ语法正确但在随意口语中体裁偏硬。' },
+
+  { id: 'ex-cg38-1', nodeId: 'cg-m-rashii', stepId: 'step-1', criterionId: 'C_RASHII', errorRoot: 'R_MODALITY', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更贴切的说法是？', context: '你从几个同事那里零星听说部长要调走，向朋友转述这个小道消息。', options: ['部長は転勤するらしい。', '部長は転勤するようだ。'], answer: 0,
+    feedback: '在这个语境下：零星听闻+与结论保持距离→らしい；ようだ暗示你有第一手观察证据并愿为判断背书，与小道消息语境不符。' },
+  { id: 'ex-cg38-2', nodeId: 'cg-m-rashii', stepId: 'step-2', criterionId: 'C_RASHII', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '「今日は春らしい天気だ。」的らしい是？', context: null, options: ['典型性（很有春天该有的样子）', '推断（据说是春天）'], answer: 0,
+    feedback: '依据判据C_RASHII（らしい传闻推断律）：能译作"像个…样/有…风范"→典型性接尾职；"今天是不是春天"无需推断，推断读不成立。' },
+  { id: 'ex-cg38-3', nodeId: 'cg-m-rashii', stepId: null, criterionId: 'C_RASHII', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '「そんなことをするなんて、君らしくない。」的意思是？', context: null, options: ['做那种事，不像你的作风', '听说那件事不是你做的'], answer: 0,
+    feedback: '依据判据C_RASHII：らしくない几乎只出现在典型性职——"不具备你该有的典型特质"；推断职的否定不走这条形态。' },
+
+  { id: 'ex-cg39-1', nodeId: 'cg-m-hazu-beki', stepId: 'step-1', criterionId: 'C_HAZU_BEKI', errorRoot: 'R_MODALITY', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"8点发车的电车，9点理应到了"——「もう着いた＿＿だ」应填入？', context: null, options: ['はず', 'べき'], answer: 0,
+    feedback: '依据判据C_HAZU_BEKI（はず/べき当为律）：有据推算的"理应"（按理说已到）→はず；べき是"有义务到"，语义频道完全不同。' },
+  { id: 'ex-cg39-2', nodeId: 'cg-m-hazu-beki', stepId: 'step-2', criterionId: 'C_HAZU_BEKI', errorRoot: 'R_MODALITY', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"做错了就应当道歉"——「間違えたら、謝る＿＿だ」应填入？', context: null, options: ['べき', 'はず'], answer: 0,
+    feedback: '依据判据C_HAZU_BEKI：社会规范的"应当去做"（能换成"理当/有义务"）→べき；はず会变成"推算他会道歉"。' },
+  { id: 'ex-cg39-3', nodeId: 'cg-m-hazu-beki', stepId: null, criterionId: 'C_HAZU_BEKI', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '「彼が犯人のはずがない。」的意思是？', context: null, options: ['按推算他不可能是凶手', '他没有义务当凶手'], answer: 0,
+    feedback: '依据判据C_HAZU_BEKI：はずがない=推算上排除（比单纯否定强烈）；はず属认识域（推算），不涉义务。' },
+
+  { id: 'ex-cg40-1', nodeId: 'cg-m-kamo-chigai', stepId: 'step-1', criterionId: 'C_KAMO_CHIGAI', errorRoot: 'R_MODALITY', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更妥帖的说法是？', context: '商务会议上，你不完全同意对方的方案，想先礼貌承接再提出异议。', options: ['そうかもしれませんが、コストの問題があります。', 'それは違いますが、コストの問題があります。'], answer: 0,
+    feedback: '在这个语境下：かもしれませんが是商务异议的标准缓冲垫（先承认可能性再转折）；直接否定（違います）在日语商务语用中过于对抗。' },
+  { id: 'ex-cg40-2', nodeId: 'cg-m-kamo-chigai', stepId: 'step-2', criterionId: 'C_KAMO_CHIGAI', errorRoot: 'R_MODALITY', certainty: 'A', type: 'cloze-prediction',
+    prompt: '侦探看着独有的字迹说"这肯定是田中写的"——「田中さんが書いた＿＿＿＿」应填入？', context: null, options: ['に違いない', 'かもしれない'], answer: 0,
+    feedback: '依据判据C_KAMO_CHIGAI（确信度两极律）：证据在手、近乎断定的内部推理输出→に違いない；かもしれない的低下注与"肯定"矛盾。' },
+  { id: 'ex-cg40-3', nodeId: 'cg-m-kamo-chigai', stepId: null, criterionId: 'C_KAMO_CHIGAI', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
+    prompt: '确信度从低到高排列正确的是？', context: null, options: ['かもしれない ＜ だろう ＜ に違いない', 'に違いない ＜ かもしれない ＜ だろう'], answer: 0,
+    feedback: '依据判据C_KAMO_CHIGAI：认识确信度轴三档=说不定（かも）＜大概（だろう）＜准没错（に違いない），与中文"可能/大概/一定"平行。' },
+
   {
     id: 'ex-sample-1',
     nodeId: 'sample-node',
@@ -3024,7 +3446,9 @@ const SOURCES = [
   { id: 'src-mikami-akira-shugohaishiron', title: '三上章の「主語廃止論」', publisher: '三上章（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
   { id: 'src-fillmore-case-grammar-1968', title: 'The Case for Case（格语法）', publisher: 'Charles J. Fillmore（学术论文）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
   { id: 'src-kuno-susumu-topic-neutral-description', title: '久野暲的は/が分析', publisher: '久野暲（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
-  { id: 'src-kuroda-shigeyuki-judgment', title: '黒田成幸的判断类型分析', publisher: '黒田成幸（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' }
+  { id: 'src-kuroda-shigeyuki-judgment', title: '黒田成幸的判断类型分析', publisher: '黒田成幸（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
+  { id: 'src-kindaichi-verb-classes', title: '金田一春彦的动词四分类', publisher: '金田一春彦（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' },
+  { id: 'src-kamio-territory', title: '神尾昭雄「情報のなわ張り理論」', publisher: '神尾昭雄（学术著作）', official_url: null, reliability_tier: 'academic_secondary_citation', license_status: 'not_applicable' }
 ];
 
 /* =========================================================================
@@ -3841,6 +4265,34 @@ ASPECT_NODE_DETECTORS.forEach(ad => {
       let m;
       ad.re.lastIndex = 0;
       while ((m = ad.re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 4);
+    }
+  });
+});
+
+// Modality detectors (PART 2 modality system). そうだ two-way split is
+// approximated by left context: 連用形/词干 endings vs plain-form endings.
+const MODALITY_NODE_DETECTORS = [
+  { nodeId: 'cg-m-tai-hoshii', what: '愿望（たい/ほしい）', re: /([ぁ-ん]た(?:い|かった|くない)(?=[。、！？\s]|です|$)|ほし(?:い|かった|くない)|たがっている|ほしがっている|てほしい)/g },
+  { nodeId: 'cg-m-souda-sama', what: '样态そうだ（看起来）', re: /(そうにない|そうもない|なさそう|よさそう|[ぁ-ん]そう(?:だ|です|な|に)(?=[。、！？\s]|$|[一-龯]))/g },
+  { nodeId: 'cg-m-souda-denbun', what: '传闻そうだ（听说）', re: /((?:る|た|い|だ|ない)そうだ(?=[。、！？\s]|$)|(?:る|た|い|だ|ない)そうです)/g },
+  { nodeId: 'cg-m-youda-mitai', what: '推断/比况（ようだ/みたい）', re: /(のようだ|のように|のような|ようだ(?=[。、！？\s]|$)|ようです|みたい(?:だ|です|に|な)?(?=[。、！？\s]|$))/g },
+  { nodeId: 'cg-m-rashii', what: '推断/典型（らしい）', re: /(らしい(?=[。、！？\s]|$)|らしく|らしさ|らしいです)/g },
+  { nodeId: 'cg-m-hazu-beki', what: '当为（はず/べき）', re: /(はずだ|はずです|はずが(?:ない|ありません)|はずなのに|べきだ|べきです|べきではない|べきだった|すべき)/g },
+  { nodeId: 'cg-m-kamo-chigai', what: '确信度（かも/に違いない）', re: /(かもしれない|かもしれません|かも(?=[。、！？\s]|$)|に違いない|に違いありません)/g }
+];
+MODALITY_NODE_DETECTORS.forEach(md => {
+  TEXT_DETECTORS.push({
+    nodeId: md.nodeId,
+    what: md.what,
+    detect(text) {
+      const seen = new Set();
+      const out = [];
+      let m;
+      md.re.lastIndex = 0;
+      while ((m = md.re.exec(text)) !== null) {
         if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
       }
       return out.slice(0, 4);
