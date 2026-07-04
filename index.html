@@ -407,6 +407,9 @@ const ERROR_ROOTS = [
   { id: 'R_ONBIN', name: '音便规则误用', description: 'て形/た形构成时音便分组记错（*買いて、*飲みて），或不知道行く→行って是く组唯一例外。', module: 'core-grammar' },
   { id: 'R_NIDE', name: 'に/で场所混用', description: '未区分"存在落点（に）"与"动作展开场（で）"，用中文"在"的单一介词直觉给两类场所配同一个助词。', module: 'core-grammar' },
   { id: 'R_TORITATE', name: 'とりたて助词误用', description: '把も/だけ/しか/こそ/さえ当成格助词理解，忽视其覆盖/叠加规则；最典型是しか后忘配否定谓语，或だけ/しか语感差异误判。', module: 'core-grammar' },
+  { id: 'R_CONN_REGISTER', name: '接续词语体错位', description: 'から/ので、けど/が等成对接续词的语体与主观性差异被当成完全同义随意互换，在正式请求或书面语境中选错档位。', module: 'core-grammar' },
+  { id: 'R_COND', name: '条件形选择错误', description: '把中文"如果/一…就"直译到と/ば/たら/なら中的错误一档：忽视と的规律性限制、ば的后件限制、なら的话题性前提，条件四形混选。', module: 'core-grammar' },
+  { id: 'R_ASPECT_PURPOSE', name: '目的/意志性误判', description: 'ために与ように按中文"为了"合并处理，忽视前接动词的意志性（意志动词→ために、非意志/可能→ように）这一硬性分工。', module: 'core-grammar' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
@@ -436,6 +439,14 @@ const CRITERIA = [
   { id: 'C_YORI_STD', name: { zh: 'より基准律', ja: 'ヨリ基準則' }, description: 'より标记比较的基准点（AはBより＋性质），性质由谓语直接表达、无需比较级形态；日语形容词没有"更"的词形变化。', module: 'core-grammar', ownerNodeId: 'cg-p-yori' },
   { id: 'C_TORITATE_OVERLAY', name: { zh: 'とりたて覆盖律', ja: 'とりたて覆い則' }, description: 'とりたて助词（も/だけ/しか等）不标记语法角色，而是在角色之上叠加信息态度：覆盖が/を（本も読む），叠加于に/で之后（学校にも）；しか必须与否定谓语共现。', module: 'core-grammar', ownerNodeId: 'cg-p-mo-dake-shika' },
   { id: 'C_KOSO_SAE', name: { zh: 'こそ/さえ极点律', ja: 'コソサエ極点則' }, description: 'こそ排他性强调"正是这一个"；さえ举出量级上的极端例（连…都…），暗示其余更不在话下；さえ…ば构成"只要…就"的最低条件句。', module: 'core-grammar', ownerNodeId: 'cg-p-koso-sae' },
+  { id: 'C_KARA_NODE', name: { zh: 'から/ので理由律', ja: 'カラノデ理由則' }, description: 'から与ので都标记原因-结果：から主观直接（适合个人主张、命令请求的理由），ので客观柔和（适合对上请求、书面说明）；ので前接普通体（な形/名词+なので）。', module: 'core-grammar', ownerNodeId: 'cg-c-reason' },
+  { id: 'C_KEDO_GA', name: { zh: 'けど/が转折铺垫律', ja: 'ケドガ前置き則' }, description: 'けど（口语）/が（郑重）承担两种功能：真转折（对比反差）与铺垫（先给背景再进正题，无对立义）；铺垫用法占实际使用的很大比例，不能一律译作"但是"。', module: 'core-grammar', ownerNodeId: 'cg-c-kedo-ga' },
+  { id: 'C_NONI', name: { zh: 'のに预期落空律', ja: 'ノニ逆接則' }, description: 'のに=前件成立时预期的结果落空，携带说话人的意外/不满情绪；后件不能接意志、命令、请求（这是与けど的硬性分工）。', module: 'core-grammar', ownerNodeId: 'cg-c-noni' },
+  { id: 'C_TARI', name: { zh: 'たり例举律', ja: 'タリ列挙則' }, description: '〜たり〜たりする从动作集合中例举代表（暗示还有别的），句尾する承担时体；单个たりする也成立（暗示同类）。与て形动作链（全部列出、有先后）相对。', module: 'core-grammar', ownerNodeId: 'cg-c-tari' },
+  { id: 'C_NAGARA', name: { zh: 'ながら同时律', ja: 'ナガラ同時則' }, description: '动词连用形+ながら=同一主体同时进行两个动作，句尾动词是主动作、ながら侧是伴随动作；两动作必须同主体。', module: 'core-grammar', ownerNodeId: 'cg-c-nagara' },
+  { id: 'C_TAME_YOU', name: { zh: 'ために/ように目的律', ja: 'タメヨウニ目的則' }, description: '目的表达按前接动词意志性分工：意志动词+ために（为了做…）、非意志动词/可能形+ように（以便能…）；ために另有原因义（名词+のため），靠语境区分。', module: 'core-grammar', ownerNodeId: 'cg-c-tame-you' },
+  { id: 'C_COND_TOBA', name: { zh: 'と/ば规律条件律', ja: 'トバ条件則' }, description: 'と=只要前件成立后件必然/习惯性出现（自然规律、机器操作、发现），后件不能接意志/命令；ば=一般假设，焦点在前件条件本身，后件为意志句时前件须是状态性谓语。', module: 'core-grammar', ownerNodeId: 'cg-c-cond-to-ba' },
+  { id: 'C_COND_TARANARA', name: { zh: 'たら/なら个别条件律', ja: 'タラナラ条件則' }, description: 'たら=一次性/完成条件（等前件实现之后），最通用、口语首选，还有"结果发现"用法；なら=接过对方话题做条件（"要是说到…的话"），后件动作可先于前件发生（京都に行くなら、新幹線がいい）。', module: 'core-grammar', ownerNodeId: 'cg-c-cond-tara-nara' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -1695,6 +1706,392 @@ const NODES = [
     }
   },
 
+  /* ---- PART 2 · 连接系统 ---- */
+
+  {
+    id: 'cg-c-reason', module: 'core-grammar', order: 19, status: 'draft',
+    qualifies: { independentMechanism: 'から/ので在"主观直接 vs 客观柔和"维度上分工标记原因；语体档位选择是独立于"因为"翻译的判断机制。', citedByCount: 0, errorRoot: 'R_CONN_REGISTER', mergeNote: '格助词から（名词后，起点）已属 kara-made 节点；本节点只管接续助词から（活用形后，原因），同形靠接续位置消歧。' },
+    title: { zh: 'から・ので：原因的两个档位', ja: 'カラ・ノデ', en: 'Kara and Node (Reason)' },
+    refs: { requires: ['lc-te-interface'], invokes: ['cg-p-kara-made'], contrasts: [], previews: [] },
+    layer0: {
+      body: '"因为"有两个档位：から主观直接——理由是我认定的，适合主张和命令；ので客观柔和——理由摆在那里，适合请求和解释。跟老师请假用ので，跟朋友抱怨用から。',
+      example: { jp: '頭が痛いので、早退してもいいですか。', zh: '因为头疼，我可以早退吗——对上请求，客观柔和的ので不给人"强词夺理"感。' },
+      hook: '为什么「危ないから、やめろ！」不能换成ので？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一句话的理由该挂から还是ので',
+          body: '判断两问：①后件是什么？命令、禁止、强主张（〜ろ/〜な/〜べきだ）→から（主观认定的理由才有资格支撑命令）；郑重请求、客观说明→ので更妥帖。②对谁说？对上/正式场合倾向ので（把理由客观化，减少压迫感）；平辈私下から自然。两词在中性陈述里大量互换，但两端（命令端から、敬语请求端ので）是不可换的硬区间。',
+          minimalPair: [ { jp: '危ないから、触るな！', zh: '危险，别碰！（命令后件→から）' }, { jp: '電車が遅れたので、遅刻しました。', zh: '因为电车晚点迟到了。（对上解释→ので）' } ],
+          miniExercise: { exerciseId: 'ex-cg19-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：ので前面的接续形怎么变',
+          body: 'から直接接普通体/敬体句（暑いから、暑いですから）；ので前接普通体，且名词/な形容词要垫な：雨なので（＊雨だので✗）、静かなので。这个な正是な形容词连体形的复用（ので历史上=の+で，前面需要连体形）。口语中ので常缩为んで（時間がないんで）。中文母语者高频错误是照搬だ：＊学生だので——记住"だ在ので前变な"一条即可。',
+          minimalPair: [ { jp: '今日は日曜日なので、銀行は休みだ。', zh: '今天是周日，所以银行休息。（名词+なので）' }, { jp: '✗ 日曜日だので、休みだ。', zh: '不合法：だ在ので前必须变な。' } ],
+          miniExercise: { exerciseId: 'ex-cg19-2' } }
+      ],
+      hook: '原因说完了，"虽然/不过"的世界里，けど和が也在玩同一种档位游戏吗？'
+    },
+    layer2: {
+      body: '语法学对から/ので的经典概括：から陈述"说话人的推论根据"（主观域），ので陈述"事态间的因果关系"（客观域）——这解释了两端分布：命令/意志句需要说话人立场背书（から），而把理由客观化正是礼貌策略的核心（ので在请求中显得"不是我要怎样，是情况如此"）。实际语料中两者的中间地带很宽，且ので的敬体形ですので在商务日语中扩张明显。同形消歧提醒：名词+から=起点（格助词，kara-made 节点），活用形+から=原因（本节点）——接续位置是唯一可靠的判据。',
+      boundaryCases: [ { jp: 'せっかく来たんだから、ゆっくりしていって。', zh: '难得来一趟，就多待会儿吧——んだから组合携带"你该明白"的强主观语气，是から主观性的放大形态。', note: 'んだから的说教语气是から端主观性的极端例。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '档位（同一理由，后件不同）', sets: [ { jp: 'うるさいから、静かにしろ！', zh: '太吵了，安静点！（命令→から）' }, { jp: 'うるさいので、静かにしていただけますか。', zh: '有点吵，能请您安静些吗？（敬语请求→ので）' } ] } ],
+      tier2: [ { jp: '時間がないから、急ごう。', zh: '没时间了，快走吧。', register: 'plain' }, { jp: '体調が悪いので、休ませてください。', zh: '身体不舒服，请让我休息。', register: 'polite' }, { jp: '在庫がないため、発送が遅れる。', zh: '因无库存，发货延迟。（书面语的第三档位ため，预告目的节点）', register: 'written' } ],
+      tier3: [ { jp: '眠いんで、先に寝るね。', zh: '困了，我先睡了——ので的口语缩约形んで。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_KARA_NODE'], errorRoots: ['R_CONN_REGISTER'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 原因（から・ので）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'から惯例归 N5、ので惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '两端硬区间清晰，中间互换带宽；なので接续错误（＊だので）机械易纠。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '原因表达遍布全部语域；书面语ため已在例句预告。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-kedo-ga', module: 'core-grammar', order: 20, status: 'draft',
+    qualifies: { independentMechanism: 'けど/が的"铺垫"功能（非转折的话题导入）是中文"但是"直觉完全覆盖不到的独立机制，占实际使用的很大比例。', citedByCount: 0, errorRoot: 'R_CONN_REGISTER', mergeNote: '格助词が（名词后，新信息）属 PART 1 节点；本节点只管接续助词が（句子后，转折/铺垫），同形靠接续位置消歧。' },
+    title: { zh: 'けど・が：转折，以及更常用的铺垫', ja: 'ケド・ガ（接続）', en: 'Kedo and Ga (Connective)' },
+    refs: { requires: ['lc-te-interface'], invokes: ['lc-ga-newinfo'], contrasts: ['cg-c-noni'], previews: [] },
+    layer0: {
+      body: 'けど（口语）/が（郑重）当然能表转折（高いけど買う），但它们更高频的工作是"铺垫"：先放一句背景，再进正题——すみませんが、駅はどこですか。这里没有任何"但是"。',
+      example: { jp: '田中と申しますが、佐藤さんはいらっしゃいますか。', zh: '我是田中，请问佐藤先生在吗——"我是田中"和正题之间毫无对立，が只是递话的铰链。' },
+      hook: '如果把铺垫のが都翻译成"但是"，你的日语理解会碎成什么样？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：这个けど/が是转折还是铺垫',
+          body: '判断法：把前后件拆开问"两者对立吗？"对立（预期反差）→转折义：安いけど、質がいい（便宜却质量好）。不对立→铺垫义：前件只是给正题搭台——自我介绍（〜ですが）、话题引入（先日の件ですが）、委婉开场（すみませんが）。铺垫のけど/が在会话里比真转折更常见，听力中把它们全按"但是"处理会制造大量不存在的对立关系。',
+          minimalPair: [ { jp: '高いですが、買います。', zh: '虽然贵，但我买。（转折：贵 vs 买）' }, { jp: '来週の会議ですが、場所が変わりました。', zh: '关于下周的会议，地点变了。（铺垫：无对立）' } ],
+          miniExercise: { exerciseId: 'ex-cg20-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：けど/が/けれども的语体档位与句尾悬置',
+          body: '档位从随意到郑重：けど→けれど→けれども→が。口语闲聊けど，商务/书面が。两者共享一个重要话法：句尾悬置（言いさし）——ちょっと都合が悪いんですけど……（说一半停住，拒绝之意让对方自行领会）。这种"说半句"不是语法残缺，而是日语委婉拒绝的标准操作：后半句（所以不行）由听者补全，双方都体面。中文拒绝也委婉，但很少靠语法性悬置实现，需要专门习得这个"停在けど"的技能。',
+          minimalPair: [ { jp: '行きたいんですけど……。', zh: '我是想去的，可是……（悬置=委婉拒绝）' }, { jp: '行きたいですが、都合がつきません。', zh: '想去，但安排不开。（说满=直接拒绝，更硬）' } ],
+          miniExercise: { exerciseId: 'ex-cg20-2' } }
+      ],
+      hook: '转折还有一个带情绪的兄弟——のに。它和けど的分工线画在哪里？'
+    },
+    layer2: {
+      body: '接续助词が与格助词が同形异构（句子后 vs 名词后），是日语同形多机制现象的又一例。铺垫用法（前置き）在会话分析中被视为日语谈话结构的标志性特征：正题之前用〜が/〜けど挂出背景信息，为听者搭建理解框架并缓冲突兀感——商务邮件几乎每封都有〜の件ですが。言いさし（句尾悬置）已高度语法化：んですが/んですけど收尾的未完句在拒绝、请求场景中是完整的话轮，不是失误。对听力与会话，识别"这个が没有转折义"的能力直接决定理解与产出的自然度，值得专项训练。',
+      boundaryCases: [ { jp: '失礼ですが、お名前は？', zh: '恕我冒昧，您贵姓？——铺垫のが的极致：前件是纯礼貌缓冲，语义贡献接近零。', note: '礼貌缓冲是铺垫用法的语法化终点。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '功能（转折 vs 铺垫，同一形式）', sets: [ { jp: '狭いけど、居心地がいい。', zh: '虽然小，但住着舒服。（转折）' }, { jp: 'つかぬことを伺いますけど、この辺に郵便局はありますか。', zh: '冒昧问一下，这附近有邮局吗？（铺垫）' } ] } ],
+      tier2: [ { jp: '雨だけど、行く。', zh: '虽然下雨，还是去。', register: 'plain' }, { jp: '恐れ入りますが、少々お待ちください。', zh: '不好意思，请稍等。', register: 'polite' }, { jp: '実験は成功したが、課題も残った。', zh: '实验成功了，但也留下了课题。', register: 'written' } ],
+      tier3: [ { jp: 'あのう、ちょっといいですけど……。', zh: '那个，方便说两句吗……——铺垫+悬置的口语组合。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_KEDO_GA'], errorRoots: ['R_CONN_REGISTER'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 转折与铺垫（けど・が）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'が/けど惯例归 N5-N4（主流教材通行分类）；铺垫/言いさし的语用掌握则贯穿到高级。JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '形式简单，难在语用：铺垫识别与言いさし产出都要求摆脱"但是"直译，需要会话语料浸泡。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '转折/铺垫遍布全部语域；商务前置き与口语悬置已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-noni', module: 'core-grammar', order: 21, status: 'draft',
+    qualifies: { independentMechanism: 'のに在转折义上叠加"预期落空+情绪"并硬性排斥意志/命令后件；与けど的分工是独立判断点。', citedByCount: 0, errorRoot: 'R_CONN_REGISTER', mergeNote: '目的义のに（形容词修饰用途，如"開けるのに使う"）是形式名词の+に，另属名词化系统，本节点不涉。' },
+    title: { zh: 'のに：预期落空的转折', ja: 'ノニ', en: 'Noni' },
+    refs: { requires: ['cg-c-kedo-ga'], invokes: [], contrasts: ['cg-c-kedo-ga'], previews: [] },
+    layer0: {
+      body: 'のに=前提明明成立，预期的结果却没来——自带"竟然/明明"的情绪：薬を飲んだのに、治らない（明明吃了药却不好）。中性的けど只陈述反差，のに把不满和意外一起打包。',
+      example: { jp: '約束したのに、来なかった。', zh: '明明约好了，却没来——のに里有抱怨；换けど就只剩事实陈述。' },
+      hook: '为什么可以说「高いけど買おう」，却不能说「＊高いのに買おう」？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：转折句该用のに还是けど',
+          body: '两问判断：①有没有"预期被辜负"？のに要求前件正常应导出某结果而结果落空（吃药→应痊愈→没好）；单纯对比（小但舒服）没有预期链，只能けど。②说话人有没有情绪（意外/不满/遗憾）？のに必带，けど中性。因此客观论述、礼貌场合避开のに——对上司说〜のに近乎抱怨。接续：普通体+のに，名词/な形垫な（雨なのに、静かなのに），与ので同构。',
+          minimalPair: [ { jp: '狭いけど、居心地がいい。', zh: '小但舒服。（对比，无预期落空→けど）' }, { jp: '毎日練習したのに、負けた。', zh: '明明天天练习，却输了。（预期落空+不甘→のに）' } ],
+          miniExercise: { exerciseId: 'ex-cg21-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：のに后件的硬性限制',
+          body: 'のに的后件必须是既成事实/状态，不能接意志、命令、请求、劝诱：＊安いのに買おう✗、＊時間があるのに手伝って✗——这些后件请回けど/から。原理：のに断言"预期已经落空"，而意志/命令面向未实现的将来，两者时间指向冲突。句尾悬置的のに（せっかく作ったのに……"亏我特意做了……"）保留强烈的不满余韵，与けど悬置的委婉拒绝形成情绪对照。',
+          minimalPair: [ { jp: '安いけど、買おう。', zh: '虽然便宜（有点可疑），还是买吧。（意志后件→けど）' }, { jp: '✗ 安いのに、買おう。', zh: '不合法：のに后件不能接意志表达。' } ],
+          miniExercise: { exerciseId: 'ex-cg21-2' } }
+      ],
+      hook: '连接词不止管逻辑，还管例举——"又是…又是…"的たり是怎么工作的？'
+    },
+    layer2: {
+      body: 'のに的语法化路径（连体形+の+に）解释了它的な接续与名词性残留。语义上のに被分析为"反事实预期标记"：前件激活一条常识推理链（P通常导致Q），后件宣告Q未成立，情绪义（意外/不满）正来自推理链的断裂——这也解释了后件限制：命令/意志句无法"落空"。对比けど的中性使其在书面议论中更通用，のに则集中于口语情感表达与文学性文本。JLPT 语法题里のに/ので/から的三选一是 N4-N3 的常青考点，判断链：有无情绪落差→のに；有→再看后件是否意志句排除之。',
+      boundaryCases: [ { jp: 'もう十時なのに、まだ寝ている。', zh: '都十点了竟然还在睡——时间名词+なのに，"常识预期（该起了）落空"的日常典型。', note: '时间+なのに是のに最高频的日常模板之一。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '情绪载荷（同一反差）', sets: [ { jp: '頑張ったけど、だめだった。', zh: '努力了，没成。（平静陈述）' }, { jp: '頑張ったのに、だめだった。', zh: '明明那么努力，却没成。（不甘）' } ] } ],
+      tier2: [ { jp: '日曜日なのに、働いている。', zh: '明明是周日，还在工作。', register: 'plain' }, { jp: 'お忙しいのに、ありがとうございます。', zh: '您这么忙还（特意过来），谢谢——预期落空转为感激的礼貌模板。', register: 'polite' }, { jp: '十分な予算があったのに、計画は失敗した。', zh: '预算明明充足，计划却失败了。', register: 'written' } ],
+      tier3: [ { jp: 'せっかく来たのに……。', zh: '亏我特意跑一趟……（悬置，不满余韵）', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_NONI'], errorRoots: ['R_CONN_REGISTER'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 预期落空（のに）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'のに惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '"预期链断裂"语义需在语境中体感；后件限制是硬规则，考点集中。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['plain', 'polite', 'written', 'spoken'], note: '情感表达遍布口语与文学文本；礼貌感谢模板（お忙しいのに）已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-tari', module: 'core-grammar', order: 22, status: 'draft',
+    qualifies: { independentMechanism: 'たり从动作集合中例举代表并由句尾する统一承担时体；与て形动作链的"穷尽+顺序"形成系统对立。', citedByCount: 0, errorRoot: 'R_CONN_REGISTER', mergeNote: null },
+    title: { zh: 'たり：动作的例举', ja: 'タリ', en: 'Tari' },
+    refs: { requires: ['cg-ta-form'], invokes: ['cg-ta-form'], contrasts: [], previews: [] },
+    layer0: {
+      body: '〜たり〜たりする=从周末做的一堆事里挑两件代表："看看书啦、听听音乐啦（还干了别的）"。构成搭た形的便车（た→たり），句尾的する负责时体：したり…したりした。',
+      example: { jp: '本を読んだり、音楽を聞いたりした。', zh: '看了看书、听了听音乐（等等）——两件是代表，清单开放。' },
+      hook: 'て形串动作（起きて、食べて、出かけた）和たり例举，句意差在哪里？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：动作列举该用て形链还是たり',
+          body: 'て形链=穷尽+有序：朝起きて、顔を洗って、出かけた（按顺序做了这三件，就这三件）。たり=例举+无序：顔を洗ったり、散歩したりした（举两件代表，顺序无所谓，还有别的没说）。判断问题与と/や完全同构：清单封闭有序→て，开放无序→たり。构成规则搭た形便车：た形+り（読んだ→読んだり、して→したり），音便零成本复用。',
+          minimalPair: [ { jp: '土曜日は、掃除して、買い物して、料理した。', zh: '周六打扫、购物、做饭（三件按序全列）。' }, { jp: '土曜日は、掃除したり、買い物したりした。', zh: '周六打扫打扫、买买东西（之类）。（例举）' } ],
+          miniExercise: { exerciseId: 'ex-cg22-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：句尾する的时体归属与单たり用法',
+          body: '时体全部由句尾する承担：〜たり〜たりする（习惯/将来）、〜たりした（过去）、〜たりしている（进行）——前面的たり形态恒定不变，这正是"活用集中到链尾"的日语通则（呼应ます/だ的槽位逻辑）。单个たりする也合法：泣いたりしないで（别哭鼻子什么的）——单例举暗示同类行为一并排除，常见于禁止/否定。另有状态交替用法：行ったり来たり（走来走去）、ついたり消えたり（忽明忽灭），成对反义动词的固定搭配。',
+          minimalPair: [ { jp: '週末は映画を見たりします。', zh: '周末会看看电影（之类）。（现在习惯→句尾します）' }, { jp: '週末は映画を見たりしました。', zh: '周末看了看电影（之类）。（过去→句尾しました）' } ],
+          miniExercise: { exerciseId: 'ex-cg22-2' } }
+      ],
+      hook: '"一边…一边…"的同时进行，日语用什么接口挂起两个动作？'
+    },
+    layer2: {
+      body: 'たり源自古典完了助动词たり，与た同源——现代语里两者的分工（た=定点过去、たり=例举）是同一祖先分化的结果，构成上たり=た+り的规律因此无一例外（音便完全同步）。たり的例举义与や（名词例举）、とか（口语万能例举）构成一族："开放清单"策略在名词域和动词域的平行实现。中文"又…又…/一会儿…一会儿…"能覆盖交替义但覆盖不了单たり的"排除同类"义（泣いたりしないで），后者需单独建立直觉。书面语中たり例举有时只出现一个（誤解を招いたりする恐れがある），JLPT 读解中识别"这是例举不是穷尽"影响对作者态度的把握。',
+      boundaryCases: [ { jp: '雨が降ったりやんだりしている。', zh: '雨下下停停——反义动词对+たり的交替义，清单封闭（就这两态）但循环往复。', note: '交替义是例举义的近亲：从"集合中取样"到"两态间摆动"。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '列举策略（て链 vs たり）', sets: [ { jp: '休みの日は、洗濯して、掃除する。', zh: '休息日洗衣、打扫。（固定日程感）' }, { jp: '休みの日は、洗濯したり、掃除したりする。', zh: '休息日洗洗衣服、扫扫地（随性）。' } ] } ],
+      tier2: [ { jp: '夏休みは、泳いだり、山に登ったりしたいです。', zh: '暑假想游游泳、爬爬山。', register: 'polite' }, { jp: '嘘をついたりしないで。', zh: '别撒谎（之类的）。', register: 'spoken' }, { jp: '会場を行ったり来たりする人が多かった。', zh: '会场里来回走动的人很多。', register: 'written' } ],
+      tier3: [ { jp: '休みの日は何をしたりしますか。', zh: '休息日一般做些什么呢？——疑问句里的たり暗示"随便举几样就行"，降低回答压力。', register: 'polite', source: null } ]
+    },
+    criteria: ['C_TARI'], errorRoots: ['R_CONN_REGISTER'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 例举（たり）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'たり惯例归 N5-N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '构成搭た形便车零新增成本；例举 vs 穷尽的判断与と/や同构，可迁移。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '日常叙述、禁止句、交替描写三类典型场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-nagara', module: 'core-grammar', order: 23, status: 'draft',
+    qualifies: { independentMechanism: 'ながら以连用形接续实现同主体双动作并行，主次分工由句尾位置决定；同主体限制是硬性判断点。', citedByCount: 0, errorRoot: 'R_CONN_REGISTER', mergeNote: '逆接ながら（残念ながら、狭いながら）是同形的让步用法，惯例归 N2，本节点仅在 Layer 2 登记备查。' },
+    title: { zh: 'ながら：一边…一边…', ja: 'ナガラ', en: 'Nagara' },
+    refs: { requires: ['cg-masu-form'], invokes: ['cg-masu-form'], contrasts: [], previews: [] },
+    layer0: {
+      body: '音楽を聞きながら勉強する（边听音乐边学习）：ながら挂在连用形（ます形去ます）后，标记伴随动作；句尾的才是主动作。硬规则：两个动作必须同一个人做。',
+      example: { jp: 'コーヒーを飲みながら、新聞を読む。', zh: '边喝咖啡边看报——喝是伴奏，看报是主旋律（句尾=主）。' },
+      hook: '"我做饭的时候他看电视"能用ながら说吗？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：ながら的接续与主次分配',
+          body: '构成：动词连用形（=ます形词干）+ながら——聞き＋ながら、食べ＋ながら、し＋ながら。主次规则固定：ながら侧=伴随/背景动作，句尾侧=主动作、承担全部时体。想强调哪个动作是"正事"，就把它放句尾：勉強しながら音楽を聞く（正事是听音乐）与音楽を聞きながら勉強する（正事是学习）主次正好相反。中文"一边A一边B"主次中立，日语靠语序分配，翻译时先想清哪个是主。',
+          minimalPair: [ { jp: 'テレビを見ながらご飯を食べる。', zh: '边看电视边吃饭。（正事：吃饭）' }, { jp: 'ご飯を食べながらテレビを見る。', zh: '边吃饭边看电视。（正事：看电视）' } ],
+          miniExercise: { exerciseId: 'ex-cg23-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：同主体限制怎么卡',
+          body: 'ながら的两个动作必须同主体：＊私が料理しながら、彼はテレビを見る✗——不同人各做各的要用〜ている間に/〜とき（私が料理している間に、彼はテレビを見ていた）。这条限制源于ながら的connverb性质：它把两个动作打包成一个人的复合行为。另一个隐含限制：两动作须可并行持续——瞬间动词进ながら会变成"持续状态伴随"（座りながら＝保持坐姿），语感偏移，初期避开为稳。',
+          minimalPair: [ { jp: '歌いながら歩いた。', zh: '边唱边走。（同主体✓）' }, { jp: '✗ 私が歌いながら、妹は踊った。', zh: '不合法：两动作分属两人，须改用〜ている間に。' } ],
+          miniExercise: { exerciseId: 'ex-cg23-2' } }
+      ],
+      hook: '并行说完了——"为了…"的目的表达，为什么日语要分成ために和ように两套？'
+    },
+    layer2: {
+      body: 'ながら是典型的附动词（converb）接续，与て形同属非定式连接系统，但语义窄化为"同时性"专职标记。逆接ながら（しかしながら、残念ながら、狭いながらも楽しい我が家）是同形的让步用法：接续扩展到形容词/名词，语义从"同时"漂移到"保持某状态的同时（却）"——惯例归 N2，此处登记待后续模块展开。ながら族还有ながらにして（生まれながらにして）等文语化石。同时性表达的近邻：〜つつ（书面语的ながら，N2）、〜間（あいだ，区间重叠）、〜とたん（前后紧接，N3）——ながら在其中是口语第一选择。',
+      boundaryCases: [ { jp: '残念ながら、ご期待に添えません。', zh: '很遗憾，无法满足您的期待——逆接ながら的商务固定句式，与"一边"义无关。', note: '同形逆接用法，N2 节点再展开，先建立"见到不是同时义不要慌"的免疫。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '主次分配（同一动作对）', sets: [ { jp: '音楽を聞きながら走る。', zh: '边听音乐边跑步。（跑步是正事）' }, { jp: '走りながら音楽を聞く。', zh: '边跑步边听音乐。（听音乐是正事）' } ] } ],
+      tier2: [ { jp: 'スマホを見ながら歩かないでください。', zh: '请不要边看手机边走路。', register: 'polite' }, { jp: '働きながら大学に通っている。', zh: '边工作边上大学。（长期并行）', register: 'plain' }, { jp: '涙を流しながら語った。', zh: '流着泪讲述。', register: 'written' } ],
+      tier3: [ { jp: 'ながら運転は危険だ。', zh: '"分心驾驶"很危险——ながら本身名词化为"一心二用"，现代新闻高频词（ながらスマホ）。', register: 'written', source: null } ]
+    },
+    criteria: ['C_NAGARA'], errorRoots: ['R_CONN_REGISTER'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 同时进行（ながら）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '同时义ながら惯例归 N4，逆接ながら惯例归 N2（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '接续与主次规则机械；同主体限制是唯一易错点，一条最小对立对即可钉死。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written'], note: '日常并行、禁止告示、书面描写三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-tame-you', module: 'core-grammar', order: 24, status: 'draft',
+    qualifies: { independentMechanism: '目的表达按前接动词意志性双轨分工（意志→ために、非意志/可能→ように），意志性判断是独立机制。', citedByCount: 0, errorRoot: 'R_ASPECT_PURPOSE', mergeNote: 'ように的其他用法（愿望ますように、比况ようだ、劝告ように言う）分属模态/引用系统，本节点只管目的义。' },
+    title: { zh: 'ために・ように：目的的双轨', ja: 'タメニ・ヨウニ', en: 'Tame ni and You ni' },
+    refs: { requires: ['cg-verb-groups'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: '"为了"分两轨：自己能控制的动作用ために（買うために働く）；自己控制不了、只能"希望它发生"的状态用ように（読めるように练习）——可能形、わかる、なる这些非意志动词全走ように。',
+      example: { jp: '日本語が話せるように、毎日練習する。', zh: '为了能说日语而每天练习——"能说"不是想做就做的动作，走ように轨。' },
+      hook: '中文一个"为了"全包，怎么快速判断该上哪条轨？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：目的句该用ために还是ように',
+          body: '判断一问：目的内容是"我决定做就能做"的动作吗？是（買う、会う、留学する等意志动词）→ために，且前后主语一致。不是（可能形話せる、自发词わかる・見える、变化なる、否定ないように、他人的行为）→ように。典型对：痩せるために運動する（把"瘦"当作自己执行的项目）vs 痩せられるように運動する（把"能瘦"当作期望的状态）——同一件事，控制感不同，轨道随之切换。',
+          minimalPair: [ { jp: '大学に入るために、勉強する。', zh: '为了上大学而学习。（上大学=意志动作→ために）' }, { jp: '忘れないように、メモする。', zh: '为了不忘记而记笔记。（"不忘记"非意志→ように）' } ],
+          miniExercise: { exerciseId: 'ex-cg24-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：名词+のため的目的/原因两读怎么区分',
+          body: '名词接续：名词+の+ため（に）——健康のために運動する（为了健康）。但ため还有原因义：事故のため、電車が遅れています（因事故电车晚点）——公告体高频。两读区分靠后件：后件是可控行为→目的读（为了健康而锻炼）；后件是已发生/不可控事态→原因读（因事故而晚点）。书面通知中ため几乎都是原因义，与ので/から构成书面因果的第三档位（呼应から・ので节点）。',
+          minimalPair: [ { jp: '家族のために働く。', zh: '为了家人而工作。（目的：可控行为）' }, { jp: '台風のため、欠航になった。', zh: '因台风航班取消。（原因：不可控事态）' } ],
+          miniExercise: { exerciseId: 'ex-cg24-2' } }
+      ],
+      hook: '目的句还算好办——条件句才是四轨并行：と、ば、たら、なら，各管哪片天？'
+    },
+    layer2: {
+      body: '意志性（volitionality）是日语语法反复调用的底层参数：目的双轨（ために/ように）、可能形的适用域、〜たい的宾格交替、命令形的成立条件都以它为轴。ために/ように的分工本质是"控制域"的语法化：ために断言主体对目的的直接控制（因此要求意志动词+主语一致），ように只表达"愿望状态与行为的因果期待"（因此容纳可能形、否定、他者行为——子供が読めるように、ふりがなをつける"为了让孩子能读而注音"）。中文"为了"不携带控制域信息，判断习惯需从零建立；操作口诀"可能形・ない・なる・わかる见到就ように"可覆盖绝大多数考题。',
+      boundaryCases: [ { jp: '健康のため、階段を使いましょう。', zh: '为了健康，请走楼梯——公益标语中ため目的义省略に，语体更紧凑。', note: 'ため（に）的に可省，省后书面感增强。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '意志性（同一目标）', sets: [ { jp: '車を買うために、貯金している。', zh: '为了买车在存钱。（买=意志）' }, { jp: '車が買えるように、貯金している。', zh: '为了能买得起车在存钱。（能买=非意志）' } ] } ],
+      tier2: [ { jp: '試験に合格するために、頑張ります。', zh: '为了考试合格而努力。', register: 'polite' }, { jp: '風邪をひかないように、気をつけて。', zh: '当心别感冒。', register: 'spoken' }, { jp: 'システム保守のため、サービスを一時停止します。', zh: '因系统维护，服务暂停。（原因义ため公告体）', register: 'written' } ],
+      tier3: [ { jp: '後ろの席にも聞こえるように、大きな声で話した。', zh: '为了让后排也能听见而大声说话——他者+可能形的双重ように信号。', register: 'written', source: null } ]
+    },
+    criteria: ['C_TAME_YOU'], errorRoots: ['R_ASPECT_PURPOSE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 目的（ために・ように）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'ために/ように目的义惯例归 N4-N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '意志性是中文不显性标记的参数，需要建立判断习惯；"可能形/ない/なる→ように"口诀可快速覆盖考点。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '目标宣言、日常叮嘱、公告体原因义三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-cond-to-ba', module: 'core-grammar', order: 25, status: 'draft',
+    qualifies: { independentMechanism: 'と/ば占据条件系统的"规律端"：と的必然后件限制与ば的前件焦点+状态性限制是独立于翻译的硬判断点。', citedByCount: 1, errorRoot: 'R_COND', mergeNote: '条件四形分两节点：规律端（と/ば）与个别端（たら/なら），两节点contrasts互链构成完整系统。' },
+    title: { zh: 'と・ば：规律性条件', ja: 'ト・バ条件', en: 'Conditionals To and Ba' },
+    refs: { requires: ['cg-ta-form'], invokes: [], contrasts: ['cg-c-cond-tara-nara'], previews: ['cg-c-cond-tara-nara'] },
+    layer0: {
+      body: 'と=自然律触发器：前件一成立，后件必然自动出现——春になると、桜が咲く。按钮说明书、路线指引全用と。ば=一般假设："只要满足条件X"——聞けばわかる。两者都住在"规律"这一端。',
+      example: { jp: 'このボタンを押すと、お釣りが出ます。', zh: '一按这个按钮就出找零——机器行为，必然发生，と的主场。' },
+      hook: '为什么「＊春になると、花見に行こう」不成立？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：と条件句的适用域与硬限制',
+          body: 'と的语义是"必然联动"：自然规律（冬になると寒くなる）、机器/路线（まっすぐ行くと駅がある）、习惯反应（彼は酒を飲むと歌う）。硬限制随之而来：后件不能是意志、命令、请求、劝诱——＊春になると花見に行こう✗，因为"必然自动发生"与"我打算做"逻辑冲突。想接意志后件请换たら。と还有"发现"用法：ドアを開けると、猫がいた（一开门，发现有猫）——前件动作触发意外发现，后件过去形。',
+          minimalPair: [ { jp: 'このレバーを引くと、水が出る。', zh: '一拉这个杆就出水。（机器规律→と）' }, { jp: '✗ 時間があると、映画に行こう。', zh: '不合法：と后件不能接意志/劝诱。' } ],
+          miniExercise: { exerciseId: 'ex-cg25-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：ば形怎么变、什么时候选ば',
+          body: 'ば形构成：五段词尾e段+ば（行く→行けば）、一段去る+れば（食べれば）、い形容词く→ければ（安ければ）、名词/な形なら（ば）。ば的焦点砸在前件上："只要/要是…的话"——安ければ買う（关键是便宜不便宜）。谚语、格言的家（急がば回れ）。限制：后件为意志/命令时，前件必须是状态性谓语（安ければ買おう✓状态；＊東京へ行けば、電話しよう✗动作）——动作前件+意志后件的组合请交给たら。',
+          minimalPair: [ { jp: '安ければ、買います。', zh: '便宜的话就买。（前件焦点：价格条件）' }, { jp: '✗ 駅に着けば、電話してください。', zh: '不合法：动作前件+请求后件，须用たら（着いたら）。' } ],
+          miniExercise: { exerciseId: 'ex-cg25-2' } }
+      ],
+      hook: '规律端说完了——一次性的"等到…之后"和接话茬的"要是说…的话"，去下一站たら/なら。'
+    },
+    layer2: {
+      body: '日语条件四形（と/ば/たら/なら）是类型学上罕见的细分系统，四者以两个参数交叉定位：①规律性（恒常联动 vs 一次性实现）；②信息来源（自建条件 vs 接收对方话题）。と占"恒常+自建"极点故排斥意志后件；ば居中偏规律、焦点在前件（因此谚语偏爱：条件本身是格言的内容）；ば的后件限制（前件状态性）是国语学の定说，JLPT 语法题的常客。教学上不必四形一次分清——先用"规律→と、假设焦点在条件→ば"占住规律端，个别端交给下一节点，两节点合起来再做四选一综合练习。',
+      boundaryCases: [ { jp: '窓を開けると、海が見えた。', zh: '一打开窗，看见了海——発見のと：前件动作触发意外发现，后件必为过去形。', note: '発見のと与た形的発見义（あ、あった）遥相呼应。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '条件类型（と vs ば）', sets: [ { jp: 'ここを押すと、開きます。', zh: '按这里就开。（机器必然）' }, { jp: '押せば、開くはずです。', zh: '只要按了，应该就能开。（假设推断，焦点在"按"这个条件）' } ] } ],
+      tier2: [ { jp: '右に曲がると、コンビニがあります。', zh: '右转就有便利店。', register: 'polite' }, { jp: '雨が降れば、中止だ。', zh: '下雨就中止。', register: 'plain' }, { jp: '本剤は水に触れると発熱する。', zh: '本剂遇水发热。（说明书のと）', register: 'written' } ],
+      tier3: [ { jp: '急がば回れ。', zh: '欲速则不达——ば形谚语的化石形（古典ば接未然形的残留）。', register: 'written', source: null } ]
+    },
+    criteria: ['C_COND_TOBA'], errorRoots: ['R_COND'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 条件（と・ば，规律端）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '条件四形惯例分布于 N4-N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '条件四形是公认的语法难点：两条后件限制（と全禁意志、ば条件性禁意志）需要反复操练；与たら/なら节点配套完成四选一。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written'], note: '路线指引、说明书、谚语是と/ば的三大主场；已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-c-cond-tara-nara', module: 'core-grammar', order: 26, status: 'draft',
+    qualifies: { independentMechanism: 'たら/なら占据条件系统的"个别端"：たら的完成先行义与なら的话题接收义（后件可先行）是独立判断点。', citedByCount: 0, errorRoot: 'R_COND', mergeNote: '与と/ば节点contrasts互链，四形构成一个系统、两个节点。' },
+    title: { zh: 'たら・なら：个别条件与话题条件', ja: 'タラ・ナラ条件', en: 'Conditionals Tara and Nara' },
+    refs: { requires: ['cg-c-cond-to-ba'], invokes: ['cg-ta-form'], contrasts: ['cg-c-cond-to-ba'], previews: [] },
+    layer0: {
+      body: 'たら=等前件实现之后："到了车站（那时）给我打电话"——駅に着いたら、電話して。口语最万能的条件形。なら=接过话茬："（你说要）去京都的话，新干线好"——对方提的话题当我的条件。',
+      example: { jp: '「京都に行きたい」「京都に行くなら、秋がいいよ」', zh: '"我想去京都""要去京都的话，秋天好"——なら把对方的话接过来当前提。' },
+      hook: 'たら和なら最锋利的区别藏在时间顺序里：谁的后件可以发生在前件之前？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：たら的完成先行义与万能性',
+          body: 'たら=た形+ら，形态里就写着"完成"：前件实现之后，后件才登场。因此天然适配一次性事件（駅に着いたら電話する），且后件百无禁忌——意志、命令、请求都能接（着いたら電話してください✓），正好补上と/ば的后件禁区。口语中たら还大量替代と/ば的地盘（寒かったら閉めて），是四形中的"默认安全牌"：拿不准选什么，たら错的概率最小。たら也有"发现"用法：開けたら猫がいた。',
+          minimalPair: [ { jp: '宿題が終わったら、遊びに行ってもいい。', zh: '作业做完了（之后）才能去玩。（完成先行）' }, { jp: '駅に着いたら、電話してください。', zh: '到站后请打电话。（请求后件，たら畅通）' } ],
+          miniExercise: { exerciseId: 'ex-cg26-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：なら的话题性与时间倒挂',
+          body: 'なら的特权：后件可以先于前件发生——京都に行くなら、新幹線がいい（坐新干线发生在去京都之前！）。因为なら不是时间条件而是话题条件："既然话题是去京都，我给出的建议是……"。对比：京都に行ったら、抹茶を飲みたい（到了京都之后喝——时间顺序正常）。なら的信息源特征：前件通常来自对方的话或既有语境，凭空自设话题用なら会突兀。接续：动词普通体+なら、名词直接+なら（学生なら）。',
+          minimalPair: [ { jp: '京都に行くなら、新幹線で行くといい。', zh: '要去京都的话，建议坐新干线。（坐车先于到京都：话题条件）' }, { jp: '京都に行ったら、お寺を見たい。', zh: '到了京都之后，想看寺庙。（时间条件：先到后看）' } ],
+          miniExercise: { exerciseId: 'ex-cg26-2' } }
+      ],
+      hook: '四形集齐：と（必然）、ば（假设焦点）、たら（完成先行）、なら（话题接收）——接下来让体系统（ている/てある）接管谓语的时间纹理。'
+    },
+    layer2: {
+      body: '四形选择的完整决策树：①后件是意志/命令/请求？→首选たら（と全禁，ば须前件状态性，なら看话题性）。②前件是对方话题/既有信息？→なら（且允许时间倒挂——国语学称"非时间条件"）。③恒常规律/机器操作？→と。④焦点在条件本身/谚语格言？→ば。⑤都不明确→たら（覆盖域最大）。方言分布补充：西日本口语たら进一步扩张，几乎吞并ば。なら源自断定助动词だ的假定形（だ→なら），所以名词直接接续（学生なら）毫无违和——这也解释了それなら/だったら（"那样的话"）作为话轮承接词的高频：条件系统与话语衔接在なら处汇流。',
+      boundaryCases: [ { jp: 'お酒を飲んだら、運転してはいけない。', zh: '喝了酒（之后）不准开车——たら的完成义使禁令精确锚定在"饮酒之后"这一时段。', note: '法规/告示中たら的完成义排除歧义。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '时间顺序（たら vs なら）', sets: [ { jp: 'ご飯を食べたら、薬を飲んでください。', zh: '吃完饭后请吃药。（先饭后药）' }, { jp: 'ご飯を食べるなら、手を洗ってから。', zh: '要吃饭的话，先洗手。（洗手先于吃饭）' } ] } ],
+      tier2: [ { jp: '安かったら、買います。', zh: '便宜的话就买。', register: 'polite' }, { jp: '君なら、できるよ。', zh: '是你的话，一定行。（名词+なら）', register: 'spoken' }, { jp: '詳細が決まったら、改めてご連絡いたします。', zh: '详情确定后将再次联系您。（商务たら）', register: 'written' } ],
+      tier3: [ { jp: 'だったら、こうしよう。', zh: '那样的话，就这么办——だったら作话轮承接词，条件系统汇入话语衔接的入口。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_COND_TARANARA'], errorRoots: ['R_COND'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 连接系统 > 条件（たら・なら，个别端）',
+      parent_concept: { id: 'lc-te-interface', label: 'て形是后续语法的接口', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '条件四形惯例分布于 N4-N3（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '与と/ば节点合成条件四选一，是 N4-N3 语法最高频考点群；なら时间倒挂是唯一反直觉点，最小对立对可钉死。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '日常指令（たら）、建议接话（なら）、商务通知（たら）三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
   {
     id: 'sample-node',
     module: '_sample',
@@ -2064,6 +2461,87 @@ const EXERCISES = [
   { id: 'ex-cg18-3', nodeId: 'cg-p-koso-sae', stepId: null, criterionId: 'C_KOSO_SAE', errorRoot: 'R_TORITATE', certainty: 'A', type: 'judgment',
     prompt: '「専門家でさえ間違える」隐含的言外之意是？', context: null, options: ['一般人更会错', '只有专家会错'], answer: 0,
     feedback: '依据判据C_KOSO_SAE：さえ举出量级顶端的极端例（最不该错的专家都错了），推理链指向"其余的人更不在话下"。' },
+
+  // ---- 连接系统 ----
+  { id: 'ex-cg19-1', nodeId: 'cg-c-reason', stepId: 'step-1', criterionId: 'C_KARA_NODE', errorRoot: 'R_CONN_REGISTER', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「体調が悪い＿＿、早退させていただけますか」更妥帖的选择是？', context: '你在公司向部长请求早退，希望语气客观柔和、不显得强词夺理。', options: ['ので', 'から'], answer: 0,
+    feedback: '在这个语境下：对上郑重请求把理由客观化→ので；から的主观认定色彩在敬语请求中显得直接甚至强硬。' },
+  { id: 'ex-cg19-2', nodeId: 'cg-c-reason', stepId: 'step-2', criterionId: 'C_KARA_NODE', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个说法合法？', context: null, options: ['今日は日曜日なので、銀行は休みだ。', '今日は日曜日だので、銀行は休みだ。'], answer: 0,
+    feedback: '依据判据C_KARA_NODE（から/ので理由律）：ので前名词/な形容词须垫な（歴史上ので=の+で要求连体形）；だので不存在。' },
+  { id: 'ex-cg19-3', nodeId: 'cg-c-reason', stepId: null, criterionId: 'C_KARA_NODE', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '「危ない＿＿、触るな！」——命令后件前应填？', context: null, options: ['から', 'ので'], answer: 0,
+    feedback: '依据判据C_KARA_NODE：命令/禁止后件需要说话人主观认定的理由背书→から；ので的客观柔和与命令口吻档位错位。' },
+
+  { id: 'ex-cg20-1', nodeId: 'cg-c-kedo-ga', stepId: 'step-1', criterionId: 'C_KEDO_GA', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '「田中と申しますが、佐藤さんはいらっしゃいますか。」这里的が是？', context: null, options: ['铺垫（无转折义，为正题搭台）', '转折（"我是田中，但是……"）'], answer: 0,
+    feedback: '依据判据C_KEDO_GA（けど/が转折铺垫律）：自报家门与找人之间毫无对立，这是典型的前置き（铺垫）用法——把它读成"但是"会制造不存在的对立。' },
+  { id: 'ex-cg20-2', nodeId: 'cg-c-kedo-ga', stepId: 'step-2', criterionId: 'C_KEDO_GA', errorRoot: 'R_CONN_REGISTER', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更自然的拒绝方式是？', context: '同事约你周末聚餐，你不想去但想保持关系体面，日本职场惯例是委婉暗示。', options: ['その日はちょっと都合が悪いんですけど……。', 'その日は行きません。'], answer: 0,
+    feedback: '在这个语境下：句尾悬置（言いさし）的けど让对方自行领会拒绝之意，双方体面；说满句的直接拒绝在日本职场语用上过于生硬。' },
+  { id: 'ex-cg20-3', nodeId: 'cg-c-kedo-ga', stepId: null, criterionId: 'C_KEDO_GA', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '「安いけど、質がいい。」这里的けど是？', context: null, options: ['转折（便宜与质量好构成预期反差）', '铺垫（无对立）'], answer: 0,
+    feedback: '依据判据C_KEDO_GA："便宜通常质量差"的预期与"质量好"形成反差→真转折。判断法永远是拆开前后件问"对立吗"。' },
+
+  { id: 'ex-cg21-1', nodeId: 'cg-c-noni', stepId: 'step-1', criterionId: 'C_NONI', errorRoot: 'R_CONN_REGISTER', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「毎日練習した＿＿、負けた」更贴切的是？', context: '你天天苦练网球，比赛却输了，向朋友倾诉这份不甘心。', options: ['のに', 'けど'], answer: 0,
+    feedback: '在这个语境下：要传达"预期落空+不甘"的情绪→のに；けど只做中性陈述，苦练的委屈感全部丢失。' },
+  { id: 'ex-cg21-2', nodeId: 'cg-c-noni', stepId: 'step-2', criterionId: 'C_NONI', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['時間があるけど、手伝ってくれない？', '時間があるのに、手伝ってくれない？——用于"请求帮忙"'], answer: 0,
+    feedback: '依据判据C_NONI（のに预期落空律）：のに后件不能接请求/意志/命令——它断言"预期已落空"，与面向将来的请求冲突；请求后件用けど。（のに+已发生的"竟然不帮"作抱怨则另当别论。）' },
+  { id: 'ex-cg21-3', nodeId: 'cg-c-noni', stepId: null, criterionId: 'C_NONI', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"明明是周日还在工作"——「日曜日＿＿＿、働いている」应填入？', context: null, options: ['なのに', 'だのに'], answer: 0,
+    feedback: '依据判据C_NONI：のに前名词/な形容词垫な（与ので同构）——日曜日なのに；だのに不合法。' },
+
+  { id: 'ex-cg22-1', nodeId: 'cg-c-tari', stepId: 'step-1', criterionId: 'C_TARI', errorRoot: 'R_CONN_REGISTER', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，描述周末更贴切的说法是？', context: '朋友问你周末干了什么，你做了很多杂事，随便举两样代表一下。', options: ['掃除したり、買い物したりした。', '掃除して、買い物した。'], answer: 0,
+    feedback: '在这个语境下：只举两件代表、暗示还有别的→たり例举；て形链宣告"按顺序就做了这两件"，清单封闭与事实不符。' },
+  { id: 'ex-cg22-2', nodeId: 'cg-c-tari', stepId: 'step-2', criterionId: 'C_TARI', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"周末看了看电影（之类）"——「週末は映画を見たり＿＿＿」应填入？', context: null, options: ['しました', 'でした'], answer: 0,
+    feedback: '依据判据C_TARI（たり例举律）：时体由句尾する统一承担，过去=しました；でした是名词句范式，不能接管たり链。' },
+  { id: 'ex-cg22-3', nodeId: 'cg-c-tari', stepId: null, criterionId: 'C_TARI', errorRoot: 'R_ONBIN', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「泳ぐ」的たり形是？', context: null, options: ['泳いだり', '泳ぎたり'], answer: 0,
+    feedback: '依据判据C_TARI：たり=た形+り，完全复用音便——泳いだ→泳いだり；从ます形词干逆推的泳ぎたり是音便错误的再现。' },
+
+  { id: 'ex-cg23-1', nodeId: 'cg-c-nagara', stepId: 'step-1', criterionId: 'C_NAGARA', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '「音楽を聞きながら勉強する」中，"正事"是哪个动作？', context: null, options: ['勉強（句尾=主动作）', '音楽を聞く（ながら侧）'], answer: 0,
+    feedback: '依据判据C_NAGARA（ながら同时律）：句尾动词是主动作并承担时体，ながら侧是伴随动作——主次由语序分配。' },
+  { id: 'ex-cg23-2', nodeId: 'cg-c-nagara', stepId: 'step-2', criterionId: 'C_NAGARA', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'judgment',
+    prompt: '"我做饭的时候，弟弟在看电视"——能用ながら表达吗？', context: null, options: ['不能：两动作分属两人，ながら要求同主体', '能：私が料理しながら、弟はテレビを見る'], answer: 0,
+    feedback: '依据判据C_NAGARA：ながら把两个动作打包成同一主体的复合行为，跨主体须改用〜ている間に等区间表达。' },
+  { id: 'ex-cg23-3', nodeId: 'cg-c-nagara', stepId: null, criterionId: 'C_NAGARA', errorRoot: 'R_CONN_REGISTER', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「食べる」+ながら 的正确接续是？', context: null, options: ['食べながら', '食べてながら'], answer: 0,
+    feedback: '依据判据C_NAGARA：ながら接动词连用形（ます形去ます）——食べ+ながら；不经由て形。' },
+
+  { id: 'ex-cg24-1', nodeId: 'cg-c-tame-you', stepId: 'step-1', criterionId: 'C_TAME_YOU', errorRoot: 'R_ASPECT_PURPOSE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"为了能说日语而每天练习"——「日本語が話せる＿＿＿、毎日練習する」应填入？', context: null, options: ['ように', 'ために'], answer: 0,
+    feedback: '依据判据C_TAME_YOU（ために/ように目的律）：話せる是可能形（非意志）→ように轨；ために要求"决定做就能做"的意志动词。' },
+  { id: 'ex-cg24-2', nodeId: 'cg-c-tame-you', stepId: 'step-2', criterionId: 'C_TAME_YOU', errorRoot: 'R_ASPECT_PURPOSE', certainty: 'A', type: 'judgment',
+    prompt: '「台風のため、欠航になった。」这里的ため表示？', context: null, options: ['原因（因台风）', '目的（为了台风）'], answer: 0,
+    feedback: '依据判据C_TAME_YOU：后件"停航"是不可控的已然事态→原因读；目的读要求后件是可控行为。公告体中ため几乎都是原因义。' },
+  { id: 'ex-cg24-3', nodeId: 'cg-c-tame-you', stepId: null, criterionId: 'C_TAME_YOU', errorRoot: 'R_ASPECT_PURPOSE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"为了不忘记而记笔记"——「忘れない＿＿＿、メモする」应填入？', context: null, options: ['ように', 'ために'], answer: 0,
+    feedback: '依据判据C_TAME_YOU：否定形"不忘记"是期望维持的状态而非意志动作→ように；口诀"可能形・ない・なる・わかる见到就ように"。' },
+
+  { id: 'ex-cg25-1', nodeId: 'cg-c-cond-to-ba', stepId: 'step-1', criterionId: 'C_COND_TOBA', errorRoot: 'R_COND', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['春になったら、花見に行こう。', '春になると、花見に行こう。'], answer: 0,
+    feedback: '依据判据C_COND_TOBA（と/ば规律条件律）：と的后件不能接意志/劝诱（"必然自动发生"与"我打算"冲突）；意志后件的条件句用たら。' },
+  { id: 'ex-cg25-2', nodeId: 'cg-c-cond-to-ba', stepId: 'step-2', criterionId: 'C_COND_TOBA', errorRoot: 'R_COND', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「行く」的ば形是？', context: null, options: ['行けば', '行くば'], answer: 0,
+    feedback: '依据判据C_COND_TOBA：五段动词ば形=词尾移到e段+ば——行く→行け+ば；辞书形直接+ば不合法。' },
+  { id: 'ex-cg25-3', nodeId: 'cg-c-cond-to-ba', stepId: null, criterionId: 'C_COND_TOBA', errorRoot: 'R_COND', certainty: 'A', type: 'cloze-prediction',
+    prompt: '路线指引"右转就有便利店"——「右に曲がる＿、コンビニがあります」最自然填入？', context: null, options: ['と', 'なら'], answer: 0,
+    feedback: '依据判据C_COND_TOBA：路线/机器类"一做就必然出现"的恒常联动是と的主场；なら是话题条件，此处无话题接收。' },
+
+  { id: 'ex-cg26-1', nodeId: 'cg-c-cond-tara-nara', stepId: 'step-1', criterionId: 'C_COND_TARANARA', errorRoot: 'R_COND', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"到了车站请给我打电话"——「駅に着い＿＿、電話してください」应填入？', context: null, options: ['たら', 'と'], answer: 0,
+    feedback: '依据判据C_COND_TARANARA（たら/なら个别条件律）：请求后件+一次性事件→たら（完成先行，后件百无禁忌）；と全面禁止意志/请求后件。' },
+  { id: 'ex-cg26-2', nodeId: 'cg-c-cond-tara-nara', stepId: 'step-2', criterionId: 'C_COND_TARANARA', errorRoot: 'R_COND', certainty: 'A', type: 'judgment',
+    prompt: '"要去京都的话，建议坐新干线（坐车发生在到京都之前）"——正确的说法是？', context: null, options: ['京都に行くなら、新幹線がいい。', '京都に行ったら、新幹線がいい。'], answer: 0,
+    feedback: '依据判据C_COND_TARANARA：后件（坐新干线）先于前件（到京都）发生→只有话题条件なら允许时间倒挂；たら的完成先行义会把句子变成"到了京都之后再坐新干线"，逻辑不通。' },
+  { id: 'ex-cg26-3', nodeId: 'cg-c-cond-tara-nara', stepId: null, criterionId: 'C_COND_TARANARA', errorRoot: 'R_COND', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「お金があっ＿＿、何がしたい？」应填入？', context: '朋友间闲聊假设性话题："假如你有钱（实现了那个条件之后），想干什么？"', options: ['たら', 'と'], answer: 0,
+    feedback: '在这个语境下：一次性假设+意志性提问（想干什么）→たら；と的恒常联动义与意志疑问后件双重不适配。' },
 
   {
     id: 'ex-sample-1',
@@ -2885,6 +3363,36 @@ PARTICLE_NODE_DETECTORS.forEach(pd => {
       let m;
       pd.re.lastIndex = 0;
       while ((m = pd.re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 4);
+    }
+  });
+});
+
+// Clause-connective detectors (PART 2 connection system). Same surface
+// caveat; the conjunctive-から heuristic (predicate ending before から)
+// separates it from case-から (noun before から) most of the time.
+const CONNECTIVE_NODE_DETECTORS = [
+  { nodeId: 'cg-c-reason', what: '原因接续（から/ので）', re: /(なので|ので|んで、|(?<=[るたいすくむぶつだ])から)/g },
+  { nodeId: 'cg-c-kedo-ga', what: '转折/铺垫（けど/が）', re: /(けれども|けれど|けど|ですが|ますが)/g },
+  { nodeId: 'cg-c-noni', what: '预期落空（のに）', re: /(なのに|(?<=[るたい])のに)/g },
+  { nodeId: 'cg-c-tari', what: '例举（たり）', re: /([ぁ-ん]たり|んだり)/g },
+  { nodeId: 'cg-c-nagara', what: '同时进行（ながら）', re: /(ながら)/g },
+  { nodeId: 'cg-c-tame-you', what: '目的（ために/ように）', re: /(ために|(?<=[るいた])ように|ないように)/g },
+  { nodeId: 'cg-c-cond-to-ba', what: '条件（と/ば）', re: /([えけげせてねべめれ]ば|(?<=[うくぐすつぬぶむる])と(?=[、\s]|[一-龯]))/g },
+  { nodeId: 'cg-c-cond-tara-nara', what: '条件（たら/なら)', re: /([ぁ-ん]たら|んだら|なら)/g }
+];
+CONNECTIVE_NODE_DETECTORS.forEach(cd => {
+  TEXT_DETECTORS.push({
+    nodeId: cd.nodeId,
+    what: cd.what,
+    detect(text) {
+      const seen = new Set();
+      const out = [];
+      let m;
+      cd.re.lastIndex = 0;
+      while ((m = cd.re.exec(text)) !== null) {
         if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
       }
       return out.slice(0, 4);
