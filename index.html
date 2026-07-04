@@ -414,6 +414,8 @@ const ERROR_ROOTS = [
   { id: 'R_TIMEPOINT', name: '时点表达混淆', description: 'ところ三时相（るところ/ているところ/たところ）与たばかり的时点定位混选，或经历表达（たことがある）与单纯过去（た）不分。', module: 'core-grammar' },
   { id: 'R_MODALITY', name: '推量/证据性混淆', description: 'そうだ两义（样态/传闻）接续不分，ようだ/らしい/みたい的证据来源差异被当成同义替换，或はず/べき、かも/に違いない的确信度档位错位。', module: 'core-grammar' },
   { id: 'R_DESIRE', name: '愿望表达误用', description: 'たい/ほしい直接用于第三者（＊彼は行きたい单句断言他人内心），忽视たがる/ほしがる的旁观形态；或たい句的が/を交替、ほしい前接形态（てほしい）配置错误。', module: 'core-grammar' },
+  { id: 'R_POLITENESS', name: '敬度档位错配', description: '请求/劝诱/许可表达的敬度与场合错位（对上用命令式请求、对友用过度敬语），或敬語三分（尊敬/謙譲/丁寧）方向搞反（对自己用尊敬語）。', module: 'core-grammar' },
+  { id: 'R_OBLIGATION', name: '义务/禁止表达混淆', description: 'なければならない的双重否定结构解析错误，てもいい/てはいけない的许可-禁止对立与中文"可以/不行"的映射错位，或缩约形（なきゃ/ないと/ちゃだめ）还原失败。', module: 'core-grammar' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
@@ -465,6 +467,12 @@ const CRITERIA = [
   { id: 'C_RASHII', name: { zh: 'らしい传闻推断律', ja: 'ラシイ推定則' }, description: 'らしい=以间接信息（听闻+零星迹象）为据的推断，说话人与结论保持距离；另有典型性接尾词用法（男らしい像个男子汉的样子）。', module: 'core-grammar', ownerNodeId: 'cg-m-rashii' },
   { id: 'C_HAZU_BEKI', name: { zh: 'はず/べき当为律', ja: 'ハズベキ当為則' }, description: 'はずだ=依据事实推算"理应如此"（8時発だから9時に着くはず）；べきだ=依据规范主张"应当去做"（謝るべきだ）；推算落空=はずなのに，规范違反=べきではない。', module: 'core-grammar', ownerNodeId: 'cg-m-hazu-beki' },
   { id: 'C_KAMO_CHIGAI', name: { zh: '确信度两极律', ja: '確信度両極則' }, description: 'かもしれない=可能性存在但不高（50%以下的直感），に違いない=近乎断定的强确信；两者构成认识情态确信度轴的两端，中间地带由だろう/でしょう承担。', module: 'core-grammar', ownerNodeId: 'cg-m-kamo-chigai' },
+  { id: 'C_KUDASAI', name: { zh: 'てください请求律', ja: 'テクダサイ依頼則' }, description: 'て形+ください构成标准请求（否定请求=ないでください）；ください本质是指示而非商量，对上位者需换商量形（ていただけますか等）。', module: 'core-grammar', ownerNodeId: 'cg-pol-kudasai' },
+  { id: 'C_PERMISSION', name: { zh: '许可禁止对偶律', ja: '許可禁止対則' }, description: 'てもいい（做了也行=许可）与てはいけない（做了的话不行=禁止）构成对偶；两者都以て形+条件评价构句，缩约形ちゃだめ/ちゃいけない高频。', module: 'core-grammar', ownerNodeId: 'cg-pol-temoii' },
+  { id: 'C_OBLIGATION', name: { zh: '双重否定义务律', ja: '二重否定義務則' }, description: 'なければならない=「不做的话+不行」的双重否定表义务；ない形词尾变化（ない→なければ）+ならない/いけない/だめ三种收尾；缩约なきゃ/なくちゃ/ないと。', module: 'core-grammar', ownerNodeId: 'cg-pol-nakereba' },
+  { id: 'C_MASHOU', name: { zh: '劝诱三段律', ja: '勧誘三段則' }, description: 'ましょう（一起做吧/我来做）、ましょうか（我来做好吗？提议帮忙）、ませんか（要不要一起？尊重对方意愿的邀请）构成劝诱强度三段；ませんか最礼貌因为留出拒绝空间。', module: 'core-grammar', ownerNodeId: 'cg-pol-mashou' },
+  { id: 'C_KEIGO_THREE', name: { zh: '敬語三分律', ja: '敬語三分類則' }, description: '敬語三分：尊敬語抬高对方的动作（いらっしゃる），謙譲語压低自己的动作（伺う），丁寧語礼貌收尾（です/ます）；方向判断（谁的动作）先于形式选择。', module: 'core-grammar', ownerNodeId: 'cg-pol-keigo' },
+  { id: 'C_REQUEST_LADDER', name: { zh: '请求敬度阶梯律', ja: '依頼敬度階梯則' }, description: '请求表达按敬度排成阶梯：て（命令近似）→てください（标准指示）→てもらえますか（商量）→ていただけますか（敬语商量）→ていただけませんでしょうか（最高敬度）；疑问形+否定形升敬度。', module: 'core-grammar', ownerNodeId: 'cg-pol-ladder' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -2793,6 +2801,298 @@ const NODES = [
     }
   },
 
+  /* ---- PART 2 · 礼貌与人际互动系统 ---- */
+
+  {
+    id: 'cg-pol-kudasai', module: 'core-grammar', order: 41, status: 'draft',
+    qualifies: { independentMechanism: 'てください把请求形态化为"指示"，其敬度上限与否定请求构成独立判断点；是请求系统的基准形。', citedByCount: 1, errorRoot: 'R_POLITENESS', mergeNote: null },
+    title: { zh: 'てください：标准请求，及其边界', ja: 'テクダサイ', en: 'Te kudasai' },
+    refs: { requires: ['lc-te-interface', 'cg-te-form-formation'], invokes: ['lc-te-interface'], contrasts: [], previews: ['cg-pol-ladder'] },
+    layer0: {
+      body: 'て形+ください=标准请求："请…"。ちょっと待ってください（请稍等）。别做某事=ない形+で+ください：触らないでください（请勿触摸）。注意：ください骨子里是客气的指示，不是商量。',
+      example: { jp: 'ここに名前を書いてください。', zh: '请在这里写名字——办事窗口的标准指示语。' },
+      hook: '为什么对部长说「资料を読んでください」会让气氛瞬间僵硬？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：肯定请求与否定请求怎么构成',
+          body: '肯定请求：て形+ください（書いてください、来てください、してください）——て形音便照旧生效（待ってください、飲んでください）。否定请求：ない形+でください（行かないでください、忘れないでください）——注意中介是で不是て（＊行かなくてください✗）。口语中ください可脱落：ちょっと待って（等等）、見ないで（别看）——脱落形亲密但敬度归零，只对平辈以下使用。',
+          minimalPair: [ { jp: '窓を開けてください。', zh: '请开窗。（肯定：て+ください）' }, { jp: '窓を開けないでください。', zh: '请不要开窗。（否定：ないで+ください）' } ],
+          miniExercise: { exerciseId: 'ex-cg41-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：ください的敬度上限在哪里',
+          body: 'ください源自くださる（给我）的命令形——所以てください的语用本质是"客气的指示"：适用于服务指引、老师对学生、说明书，即"我有立场指示你"的场合。对上位者请求（求部长审文件）用てください会显得指手画脚，须升级为商量形：見ていただけますか（能否请您过目）。判断口诀：我有权指示→ください；我在求人→阶梯往上走（预告下一节点）。おください的名词版（お水ください）在点餐购物中是中性通用形。',
+          minimalPair: [ { jp: '（教師→学生）明日までに出してください。', zh: '（老师对学生）明天前交上来。（有权指示✓）' }, { jp: '（部下→部長）✗ 書類にサインしてください。', zh: '（对上）语用失礼：应改为サインしていただけますか。' } ],
+          miniExercise: { exerciseId: 'ex-cg41-2' } }
+      ],
+      hook: '请求之外，"可以做吗/不许做"这对许可-禁止开关怎么用て形搭出来？'
+    },
+    layer2: {
+      body: 'ください的语法化路径（くださる"上给"→命令形ください）解释了其"指示"本性：形态上它仍是命令句，敬意来自动词本身的授受方向（您给我…），而非句式的商量性。日语请求系统的核心参数是"给对方留多少拒绝空间"：命令形（零空间）→てください（名义空间）→疑问形てくれますか（形式空间）→否定疑问てもらえませんか（真实空间）——空间越大敬度越高，这一原理将在敬度阶梯节点系统展开。中文"请"字句的敬度更均质，不携带"指示 vs 商量"的结构区分，因此中文母语者最常见的语用失误正是对上滥用てください。',
+      boundaryCases: [ { jp: 'お座りください。', zh: '请坐——お+连用形+ください：ください请求的敬语升级形，商务接待标准语。', note: 'お〜ください是ください系内部的敬度上探，预告敬語节点。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '极性（请求做 vs 请求不做）', sets: [ { jp: '写真を撮ってください。', zh: '请拍照。' }, { jp: '写真を撮らないでください。', zh: '请勿拍照。' } ] } ],
+      tier2: [ { jp: 'こちらにお並びください。', zh: '请在这边排队。', register: 'polite' }, { jp: 'ドア、閉めて。', zh: '把门关上。（ください脱落，亲密指示）', register: 'spoken' }, { jp: '詳細は下記をご覧ください。', zh: '详情请见下文。（书面指示）', register: 'written' } ],
+      tier3: [ { jp: '心配しないで。', zh: '别担心——ないで单用：否定请求的口语脱落形兼安慰语。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_KUDASAI'], errorRoots: ['R_POLITENESS'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 礼貌互动 > 标准请求（てください）',
+      parent_concept: { id: null, label: '礼貌互动', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'てください惯例归 N5（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '构成机械（复用て形/ない形）；唯一重点是"指示本性"的语用边界，一条对上失礼案例可钉住。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '窗口指引、亲密指示、书面告示三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-pol-temoii', module: 'core-grammar', order: 42, status: 'draft',
+    qualifies: { independentMechanism: 'てもいい/てはいけない以「て形+条件评价」构成许可-禁止对偶；评价句式化是独立机制。', citedByCount: 0, errorRoot: 'R_OBLIGATION', mergeNote: '许可与禁止是同一评价构式的两极，教学上必须成对出现，合设一节。' },
+    title: { zh: 'てもいい・てはいけない：许可与禁止的开关', ja: 'テモイイ・テハイケナイ', en: 'Temo ii and Tewa ikenai' },
+    refs: { requires: ['cg-pol-kudasai'], invokes: ['cg-p-mo-dake-shika'], contrasts: [], previews: [] },
+    layer0: {
+      body: '许可=てもいい："（即使）做了也行"——入ってもいいですか（可以进吗）。禁止=てはいけない："做了的话不行"——ここで泳いではいけない（此处禁止游泳）。一个开门，一个上锁，共用て形底盘。',
+      example: { jp: '「食べてもいい？」「うん、いいよ。」', zh: '"可以吃吗？""嗯，可以"——许可问答的日常最简版。' },
+      hook: '为什么"可以不去吗"是行かなくてもいい，中间的で去哪了？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：许可句与禁止句的构成与应答',
+          body: '许可：て形+も+いい（座ってもいい、使ってもいいですか）——字面"即使做了也好"，も正是とりたて的"即使"义（呼应も节点）。禁止：て形+は+いけない/だめ（触ってはいけない、遅れてはだめ）——は在此标对比条件"做了的话（可就）"。应答注意：被问てもいいですか，允许答どうぞ/いいですよ，拒绝不能硬答いけません（过于官腔），日常用ちょっと…（委婉挡回，呼应言いさし）。',
+          minimalPair: [ { jp: 'ここに座ってもいいですか。', zh: '可以坐这里吗？（许可请求）' }, { jp: 'ここに座ってはいけません。', zh: '不可以坐这里。（禁止告知）' } ],
+          miniExercise: { exerciseId: 'ex-cg42-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：否定形许可（不做也行）与缩约形',
+          body: '"不做也行"=なくてもいい：明日は来なくてもいい（明天不来也行）——注意ない的连接形是なくて（呼应ない形节点的なくて/ないで分工：接もいい用なくて）。缩约系统：てはいけない→ちゃいけない/ちゃだめ（口语），では→じゃ（飲んじゃだめ）。四格矩阵就位：てもいい（可做）/なくてもいい（可不做）/てはいけない（不可做）/なければならない（必须做，预告下一节点）——许可义务的全景就是这四格。',
+          minimalPair: [ { jp: '無理に食べなくてもいいよ。', zh: '不必勉强吃。（不做也行）' }, { jp: 'まだ帰っちゃだめ。', zh: '还不许回去。（ては→ちゃ缩约禁止）' } ],
+          miniExercise: { exerciseId: 'ex-cg42-2' } }
+      ],
+      hook: '四格矩阵还差最重的一格——"必须做"的双重否定迷宫なければならない怎么拆？'
+    },
+    layer2: {
+      body: '许可/禁止构式的内部逻辑是"条件+评价"：てもいい=让步条件（即使P）+正评价（也好），てはいけない=对比条件（若P的话）+负评价（不行/不可）——两个とりたて助词（も/は）在此处的分工正是它们核心义的直接应用，构式不是任意搭配而是语义的透明组合。这个视角把"背句型"降维成"拼部件"。社会语用注意：日语的当面禁止倾向回避直接いけません，公共场所用ご遠慮ください（请自重）、远回りに（ちょっと難しいですね）——直接禁止形多见于告示、规则文本与对孩子的管教，这一分布与中文"不行/不可以"的口头高频形成反差。',
+      boundaryCases: [ { jp: '入るべからず。', zh: '禁止入内——文语禁止形べからず的告示残留，与べき同源。', note: '告示文语禁止形登记备查，呼应べき节点的文语源。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '四格矩阵（同一动作）', sets: [ { jp: '写真を撮ってもいい。', zh: '可以拍照。' }, { jp: '写真を撮ってはいけない。', zh: '不可拍照。' } ] } ],
+      tier2: [ { jp: 'ペンで書いてもいいですか。', zh: '可以用钢笔写吗？', register: 'polite' }, { jp: 'ここでタバコを吸ってはいけません。', zh: '此处禁止吸烟。', register: 'written' }, { jp: '全部食べなくてもいいからね。', zh: '不用全吃完也没关系哦。', register: 'spoken' } ],
+      tier3: [ { jp: '触っちゃだめだって！', zh: '都说了不许碰！——ちゃだめ+って（引用强调）的口语管教高频组合。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_PERMISSION'], errorRoots: ['R_OBLIGATION'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 礼貌互动 > 许可与禁止（てもいい・てはいけない）',
+      parent_concept: { id: null, label: '礼貌互动', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'てもいい/てはいけない惯例归 N5-N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '构式=も/は核心义的透明组合，可拼部件而非死背；なくてもいい的连接形与缩约系还原是仅有的两个操练点。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'written', 'spoken'], note: '许可问答、告示禁止、宽慰与管教四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-pol-nakereba', module: 'core-grammar', order: 43, status: 'draft',
+    qualifies: { independentMechanism: 'なければならない以双重否定编码义务，其部件可替换性（ば/と/ちゃ×ならない/いけない/だめ）与缩约系还原是独立机制。', citedByCount: 0, errorRoot: 'R_OBLIGATION', mergeNote: null },
+    title: { zh: 'なければならない：双重否定的义务', ja: 'ナケレバナラナイ', en: 'Nakereba naranai' },
+    refs: { requires: ['cg-pol-temoii', 'cg-c-cond-to-ba'], invokes: ['cg-c-cond-to-ba'], contrasts: [], previews: [] },
+    layer0: {
+      body: '"必须"在日语里是绕出来的："不做的话+不行"=なければならない。薬を飲まなければならない（必须吃药）。口语缩成なきゃ/なくちゃ：もう行かなきゃ（我得走了）。',
+      example: { jp: '明日までにレポートを出さなければならない。', zh: '明天前必须交报告——字面是"不交的话不行"。' },
+      hook: '为什么日语不直接说"必须"，非要双重否定绕一圈？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：义务句的构成部件怎么拼',
+          body: '拼装公式：ない形去い+ければ（＝ない的ば形，呼应ば节点）+ならない：飲まない→飲まなければ+ならない。部件可替换：条件部ば/と/ては三选（なければ/ないと/なくては），评价部ならない/いけない/だめ三选（书面正式→口语随意），组合皆通：行かないといけない、行かなくてはだめ。语感差：ならない偏客观规范（法律、制度），いけない偏个人处境（我得…），だめ最口语。',
+          minimalPair: [ { jp: 'パスポートを更新しなければならない。', zh: '必须更新护照。（客观规范→ならない）' }, { jp: '今日中に返事しないといけない。', zh: '今天之内得回复。（个人处境→いけない）' } ],
+          miniExercise: { exerciseId: 'ex-cg43-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：缩约形怎么还原、四格矩阵怎么闭环',
+          body: '缩约对应：なければ→なきゃ、なくては→なくちゃ，后件可整体脱落：もう行かなきゃ（=行かなければならない）——听力中なきゃ/なくちゃ单挂句尾即是完整义务句。四格矩阵闭环：てもいい（可做）/てはいけない（不可做）/なくてもいい（可不做）/なければならない（必须做）——中文"可以/不行/不用/必须"四词与四格一一对应，但日语四格全部由て形/ない形+评价拼装，构造透明。矩阵内对角线互为否定：必须做⟷可不做，可做⟷不可做。',
+          minimalPair: [ { jp: 'もう帰らなきゃ。', zh: '我得回去了。（なきゃ单挂=完整义务）' }, { jp: '急がなくてもいい。', zh: '不用急。（对角线：义务的否定=可不做）' } ],
+          miniExercise: { exerciseId: 'ex-cg43-2' } }
+      ],
+      hook: '义务是压给自己的——那把行动"提议给对方"的ましょう/ませんか怎么分档？'
+    },
+    layer2: {
+      body: '双重否定编码义务是跨语言常见策略（英 must 之外也有 can\'t not；中文"不得不"同构），日语的特点是把它变成了唯一的中性义务形——直接肯定形的义务表达（べきだ）带规范说教色彩，日常义务全靠双重否定。这个"绕"其实是礼貌策略：不说"你必须"，说"不做的话（按情理）通不过"，把强制力从说话人身上转嫁给情理/规则。部件矩阵（3条件×3评价=9 组合）全部合法且语感连续，教学上先立なければならない为锚，其余当变体感知即可；JLPT 听力关键是抓缩约（なきゃ/なくちゃ/ないと单挂）并瞬间还原为"必须"。',
+      boundaryCases: [ { jp: '行かねばならない。', zh: '必须前往——ねば：なければ的文语缩约，武士剧/正式文书残留。', note: 'ねばならない是书面古风变体，阅读需识别。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '评价部（同一义务）', sets: [ { jp: '税金を払わなければならない。', zh: '必须纳税。（规范）' }, { jp: '早く寝ないとだめだよ。', zh: '不早点睡可不行哦。（口语关切）' } ] } ],
+      tier2: [ { jp: '会員登録をしなければなりません。', zh: '必须进行会员注册。', register: 'polite' }, { jp: 'もう行かなくちゃ。', zh: '我得走了。', register: 'spoken' }, { jp: '申請書は本人が提出しなければならない。', zh: '申请书须由本人提交。', register: 'written' } ],
+      tier3: [ { jp: '勉強しなきゃとは思ってるんだけど……。', zh: '我也知道得学习，可是……——なきゃ+言いさし：义务认知与拖延的口语实况。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_OBLIGATION'], errorRoots: ['R_OBLIGATION'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 礼貌互动 > 义务（なければならない）',
+      parent_concept: { id: null, label: '礼貌互动', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'なければならない惯例归 N5-N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '双重否定解析+9 组合矩阵+缩约还原三块记忆量集中；四格矩阵与"部件拼装"视角可大幅压缩。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '制度告知、口语自催、规程文书三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-pol-mashou', module: 'core-grammar', order: 44, status: 'draft',
+    qualifies: { independentMechanism: 'ましょう/ましょうか/ませんか构成劝诱强度三段，档位差在"给对方留多少决定权"；三段判断是独立机制。', citedByCount: 0, errorRoot: 'R_POLITENESS', mergeNote: null },
+    title: { zh: 'ましょう・ましょうか・ませんか：劝诱三段', ja: 'マショウ系', en: 'Mashou, Mashou ka, Masen ka' },
+    refs: { requires: ['cg-masu-form'], invokes: ['cg-masu-form'], contrasts: [], previews: [] },
+    layer0: {
+      body: '拉人一起行动的三个档：ましょう（走吧！默认你同意）、ましょうか（我来吧？提议帮忙）、ませんか（要不要一起？你说了算）。档位差=给对方留的决定权大小。',
+      example: { jp: '一緒に昼ご飯を食べませんか。', zh: '要不要一起吃午饭？——ませんか把决定权完整交给对方，是最体面的邀请。' },
+      hook: '为什么约不熟的同事吃饭用ましょう会显得强势？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：三段各自的适用场景',
+          body: 'ましょう=共同行动的推进（さあ、始めましょう开始吧）——预设对方同意，适合既定日程、带队发令；对未必同意的对象用会显得裹挟。ましょうか=两用：①提议代劳（荷物を持ちましょうか我来拿吧？）；②商量式共同提案（そろそろ行きましょうか差不多走？）。ませんか=否定疑问的邀请（映画を見に行きませんか）——否定形式留足"说不"的台阶，对不熟者/上位者的标准邀请形。判断一问：对方拒绝的成本有多高？高→ませんか。',
+          minimalPair: [ { jp: '（会議で）では、始めましょう。', zh: '（会上）那么开始吧。（既定流程，推进✓）' }, { jp: '（初対面）今度食事に行きませんか。', zh: '（初识）下次要不要一起吃个饭？（留台阶✓）' } ],
+          miniExercise: { exerciseId: 'ex-cg44-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：普通体劝诱形（意向形）怎么变、怎么配',
+          body: '普通体版劝诱=意向形（意志形）：五段词尾移到o段+う（行く→行こう、飲む→飲もう），一段去る+よう（食べよう、見よう），する→しよう、来る→こよう。行こう=ましょう的普通体（"走吧"），行こうか=ましょうか。意向形还有内心独白用法（帰ろうと思う我打算回去——预告と思う结构）。体裁配对原则与全课一致：敬体场合ましょう系、平辈私下意向形，一句话内不混。',
+          minimalPair: [ { jp: 'そろそろ帰ろう。', zh: '差不多回吧。（意向形=普通体劝诱）' }, { jp: 'そろそろ帰りましょう。', zh: '差不多回去吧。（敬体劝诱）' } ],
+          miniExercise: { exerciseId: 'ex-cg44-2' } }
+      ],
+      hook: '劝诱三段管"平级互动"——把整个句子按上下关系重新装配的敬語系统，才是日语人际语法的大魔王。'
+    },
+    layer2: {
+      body: '三段的语用原理与请求阶梯同源：否定疑问形（ませんか）之所以最礼貌，是因为它字面预设了"你可能不去"，替对方铺好拒绝的台阶——这与英语 Won\'t you...? / 中文"要不要"同理，但日语把它固定为档位系统。ましょうか的两用（代劳提议/共同提案）靠语境区分：动作只涉及说话人→代劳（持ちましょうか），涉及双方→共同（行きましょうか）。应答配套：ませんか的接受=ぜひ/いいですね，拒绝=ちょっと…（言いさし再登场）；ましょうか代劳的接受=お願いします，谢绝=大丈夫です——大丈夫的"谢绝"义是近年口语的高频扩张，听力需更新。',
+      boundaryCases: [ { jp: '手伝おうか？', zh: '要我搭把手不？——意向形+か：ましょうか的普通体，朋友间代劳提议。', note: '劝诱三段在普通体中有完整平行系统。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '决定权（同一邀请）', sets: [ { jp: '一緒に行きましょう。', zh: '一起走吧。（预设同意）' }, { jp: '一緒に行きませんか。', zh: '要不要一起走？（对方定夺）' } ] } ],
+      tier2: [ { jp: '窓を開けましょうか。', zh: '我来开窗好吗？', register: 'polite' }, { jp: '今夜飲みに行こう！', zh: '今晚喝一杯去！', register: 'spoken' }, { jp: '次章では具体例を見ていきましょう。', zh: '下一章让我们来看具体例子。（书面导读的ましょう）', register: 'written' } ],
+      tier3: [ { jp: '「持ちましょうか」「あ、大丈夫です」', zh: '"我来拿吧？""啊，不用了"——大丈夫です的谢绝义，现代口语高频。', register: 'polite', source: null } ]
+    },
+    criteria: ['C_MASHOU'], errorRoots: ['R_POLITENESS'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 礼貌互动 > 劝诱三段（ましょう系）',
+      parent_concept: { id: null, label: '礼貌互动', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'ましょう/ませんか惯例归 N5、意向形惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '三段判断（拒绝成本一问）直观；意向形变位复用动词分类，增量小；应答配套（大丈夫谢绝义）需专项提示。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '会议推进、朋友邀约、书面导读、代劳问答四类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-pol-keigo', module: 'core-grammar', order: 45, status: 'draft',
+    qualifies: { independentMechanism: '敬語三分（尊敬/謙譲/丁寧）以"谁的动作"为方向判据重组谓语系统；方向判断先于形式记忆，是独立机制。', citedByCount: 1, errorRoot: 'R_POLITENESS', mergeNote: '本节点只立三分框架与方向判断+最高频替换动词；系统的素材词表（全部替换动词/お・ご规则细目）留给专门敬語模块。' },
+    title: { zh: '敬語基础：先分方向，再换词', ja: '敬語の三分類', en: 'Keigo Foundations' },
+    refs: { requires: ['cg-masu-form', 'cg-pol-kudasai'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: '敬語三件套：尊敬語抬高"对方的动作"（社長がいらっしゃる），謙譲語压低"自己的动作"（私が伺います），丁寧語给句子整体上光（です/ます）。用错方向比不用更糟——先问"这是谁的动作"。',
+      example: { jp: '先生がおっしゃった。／私が申し上げた。', zh: '老师说（尊敬語抬对方）／我说（謙譲語压自己）——同一个"说"，方向定形式。' },
+      hook: '为什么对客户说「社長が申されました」是双重灾难？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个动作该走尊敬还是謙譲',
+          body: '方向判据只有一问：动作的主体是谁？对方/需抬高的人做→尊敬語：特殊动词（行く・来る・いる→いらっしゃる、言う→おっしゃる、食べる→召し上がる、する→なさる、見る→ご覧になる）或通用式お+连用形+になる（お読みになる）。自己/自己人做→謙譲語：行く・来る→伺う/参る、言う→申す/申し上げる、する→いたす、見る→拝見する、いる→おる，通用式お+连用形+する（お持ちします我来拿）。丁寧語（です/ます）与前两者叠加不冲突。',
+          minimalPair: [ { jp: '先生はもう召し上がりましたか。', zh: '老师您用过餐了吗？（对方动作→尊敬）' }, { jp: 'お先にいただきました。', zh: '我先用过了。（自己动作→謙譲）' } ],
+          miniExercise: { exerciseId: 'ex-cg45-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：敬語的两大典型翻车点',
+          body: '翻车点一：方向反转——对自己用尊敬語（＊私がいらっしゃいます✗）或对需抬高的人用謙譲語（＊社長が申されました✗——申す是謙譲，给社长用等于当众压低他）。翻车点二：内外切换——对外人提自己公司的社长要用謙譲侧（社長の田中は只今外出しております），"自己人"的范围随听话人动态伸缩，这是中文敬称系统（固定头衔制）完全没有的机制。判断链：①谁的动作→②他是"内"还是"外"→③选方向→④换词。',
+          minimalPair: [ { jp: '（対取引先）田中は席を外しております。', zh: '（对客户）田中现在不在座位上。（自己人→謙譲侧おる，且去さん）' }, { jp: '✗（対取引先）田中さんはいらっしゃいません。', zh: '（对客户）用尊敬語抬自己人=内外错乱。' } ],
+          miniExercise: { exerciseId: 'ex-cg45-2' } }
+      ],
+      hook: '敬語把句子装上了方向盘——最后一站：怎么用这套系统把"请求"打磨到最高敬度？'
+    },
+    layer2: {
+      body: '文化庁《敬語の指針》（2007）将传统三分细化为五分（尊敬語/謙譲語Ⅰ/謙譲語Ⅱ〔丁重語〕/丁寧語/美化語），本节点按教学惯例先立三分——五分细目（参る/おる归丁重語等）留给专门敬語模块，此处登记备查（文化庁来源已入 Source Library）。内外（ウチ・ソト）机制是敬語系统的真正难点：方向不是绝对身份而是相对阵营，同一个社长在司内被抬（尊敬）、对司外被压（謙譲侧）——这一"相对敬语"特征区别于韩语的"绝对敬语"，也远离中文的头衔敬称制。对 N1 而言，敬語考点集中在方向误用识别与двой重敬語（＊おっしゃられる）判断，本节点的方向判断链是全部后续的地基。',
+      boundaryCases: [ { jp: 'ご利用いただけます。', zh: '您可使用——謙譲语いただく反向服务于"抬客户"：授受方向与敬语方向的复合，商务日语最高频句式之一。', note: '授受动词×敬语的交叉是下一阶段模块的入口。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '方向（同一动词"来"）', sets: [ { jp: '社長がいらっしゃいました。', zh: '社长来了。（尊敬）' }, { jp: '私が参りました。', zh: '我来了。（謙譲）' } ] } ],
+      tier2: [ { jp: '何を召し上がりますか。', zh: '您用点什么？', register: 'polite' }, { jp: '資料を拝見しました。', zh: '资料我已拜读。', register: 'polite' }, { jp: '詳細はお問い合わせください。', zh: '详情请垂询。（お〜ください书面）', register: 'written' } ],
+      tier3: [ { jp: '「お名前を伺ってもよろしいですか」', zh: '"方便请教您的名字吗？"——謙譲（伺う）+许可形（てもいい的敬体よろしい）的复合请求。', register: 'polite', source: null } ]
+    },
+    criteria: ['C_KEIGO_THREE'], errorRoots: ['R_POLITENESS'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 礼貌互动 > 敬語三分基础',
+      parent_concept: { id: null, label: '礼貌互动', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '敬語基础惯例始于 N4、系统考查集中于 N2-N1（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '方向判断+替换动词表+内外机制三重负担，是全课最难节点之一；本节点只立框架，词表在专门模块分摊。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'written'], note: '敬語定义上属敬体/商务语域；接待、汇报、公文三类场景已入例句。' },
+      verification_status: 'source_required',
+      evidence: [
+        { sourceId: 'src-bunka-agency', note: 'Layer 2 提及文化庁《敬語の指針》（2007）的五分类框架；指针文件本身尚未直接查阅核对，标记为待核验（见 resources/sources.json）。' }
+      ],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-pol-ladder', module: 'core-grammar', order: 46, status: 'draft',
+    qualifies: { independentMechanism: '请求表达按"拒绝空间"排成可操作的敬度阶梯（て→てください→てもらえますか→ていただけますか…）；阶梯选档是独立机制。', citedByCount: 0, errorRoot: 'R_POLITENESS', mergeNote: '授受动词系统（あげる/くれる/もらう本体）留给专门模块；本节点只用其请求形态搭阶梯。' },
+    title: { zh: '请求的敬度阶梯：从「待って」到「お待ちいただけませんでしょうか」', ja: '依頼の敬度階梯', en: 'The Request Ladder' },
+    refs: { requires: ['cg-pol-kudasai', 'cg-pol-keigo'], invokes: ['cg-pol-kudasai'], contrasts: [], previews: [] },
+    layer0: {
+      body: '同一个"请等一下"，日语有一整条阶梯：待って→待ってください→待ってもらえる？→待ってもらえますか→待っていただけますか→お待ちいただけませんでしょうか。爬多高，取决于求谁、求多大的事。',
+      example: { jp: 'ちょっと待ってもらえますか。', zh: '能等我一下吗——商量形：把"等不等"的决定权递到对方手里。' },
+      hook: '升敬度的两个万能开关是什么？（提示：疑问、否定）'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：阶梯各档的构造与适用对象',
+          body: '阶梯从低到高：①て（脱落形，亲密）②てください（客气指示，有权指示的场合）③てくれる？/てもらえる？（普通体商量，平辈）④てくれますか/てもらえますか（敬体商量，一般对上）⑤ていただけますか（敬语商量，商务标准）⑥ていただけませんか/ていただけませんでしょうか（否定+推量，最高档）。构造规律：くれる/もらう/いただく是授受动词的敬度三级（本体系统另设模块），疑问化+否定化是两个升档开关。',
+          minimalPair: [ { jp: '（友達に）これ、見てくれる？', zh: '（对朋友）帮我看看这个呗？（③档）' }, { jp: '（取引先に）ご確認いただけますでしょうか。', zh: '（对客户）能否请您确认？（⑥档）' } ],
+          miniExercise: { exerciseId: 'ex-cg46-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：选档的两个参数与常见错档',
+          body: '选档参数：①社会距离（越疏远/越对上→越高档）；②请求负担（求的事越麻烦→越高档）——给上司递笔用③④即可，求上司周末加班审稿要上⑤⑥。常见错档：对上滥用てください（呼应ください节点）、对朋友滥用いただけますか（显得阴阳怪气/生分）、全场只会一个档（无论大事小事都ていただけますか，负担感知失灵）。练习方向不是背句式而是"同一请求换五个对象说五遍"。',
+          minimalPair: [ { jp: '（同僚に）ペン、取ってもらえる？', zh: '（对同事）帮我拿下笔？（小事低档✓）' }, { jp: '✗（同僚に）ペンを取っていただけませんでしょうか。', zh: '（对同事拿笔）最高档用于芝麻小事=阴阳怪气。' } ],
+          miniExercise: { exerciseId: 'ex-cg46-2' } }
+      ],
+      hook: 'PART 2 到此闭环：谓语、活用、助词、连接、体、模态、礼貌——下一程：可能/被动/使役把动词引擎升到全功率。'
+    },
+    layer2: {
+      body: '阶梯的语用引擎是Brown & Levinson礼貌理论所说的"消极礼貌"（negative politeness）：请求本质是对他人行动自由的侵犯，补偿手段是扩大对方的拒绝空间——疑问化（把断言变询问）与否定化（预设对方可能不便）正是两台空间扩大器，叠加使用则空间最大（ていただけませんでしょうか=疑问+否定+推量三重缓冲）。日语把这套连续调节固化成了形态阶梯，选档因此成为可教可练的技能而非玄学。中文请求也有"帮我/麻烦你/能不能请您"的梯度，但档位少且不依赖动词形态——日语学习者的产出难点不在理解而在实时选档，"五对象改写练习"是最有效的训练形式。',
+      boundaryCases: [ { jp: 'お手数をおかけしますが、ご返信いただければ幸いです。', zh: '劳烦您了，若蒙回复不胜感激——商务邮件的"阶梯之上"：请求完全化装成陈述（能得到…就很幸运），拒绝空间无穷大。', note: 'いただければ幸いです是书面请求的最高缓冲形，N1 商务文书高频。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '档位（同一请求，不同对象）', sets: [ { jp: '（家族に）塩、取って。', zh: '（对家人）把盐递我。（①档）' }, { jp: '（上司に）こちらにサインしていただけますか。', zh: '（对上司）能请您在这里签字吗？（⑤档）' } ] } ],
+      tier2: [ { jp: '写真を撮ってもらえますか。', zh: '能帮我拍张照吗？', register: 'polite' }, { jp: 'ちょっと手伝ってくれない？', zh: '搭把手呗？（否定疑问的普通体版）', register: 'spoken' }, { jp: '折り返しご連絡いただけますでしょうか。', zh: '能否请您回电？（商务）', register: 'written' } ],
+      tier3: [ { jp: 'ドア、閉めてもらっていい？', zh: '帮我关个门行不？——てもらっていい？：近年口语新兴档位（商量+许可的杂交），听力需识别。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_REQUEST_LADDER'], errorRoots: ['R_POLITENESS'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 礼貌互动 > 请求敬度阶梯',
+      parent_concept: { id: null, label: '礼貌互动', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: 'てもらえますか/ていただけますか惯例分布于 N4-N3、最高档书面形见于 N2-N1（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 4, note: '理解易、实时选档难；依赖授受动词三级（另设模块补本体），"五对象改写"是指定训练法。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'spoken', 'written'], note: '日常求助、职场请求、商务邮件三类场景已入例句，含新兴口语档。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
   {
     id: 'sample-node',
     module: '_sample',
@@ -3385,6 +3685,67 @@ const EXERCISES = [
   { id: 'ex-cg40-3', nodeId: 'cg-m-kamo-chigai', stepId: null, criterionId: 'C_KAMO_CHIGAI', errorRoot: 'R_MODALITY', certainty: 'A', type: 'judgment',
     prompt: '确信度从低到高排列正确的是？', context: null, options: ['かもしれない ＜ だろう ＜ に違いない', 'に違いない ＜ かもしれない ＜ だろう'], answer: 0,
     feedback: '依据判据C_KAMO_CHIGAI：认识确信度轴三档=说不定（かも）＜大概（だろう）＜准没错（に違いない），与中文"可能/大概/一定"平行。' },
+
+  // ---- 礼貌与人际互动系统 ----
+  { id: 'ex-cg41-1', nodeId: 'cg-pol-kudasai', stepId: 'step-1', criterionId: 'C_KUDASAI', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"请不要在这里吸烟"——「ここでタバコを吸わ＿＿＿ください」应填入？', context: null, options: ['ないで', 'なくて'], answer: 0,
+    feedback: '依据判据C_KUDASAI（てください请求律）：否定请求=ない形+で+ください；なくて是接もいい等评价句的连接形，不接ください。' },
+  { id: 'ex-cg41-2', nodeId: 'cg-pol-kudasai', stepId: 'step-2', criterionId: 'C_KUDASAI', errorRoot: 'R_POLITENESS', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更妥帖的说法是？', context: '你想请部长审阅你写的报告——对上位者提出请求。', options: ['ご確認いただけますか。', '確認してください。'], answer: 0,
+    feedback: '在这个语境下：ください本质是客气的指示，对上位者显得指手画脚；求人审阅须换商量形（ていただけますか）。' },
+  { id: 'ex-cg41-3', nodeId: 'cg-pol-kudasai', stepId: null, criterionId: 'C_KUDASAI', errorRoot: 'R_ONBIN', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"请稍等"——「ちょっと＿＿＿ください」应填入？', context: null, options: ['待って', '待ちて'], answer: 0,
+    feedback: '依据判据C_KUDASAI：てください的て形音便照旧生效——待つ是つ组促音便（待って）；＊待ちて是音便错误的复发。' },
+
+  { id: 'ex-cg42-1', nodeId: 'cg-pol-temoii', stepId: 'step-1', criterionId: 'C_PERMISSION', errorRoot: 'R_OBLIGATION', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"可以坐这里吗？"——「ここに座っ＿＿＿ですか」应填入？', context: null, options: ['てもいい', 'てはいい'], answer: 0,
+    feedback: '依据判据C_PERMISSION（许可禁止对偶律）：许可=て+も+いい（"即使做了也好"，も的让步义）；ては配的是いけない（禁止侧）。' },
+  { id: 'ex-cg42-2', nodeId: 'cg-pol-temoii', stepId: 'step-2', criterionId: 'C_PERMISSION', errorRoot: 'R_OBLIGATION', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"明天不来也行"——「明日は来＿＿＿もいい」应填入？', context: null, options: ['なくて', 'ないで'], answer: 0,
+    feedback: '依据判据C_PERMISSION："不做也行"用なくてもいい——接评价句もいい时ない的连接形取なくて；ないで专用于请求（ないでください）与伴随。' },
+  { id: 'ex-cg42-3', nodeId: 'cg-pol-temoii', stepId: null, criterionId: 'C_PERMISSION', errorRoot: 'R_OBLIGATION', certainty: 'A', type: 'judgment',
+    prompt: '口语「飲んじゃだめ」的完整形是？', context: null, options: ['飲んではだめ', '飲んでもだめ'], answer: 0,
+    feedback: '依据判据C_PERMISSION：では→じゃ的缩约（て组则ては→ちゃ）；禁止构式的条件部是は（做了的话），不是も。' },
+
+  { id: 'ex-cg43-1', nodeId: 'cg-pol-nakereba', stepId: 'step-1', criterionId: 'C_OBLIGATION', errorRoot: 'R_OBLIGATION', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"必须吃药"——「薬を飲ま＿＿＿＿ならない」应填入？', context: null, options: ['なければ', 'なくても'], answer: 0,
+    feedback: '依据判据C_OBLIGATION（双重否定义务律）：义务=不做的话（なければ）+不行（ならない）；なくても配いい（可不做），方向相反。' },
+  { id: 'ex-cg43-2', nodeId: 'cg-pol-nakereba', stepId: 'step-2', criterionId: 'C_OBLIGATION', errorRoot: 'R_OBLIGATION', certainty: 'A', type: 'judgment',
+    prompt: '朋友说「もう行かなきゃ」，意思是？', context: null, options: ['我必须走了（なきゃ=なければならない的缩约，后件脱落）', '我可以不走了'], answer: 0,
+    feedback: '依据判据C_OBLIGATION：なきゃ/なくちゃ单挂句尾=完整义务句的口语缩约，听力必须瞬间还原为"必须"。' },
+  { id: 'ex-cg43-3', nodeId: 'cg-pol-nakereba', stepId: null, criterionId: 'C_OBLIGATION', errorRoot: 'R_OBLIGATION', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更自然的说法是？', context: '你跟朋友闲聊，说自己今晚得回复一封邮件——个人处境的义务，非正式场合。', options: ['今夜中に返事しないといけないんだ。', '今夜中に返事しなければならない。'], answer: 0,
+    feedback: '在这个语境下：个人处境+口语场合→ないといけない自然；なければならない偏客观规范与书面，朋友闲聊中显得生硬。' },
+
+  { id: 'ex-cg44-1', nodeId: 'cg-pol-mashou', stepId: 'step-1', criterionId: 'C_MASHOU', errorRoot: 'R_POLITENESS', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更体面的邀请是？', context: '你想约不太熟的同事下班后一起吃饭，希望给对方留足拒绝的余地。', options: ['一緒に食事に行きませんか。', '一緒に食事に行きましょう。'], answer: 0,
+    feedback: '在这个语境下：不熟对象+拒绝成本高→ませんか（否定疑问留台阶）；ましょう预设对方同意，对不熟者显得强势。' },
+  { id: 'ex-cg44-2', nodeId: 'cg-pol-mashou', stepId: 'step-2', criterionId: 'C_MASHOU', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'cloze-prediction',
+    prompt: '「飲む」的意向形（普通体劝诱"喝吧"）是？', context: null, options: ['飲もう', '飲みよう'], answer: 0,
+    feedback: '依据判据C_MASHOU（劝诱三段律）：五段动词意向形=词尾移到o段+う（飲む→飲も+う）；い段+よう是一段动词的规则（食べよう）。' },
+  { id: 'ex-cg44-3', nodeId: 'cg-pol-mashou', stepId: null, criterionId: 'C_MASHOU', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'judgment',
+    prompt: '「荷物を持ちましょうか。」说话人在做什么？', context: null, options: ['提议帮对方拿行李（代劳提议）', '命令对方拿行李'], answer: 0,
+    feedback: '依据判据C_MASHOU：动作只涉及说话人自己（我来拿）→ましょうか的代劳提议义；它不是对对方的指令。' },
+
+  { id: 'ex-cg45-1', nodeId: 'cg-pol-keigo', stepId: 'step-1', criterionId: 'C_KEIGO_THREE', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"老师明天会来吗？"（抬高老师）——「先生は明日＿＿＿＿か」应填入？', context: null, options: ['いらっしゃいます', '参ります'], answer: 0,
+    feedback: '依据判据C_KEIGO_THREE（敬語三分律）：对方（老师）的动作→尊敬語いらっしゃる；参る是謙譲語，用在老师身上等于当众压低他。' },
+  { id: 'ex-cg45-2', nodeId: 'cg-pol-keigo', stepId: 'step-2', criterionId: 'C_KEIGO_THREE', errorRoot: 'R_POLITENESS', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，正确的说法是？', context: '客户打电话找你们公司的田中部长，部长外出了，你替他接待来电——对外人提及自己人。', options: ['田中は只今外出しております。', '田中さんはいらっしゃいません。'], answer: 0,
+    feedback: '在这个语境下：对外人（客户）提自己人（田中）→謙譲侧おる+去掉さん；用尊敬語抬自己人是内外错乱，商务大忌。' },
+  { id: 'ex-cg45-3', nodeId: 'cg-pol-keigo', stepId: null, criterionId: 'C_KEIGO_THREE', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"资料我已拜读"（压低自己的"看"）——「資料を＿＿＿しました」应填入？', context: null, options: ['拝見', 'ご覧に'], answer: 0,
+    feedback: '依据判据C_KEIGO_THREE：自己的动作→謙譲語拝見する；ご覧になる是尊敬語（您过目），方向相反。' },
+
+  { id: 'ex-cg46-1', nodeId: 'cg-pol-ladder', stepId: 'step-1', criterionId: 'C_REQUEST_LADDER', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'judgment',
+    prompt: '请求敬度从低到高排列正确的是？', context: null, options: ['待って → 待ってください → 待ってもらえますか → 待っていただけますか', '待ってください → 待って → 待っていただけますか → 待ってもらえますか'], answer: 0,
+    feedback: '依据判据C_REQUEST_LADDER（请求敬度阶梯律）：脱落形→指示形→商量形（もらう）→敬语商量形（いただく），拒绝空间逐级扩大。' },
+  { id: 'ex-cg46-2', nodeId: 'cg-pol-ladder', stepId: 'step-2', criterionId: 'C_REQUEST_LADDER', errorRoot: 'R_POLITENESS', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，选哪个档位？', context: '你请隔壁工位的同事顺手把订书机递给你——平辈、芝麻小事。', options: ['ホッチキス、取ってもらえる？', 'ホッチキスを取っていただけませんでしょうか。'], answer: 0,
+    feedback: '在这个语境下：平辈+小事→低档商量形自然；最高档用于芝麻小事会显得阴阳怪气——选档参数是社会距离×请求负担。' },
+  { id: 'ex-cg46-3', nodeId: 'cg-pol-ladder', stepId: null, criterionId: 'C_REQUEST_LADDER', errorRoot: 'R_POLITENESS', certainty: 'A', type: 'judgment',
+    prompt: '升高请求敬度的两个"万能开关"是？', context: null, options: ['疑问化与否定化（てもらえる→てもらえませんか）', '加大音量与重复请求'], answer: 0,
+    feedback: '依据判据C_REQUEST_LADDER：疑问化把断言变询问、否定化预设对方可能不便——两者都在扩大对方的拒绝空间，这是敬度的语用本质。' },
 
   {
     id: 'ex-sample-1',
@@ -4293,6 +4654,32 @@ MODALITY_NODE_DETECTORS.forEach(md => {
       let m;
       md.re.lastIndex = 0;
       while ((m = md.re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 4);
+    }
+  });
+});
+
+// Politeness/interaction detectors (PART 2 politeness system).
+const POLITENESS_NODE_DETECTORS = [
+  { nodeId: 'cg-pol-kudasai', what: '请求（てください）', re: /([ぁ-ん]てください|んでください|ないでください|お[ぁ-ん一-龯]+ください)/g },
+  { nodeId: 'cg-pol-temoii', what: '许可/禁止（てもいい/てはいけない）', re: /([ぁ-ん]てもいい|んでもいい|なくてもいい|てはいけ(?:ない|ません)|んではいけ(?:ない|ません)|ちゃ(?:だめ|いけない)|じゃ(?:だめ|いけない))/g },
+  { nodeId: 'cg-pol-nakereba', what: '义务（なければならない）', re: /(なければな(?:らない|りません)|なくてはいけ(?:ない|ません)|ないといけ(?:ない|ません)|なきゃ|なくちゃ|ねばならない)/g },
+  { nodeId: 'cg-pol-mashou', what: '劝诱（ましょう/ませんか）', re: /(ましょうか|ましょう|ませんか|[ぁ-ん](?:よう|おう|ろう|こう|ぼう|もう|そう|とう|のう)(?=[。！？\s]|$|か))/g },
+  { nodeId: 'cg-pol-keigo', what: '敬語（尊敬/謙譲）', re: /(いらっしゃ[いるれ]|おっしゃ[いるれ]|召し上が[るり]|なさ[いるれ]|ご覧にな[るり]|伺[いうっ]|参[りっ]|申し上げ|申し[まそ]|いたし[まそ]|拝見|おります)/g },
+  { nodeId: 'cg-pol-ladder', what: '请求阶梯（もらえますか/いただけますか）', re: /(てもらえますか|てもらえる|てくれますか|てくれる？|ていただけますか|ていただけませんか|ていただけますでしょうか|いただければ幸いです)/g }
+];
+POLITENESS_NODE_DETECTORS.forEach(pd2 => {
+  TEXT_DETECTORS.push({
+    nodeId: pd2.nodeId,
+    what: pd2.what,
+    detect(text) {
+      const seen = new Set();
+      const out = [];
+      let m;
+      pd2.re.lastIndex = 0;
+      while ((m = pd2.re.exec(text)) !== null) {
         if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
       }
       return out.slice(0, 4);
