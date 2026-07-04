@@ -377,10 +377,10 @@ const MODULES = [
   },
   {
     id: 'core-grammar',
-    name: { zh: 'PART 2 · 核心语法：谓语类型与活用范式', ja: 'コア文法モジュール' },
+    name: { zh: 'PART 2 · 核心语法：谓语・活用・助词', ja: 'コア文法モジュール' },
     order: 2,
     status: 'draft',
-    description: '在 PART 1 认知框架之上展开具体语法系统：三类谓语（动词/形容词/名词+だ）各自的活用范式，动词分类，以及 ます/ない/た/て 四大基础活用形的构成规则。'
+    description: '在 PART 1 认知框架之上展开具体语法系统：三类谓语的活用范式、动词分类、ます/ない/た/て四大基础活用形，以及格助词（を/に/で/へ/と/から/まで/より）与とりたて助词（も/だけ/しか/こそ/さえ）两套助词系统。'
   },
   {
     id: '_sample',
@@ -405,6 +405,8 @@ const ERROR_ROOTS = [
   { id: 'R_VGROUP', name: '动词分类误判', description: '未按词尾结构判断动词类别，把帰る/入る等"伪一段"五段动词按一段活用，或对每个活用形死记硬背而不先分类。', module: 'core-grammar' },
   { id: 'R_POLITE_MIX', name: '普通体敬体混接', description: '把敬体当可选点缀随意叠加或混接（*行くです、*行きますだ），未理解ます/です在谓语活用链中占据固定的礼貌槽位。', module: 'core-grammar' },
   { id: 'R_ONBIN', name: '音便规则误用', description: 'て形/た形构成时音便分组记错（*買いて、*飲みて），或不知道行く→行って是く组唯一例外。', module: 'core-grammar' },
+  { id: 'R_NIDE', name: 'に/で场所混用', description: '未区分"存在落点（に）"与"动作展开场（で）"，用中文"在"的单一介词直觉给两类场所配同一个助词。', module: 'core-grammar' },
+  { id: 'R_TORITATE', name: 'とりたて助词误用', description: '把も/だけ/しか/こそ/さえ当成格助词理解，忽视其覆盖/叠加规则；最典型是しか后忘配否定谓语，或だけ/しか语感差异误判。', module: 'core-grammar' },
   { id: 'R_SAMPLE', name: '示例错误根', description: '仅用于引擎自测，不对应真实语法误区。', module: '_sample' }
 ];
 
@@ -425,6 +427,15 @@ const CRITERIA = [
   { id: 'C_NAI', name: { zh: 'ない形构成律', ja: 'ナイ形構成則' }, description: 'ない形=未然形+ない（五段：词尾变a段，う结尾变わ：買う→買わない；一段：去る）；过去否定由ない→なかった承担。', module: 'core-grammar', ownerNodeId: 'cg-nai-form' },
   { id: 'C_TA', name: { zh: 'た形音便共用律', ja: 'タ形音便共有則' }, description: 'た形与て形共用同一套音便规则（書いて↔書いた，飲んで↔飲んだ）；普通体过去由た承担，名词句/な形句的过去是だった，不能用でした替代普通体。', module: 'core-grammar', ownerNodeId: 'cg-ta-form' },
   { id: 'C_TE_FORM', name: { zh: 'て形音便分组律', ja: 'テ形音便分組則' }, description: '五段动词て形按词尾分组音便：う/つ/る→って、ぬ/ぶ/む→んで、く→いて（行く→行って为唯一例外）、ぐ→いで、す→して；一段动词去る+て。', module: 'core-grammar', ownerNodeId: 'cg-te-form-formation' },
+  { id: 'C_WO_SCOPE', name: { zh: 'を作用域律', ja: 'ヲ格作用域則' }, description: 'を标记动作直接作用的对象（受事），并扩展标记移动动词的经过域（公園を歩く）与离开点（家を出る）；一个谓语原则上只带一个を。', module: 'core-grammar', ownerNodeId: 'cg-p-wo' },
+  { id: 'C_NI_POINT', name: { zh: 'に落点律', ja: 'ニ格着点則' }, description: 'に标记"点"：到达点（学校に行く）、存在点（部屋にいる）、时点（三時に）、接受者（友達にあげる）——共同语义是把名词钉在一个静态落点上。', module: 'core-grammar', ownerNodeId: 'cg-p-ni' },
+  { id: 'C_DE_FIELD', name: { zh: 'で场域律', ja: 'デ格場域則' }, description: 'で标记动作展开的"场"：动作场所（図書館で勉強する）、手段工具（バスで行く）、材料/原因/范围——共同语义是提供事件发生的动态背景。存在句场所用に不用で。', module: 'core-grammar', ownerNodeId: 'cg-p-de' },
+  { id: 'C_HE_DIRECTION', name: { zh: 'へ方向律', ja: 'ヘ格方向則' }, description: 'へ标记移动的方向/朝向，焦点在"路途朝着哪边"；に标记到达点，焦点在"落在哪个点"。多数移动句两者可换，方向感/到达感的侧重不同。', module: 'core-grammar', ownerNodeId: 'cg-p-he' },
+  { id: 'C_TO_WITH', name: { zh: 'と并伴律', ja: 'ト格共同則' }, description: 'と有三个核心工作：共同动作者（友達と行く）、穷尽式并列（AとB，成员全部列出）、引用内容（〜と言う/思う）；三者共享"把两项并置绑定"的语义。', module: 'core-grammar', ownerNodeId: 'cg-p-to' },
+  { id: 'C_KARAMADE', name: { zh: 'から/まで端点律', ja: 'カラマデ端点則' }, description: 'から标记起点（空间/时间/来源），まで标记终点/界限；までに表示"截止点之前完成"，与まで的"持续到终点"相区别。', module: 'core-grammar', ownerNodeId: 'cg-p-kara-made' },
+  { id: 'C_YORI_STD', name: { zh: 'より基准律', ja: 'ヨリ基準則' }, description: 'より标记比较的基准点（AはBより＋性质），性质由谓语直接表达、无需比较级形态；日语形容词没有"更"的词形变化。', module: 'core-grammar', ownerNodeId: 'cg-p-yori' },
+  { id: 'C_TORITATE_OVERLAY', name: { zh: 'とりたて覆盖律', ja: 'とりたて覆い則' }, description: 'とりたて助词（も/だけ/しか等）不标记语法角色，而是在角色之上叠加信息态度：覆盖が/を（本も読む），叠加于に/で之后（学校にも）；しか必须与否定谓语共现。', module: 'core-grammar', ownerNodeId: 'cg-p-mo-dake-shika' },
+  { id: 'C_KOSO_SAE', name: { zh: 'こそ/さえ极点律', ja: 'コソサエ極点則' }, description: 'こそ排他性强调"正是这一个"；さえ举出量级上的极端例（连…都…），暗示其余更不在话下；さえ…ば构成"只要…就"的最低条件句。', module: 'core-grammar', ownerNodeId: 'cg-p-koso-sae' },
   {
     id: 'C_SAMPLE_1',
     name: { zh: '示例判据：第一步判断标准', ja: 'サンプル基準1' },
@@ -1240,6 +1251,450 @@ const NODES = [
     }
   },
 
+  /* ---- PART 2 · 助词系统 ---- */
+
+  {
+    id: 'cg-p-wo', module: 'core-grammar', order: 10, status: 'draft',
+    qualifies: { independentMechanism: 'を把名词标记为动作的直接作用对象，并系统性扩展到经过域与离开点；"一谓语一を"的分布限制是独立的判断机制。', citedByCount: 0, errorRoot: 'R_CASE', mergeNote: null },
+    title: { zh: 'を：动作的作用对象', ja: 'ヲ格', en: 'The Particle Wo' },
+    refs: { requires: ['lc-particle-entry'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: 'を给名词贴上"动作落在我身上"的标签：本を読む（读书）。它还管两件容易被忽略的事：移动经过的地带（公園を歩く）和离开的起点（家を出る）——都是"动作扫过的对象"。',
+      example: { jp: 'パンを食べる。／公園を散歩する。／大学を卒業する。', zh: '吃面包、在公园里散步、从大学毕业——三个を，同一个"被动作扫过"的核心。' },
+      hook: '"在公园散步"明明是场所，为什么用を不用で？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：哪个名词该贴を',
+          body: '判断问题：这个名词是不是谓语动作"直接经手"的对象？他动词的受事最典型（ドアを開ける）。两个扩展用法共享同一直觉：移动动词的经过域（道を渡る、空を飛ぶ——动作沿着它展开）和分离动词的离开点（家を出る、電車を降りる——动作从它身上剥离）。中文"过马路/出门/下车"都不用介词标记对象，所以这三类を在中文里都没有对应物，靠直觉不靠翻译。',
+          minimalPair: [ { jp: '橋を渡る。', zh: '过桥。（经过域のを）' }, { jp: '橋で渡る。', zh: '✗ 不合法：经过域必须用を，で会把桥错标成"动作场"。' } ],
+          miniExercise: { exerciseId: 'ex-cg10-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：一句话里能不能出现两个を',
+          body: '现代日语有一条稳定的分布限制：一个谓语原则上只允许一个を（二重ヲ格制约）。想说"让孩子读书"，使役对象和受事不能都用を——＊子供を本を読ませる不合法，须改为子供に本を読ませる。这条限制在使役句、愿望句（〜たい句中受事可转が）等处反复起作用，是判断句子合法性的硬标准，而中文没有任何对应限制。',
+          minimalPair: [ { jp: '子供に本を読ませる。', zh: '让孩子读书。（使役对象转に，受事保を）' }, { jp: '✗ 子供を本を読ませる。', zh: '不合法：二重ヲ格制约。' } ],
+          miniExercise: { exerciseId: 'ex-cg10-2' } }
+      ],
+      hook: '动作"落在点上"的另一位选手に，和を的分工边界在哪里？'
+    },
+    layer2: {
+      body: 'を的三类用法（受事/经过域/离开点）在语言学上可统一为"动作的影响路径"：受事是路径的终端承受者，经过域是路径本身，离开点是路径的起端。这个统一视角解释了为什么三者都排斥で：で提供的是事件的背景场地（事件在哪里发生），を标记的是动作直接扫过的对象（动作作用于什么）——公園を散歩する把公园当作散步扫过的路径，公園で遊ぶ把公园当作玩耍的背景，一字之差是"对象 vs 背景"的认知切换。二重ヲ格制约（double-o constraint）是日语句法研究中的经典课题，对学习者而言记住"一谓语一を、冲突时使役对象让位给に"即可覆盖绝大多数场景。',
+      boundaryCases: [ { jp: '空を飛ぶ鳥', zh: '飞过天空的鸟——经过域のを与自动词共现：を并非"他动词专属"，判断标准是路径关系而非及物性标签。', note: '自动词+を是"を=宾语标记"这个简化说法最重要的反例。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: 'を vs で（同一场所名词）', sets: [ { jp: '公園を散歩する。', zh: '在公园里散步。（公园=路径）' }, { jp: '公園で野球をする。', zh: '在公园打棒球。（公园=背景场地）' } ] } ],
+      tier2: [ { jp: '毎朝コーヒーを飲みます。', zh: '每天早上喝咖啡。', register: 'polite' }, { jp: '手紙を書いた。', zh: '写了信。', register: 'plain' }, { jp: '来年、大学を卒業する。', zh: '明年大学毕业。（离开点のを）', register: 'written' } ],
+      tier3: [ { jp: '次の駅で電車を降ります。', zh: '下一站下车。——を标离开对象（电车），で标事件发生地（下一站），两个助词各司其职。', register: 'polite', source: null } ]
+    },
+    criteria: ['C_WO_SCOPE'], errorRoots: ['R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词を',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；经过域/离开点用法多列于 N4-N3 教材。JLPT 官方无公开语法大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '受事用法与中文宾语概念基本对齐、难度低；经过域/离开点与二重ヲ格制约是中文无对应物的部分，需专项练习。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written'], note: 'を在所有语域强制出现（口语中可脱落，此现象留待口语缩约节点）；例句覆盖三种语域。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-ni', module: 'core-grammar', order: 11, status: 'draft',
+    qualifies: { independentMechanism: 'に的到达点/存在点/时点/接受者诸用法共享"静态落点"核心义；以"点"统摄多义是独立于逐义死记的判断机制。', citedByCount: 0, errorRoot: 'R_NIDE', mergeNote: 'に/で对比是双方共享的辨析场景，通过contrasts双向关联而非合并——两者核心义（点 vs 场）独立成立。' },
+    title: { zh: 'に：把名词钉在一个点上', ja: 'ニ格', en: 'The Particle Ni' },
+    refs: { requires: ['lc-particle-entry'], invokes: [], contrasts: ['cg-p-de', 'cg-p-he'], previews: [] },
+    layer0: {
+      body: 'に的所有用法共享一个画面：把名词钉成一个静态的"点"。到达点（学校に行く）、存在点（部屋にいる）、时点（三時に会う）、接受点（友達にあげる）——全是"落在哪个点上"。',
+      example: { jp: '机の上に本がある。', zh: '桌上有书——书"存在"的落点用に钉住，不是动作展开的场地。' },
+      hook: '同样翻译成"在"，部屋にいる和部屋で遊ぶ为什么用不同助词？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：一个场所名词该配に还是で',
+          body: '判断问题只有一个：谓语描述的是"存在/落定"还是"动作展开"？存在动词（ある/いる/住む/勤める）和到达动词（行く/来る/着く/入る）描述落点→に；动作动词（遊ぶ/働く/食べる/会議する）描述事件展开→で。中文"在"一个介词全包，所以に/で混用是中文母语者最高频的助词错误之一。口诀：钉在点上用に，铺开场面用で。',
+          minimalPair: [ { jp: '東京に住んでいる。', zh: '住在东京。（住=落定，に）' }, { jp: '東京で働いている。', zh: '在东京工作。（工作=动作展开，で）' } ],
+          miniExercise: { exerciseId: 'ex-cg11-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：时点/对象类的に什么时候要、什么时候不能加',
+          body: '时点のに只贴在"钟表/日历可指的点"上：三時に、月曜日に、二〇二五年に。相对时间词（今日、明日、来週、毎朝）本身是以说话时刻为锚的副词性成分，不加に——＊明日に行く在标准语中不自然。接受者のに（友達にあげる、先生に聞く）标记动作指向的终点人物，与中文"给/向/跟"的多介词系统对应混乱，判断时回到核心义："这个人是动作的落点吗？"',
+          minimalPair: [ { jp: '三時に出発する。', zh: '三点出发。（可指的时点→に）' }, { jp: '明日出発する。', zh: '明天出发。（相对时间词，不加に）' } ],
+          miniExercise: { exerciseId: 'ex-cg11-2' } }
+      ],
+      hook: 'に是"点"，那专门表示"朝某个方向去"的へ还有存在的必要吗？'
+    },
+    layer2: {
+      body: '认知语言学对に的分析通常以"目标点（GOAL）/定位点（LOCATION）"图式统摄其多义网络：空间到达点、存在定位点、时间定位点、授受目标点乃至变化结果点（医者になる"成为医生"——变化的终点状态）都是同一图式在不同域的投射。对学习者的操作意义：遇到新的に用法（如被动句施事のに、目的のに）先尝试"落点"解读，多数能纳入；纳不进的（如原因のに）再单独登记。に/で的分工边界上有一批著名的摇摆动词（寝る：ベッドに寝る/ベッドで寝る均可，视为"落定"或"动作"皆通），这类双解现象恰好证明分工标准是语义视角而非词表。',
+      boundaryCases: [
+        { jp: 'ベッドに寝る。／ベッドで寝る。', zh: '两说皆可：把"睡"看作落定在床上（に）或在床上进行的动作（で），视角不同助词随之切换。', note: '摇摆动词是に/で分工"看视角不看词表"的最好证据。', source: null },
+        { jp: '医者になる。', zh: '成为医生——变化终点のに：状态变化的"落点"，空间图式向抽象域的投射。', note: 'になる结构预告变化表达系统。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: 'に vs で（同一场所，谓语类型不同）', sets: [ { jp: '教室に学生がいる。', zh: '教室里有学生。（存在→に）' }, { jp: '教室で授業がある。', zh: '教室里有课。（事件展开→で）' } ] } ],
+      tier2: [ { jp: '七時に起きます。', zh: '七点起床。', register: 'polite' }, { jp: '壁に絵を掛けた。', zh: '把画挂在墙上。（附着落点）', register: 'plain' }, { jp: '本報告書は委員会に提出された。', zh: '本报告已提交给委员会。', register: 'written' } ],
+      tier3: [ { jp: 'どこに行くの？', zh: '去哪儿？——口语中到达点のに高频出现（东京方言中常与へ互换）。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_NI_POINT'], errorRoots: ['R_NIDE', 'R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词に',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方无公开语法大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '多义网络庞大且に/で混用是中文母语者最顽固的助词错误之一；"点/场"图式可显著压缩记忆量，但需要大量语境判断练习。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: 'に遍布全部语域；例句覆盖四种。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-de', module: 'core-grammar', order: 12, status: 'draft',
+    qualifies: { independentMechanism: 'で以"事件展开的场"统摄场所/手段/材料/原因/范围诸用法，与に的"点"形成系统对立；场图式是独立的判断机制。', citedByCount: 0, errorRoot: 'R_NIDE', mergeNote: null },
+    title: { zh: 'で：事件展开的场', ja: 'デ格', en: 'The Particle De' },
+    refs: { requires: ['lc-particle-entry'], invokes: [], contrasts: ['cg-p-ni'], previews: [] },
+    layer0: {
+      body: 'で给事件搭台：动作在哪里展开（図書館で勉強）、靠什么展开（バスで行く、日本語で話す）、用什么材料（木で作る）、在什么范围（世界で一番）——全是"事件的背景条件"。',
+      example: { jp: 'はさみで紙を切る。', zh: '用剪刀剪纸——剪刀是动作展开的凭借，纸才是动作的对象（を）。' },
+      hook: '场所、工具、材料、原因……这些中文里毫不相干的概念，为什么日语用同一个で？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：动作场所什么时候必须用で',
+          body: '谓语是动作/事件类（遊ぶ、働く、開かれる、パーティーがある）时，场所配で——场所是事件的舞台背景，不是动作的对象也不是存在的落点。特别注意ある的两用：存在句（本がある"有书"）场所用に；事件句（会議がある"有会议"）场所用で——同一个ある，判断标准是"存在"还是"发生"。这个最小对立是に/で分工的试金石。',
+          minimalPair: [ { jp: '駅の前に本屋がある。', zh: '车站前有书店。（存在→に）' }, { jp: '駅の前でコンサートがある。', zh: '车站前有演唱会。（事件发生→で）' } ],
+          miniExercise: { exerciseId: 'ex-cg12-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：手段/材料/原因ので是不是同一个机制',
+          body: '手段（バスで、ペンで、日本語で）、材料（木で作る）、原因（病気で休む）、范围基准（クラスで一番）表面各异，共享的语义是"事件成立所依托的背景条件"：靠什么、用什么、因什么、在什么范围内。对中文母语者的意义：不必为每个用法找一个中文介词对应（用/坐/以/因/在），只需问"这个名词是不是事件的背景板"。是→で。这一个问题覆盖で的绝大多数用法。',
+          minimalPair: [ { jp: '日本語で話してください。', zh: '请用日语说。（凭借的语言=背景条件）' }, { jp: '風邪で学校を休んだ。', zh: '因感冒请假。（原因=事件成立的背景）' } ],
+          miniExercise: { exerciseId: 'ex-cg12-2' } }
+      ],
+      hook: '移动的方向感——"往哪边去"——为什么另有一个专职助词へ？'
+    },
+    layer2: {
+      body: 'で历史上由「にて」缩约而来，"背景条件"的统摄义在语法化过程中一以贯之。で与に的对立可概括为"场（FIELD）vs 点（POINT）"：で铺开一个事件得以成立的背景平面，に钉下一个参与者落定的坐标点。这一对立在"ある"两用、"寝る"摇摆等现象上均有体现（见に节点边界案例）。材料ので与に还有一个精细分工：原料明显改变形态用で+作る（木で椅子を作る），成品仍可辨认原物用に+する类结构或から（ぶどうからワインを作る），这类边界在 N3-N2 备考中常被考查，此处登记备查而不展开。',
+      boundaryCases: [ { jp: '一人で行く。／みんなで歌う。', zh: '一个人去/大家一起唱——人数+で表示"以…的构成方式"，仍是"事件的背景条件"图式的投射。', note: '人数ので是初学者容易漏学的高频用法。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: 'に vs で（ある的两用）', sets: [ { jp: '公園に噴水がある。', zh: '公园里有喷泉。（存在）' }, { jp: '公園で祭りがある。', zh: '公园里有庙会。（事件）' } ] } ],
+      tier2: [ { jp: '図書館で勉強します。', zh: '在图书馆学习。', register: 'polite' }, { jp: '箸でご飯を食べる。', zh: '用筷子吃饭。', register: 'plain' }, { jp: '本製品は国内で生産されている。', zh: '本产品在国内生产。', register: 'written' } ],
+      tier3: [ { jp: '事故で電車が遅れた。', zh: '因事故电车晚点了。——原因ので在新闻/通知语体中高频。', register: 'written', source: null } ]
+    },
+    criteria: ['C_DE_FIELD'], errorRoots: ['R_NIDE', 'R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词で',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方无公开语法大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '难点与に节点共享（"在"的一对多分裂）；"背景板"一问可统摄手段/材料/原因诸义，显著降低记忆负担。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written'], note: 'で遍布全部语域；例句覆盖三种，原因用法以书面语体最典型。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-he', module: 'core-grammar', order: 13, status: 'draft',
+    qualifies: { independentMechanism: 'へ标记移动的方向/朝向并与に的到达点形成"途中 vs 落点"的视角对立；方向图式独立成义。', citedByCount: 0, errorRoot: 'R_CASE', mergeNote: '与に的对比双向登记（contrasts）；へ义项单一，不与に合并的原因是视角对立本身是高频考点。' },
+    title: { zh: 'へ：朝向哪边去', ja: 'ヘ格', en: 'The Particle He' },
+    refs: { requires: ['cg-p-ni'], invokes: [], contrasts: ['cg-p-ni'], previews: [] },
+    layer0: {
+      body: 'へ（读え）只做一件事：给移动标出方向——東へ進む（向东前进）。它看的是"路途朝着哪边"，に看的是"落在哪个点"。日常的行く/来る句里两者常可互换，语感侧重不同。',
+      example: { jp: '日本へ行く。≒ 日本に行く。', zh: '都是"去日本"：へ强调启程朝向，に强调抵达落点，多数语境两可。' },
+      hook: '既然多数时候能互换，什么场合只能用へ、不能用に？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：へ与に在移动句中的语感分工',
+          body: '移动动词（行く/来る/帰る/向かう/進む）配方向名词时，へ与に多数互换成立，侧重不同：へ聚焦路途与朝向（人还在途中/刚出发的画面），に聚焦到达与落点（人已在目的地的画面）。因此"出发问候"类场景（どちらへ？"您上哪儿去？"）偏好へ；强调抵达结果（東京に着いた"到了东京"）只能用に——着く类到达动词已把视角钉死在落点上，方向助词无处安放。',
+          minimalPair: [ { jp: '空港へ向かっている。', zh: '正在赶往机场。（途中视角→へ自然）' }, { jp: '空港に着いた。', zh: '到机场了。（到达动词锁定落点→只能に）' } ],
+          miniExercise: { exerciseId: 'ex-cg13-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：へ的连体用法为什么不能换成に',
+          body: 'へ有一个に替代不了的位置：修饰名词的「への」——母への手紙（给母亲的信）、東京への切符（去东京的票）。日语禁止＊にの连接（格助词に不能直接接の），所以名词化的方向/对象关系只能走への。这条替换不对称是"へに随便换"印象的重要修正，也是阅读中识别への结构的依据。',
+          minimalPair: [ { jp: '母への手紙を書いた。', zh: '写了给母亲的信。（への合法）' }, { jp: '✗ 母にの手紙を書いた。', zh: '不合法：に不能直接接の。' } ],
+          miniExercise: { exerciseId: 'ex-cg13-2' } }
+      ],
+      hook: '方向、落点都各就各位了，"和谁一起"的绑定关系由哪个助词管？'
+    },
+    layer2: {
+      body: 'へ源自名词"辺（へ，边侧）"的语法化，方向义由此而来——词源画面（朝着那一边）至今仍是最好的记忆锚点。现代语中へ的独立领地持续收缩（口语中大量被に替代，东京方言尤甚），但书面语、郑重表达与への连体结构保持稳固。方言差异（关西倾向へ、关东倾向に）说明两者的互换域是活的变异区，学习者无需追求"唯一正确答案"，掌握"到达动词锁に、への锁へ"两条硬边界即可，中间地带按语感与语体自由选择。',
+      boundaryCases: [ { jp: '前へ進め！', zh: '向前进！——口令/号令语体固定用へ，方向义最纯粹的存活区。', note: '固定语体是へ独立性的残留证据。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: 'へ vs に（到达动词）', sets: [ { jp: '駅へ歩いた。', zh: '朝车站走去。（途中）' }, { jp: '駅に着いた。', zh: '到了车站。（只能に）' } ] } ],
+      tier2: [ { jp: 'どちらへお出かけですか。', zh: '您这是上哪儿去？', register: 'polite' }, { jp: '南へ三キロ進む。', zh: '向南前进三公里。', register: 'written' }, { jp: 'こっちへ来て。', zh: '到这边来。', register: 'spoken' } ],
+      tier3: [ { jp: '皆様へのお知らせ', zh: '致各位的通知——への连体结构在公告标题中高频。', register: 'written', source: null } ]
+    },
+    criteria: ['C_HE_DIRECTION'], errorRoots: ['R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词へ',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '惯例上归入 N5 入门语法（主流教材通行分类）；JLPT 官方无公开语法大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 1, note: '义项单一，两条硬边界（到达动词锁に、への锁へ）清晰易记；互换域按语感处理即可。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'written', 'spoken'], note: '敬语问候、书面方位、口语指路是へ的三个典型场景；例句已覆盖。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-to', module: 'core-grammar', order: 14, status: 'draft',
+    qualifies: { independentMechanism: 'と以"并置绑定"统摄共同动作/穷尽并列/引用三用法；穷尽性（与や的对立）与引用格是独立的判断点。', citedByCount: 0, errorRoot: 'R_CASE', mergeNote: '条件接续のと（"一…就…"）属连接系统，另行设点；本节点只管格助词と。' },
+    title: { zh: 'と：并置与绑定', ja: 'ト格', en: 'The Particle To' },
+    refs: { requires: ['lc-particle-entry'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: 'と把两样东西并排绑在一起：一起行动的伙伴（友達と行く）、全部点名的并列（パンと牛乳を買った）、原样搬进句子的引用内容（「行く」と言った）——三个用法共享"并置绑定"。',
+      example: { jp: '妹とケーキを作った。', zh: '和妹妹一起做了蛋糕——妹妹是并肩参与的绑定对象。' },
+      hook: '中文"和"也管并列，为什么日语的AとB隐含"就这两样，没有别的"？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：と并列与や并列的信息差',
+          body: 'AとB是穷尽式列举：成员全部点名，清单到此为止（パンと牛乳を買った=只买了这两样）。AやB是例举：点出代表，暗示还有别的（パンや牛乳を買った=买了面包牛奶等等）。中文"和"不携带穷尽信息，"啊、什么的"才对应や——所以中文母语者容易在该用や的场合一律用と，把开放清单错说成封闭清单，听者会按"就这些"理解。',
+          minimalPair: [ { jp: '東京と京都に行った。', zh: '去了东京和京都。（就这两地）' }, { jp: '東京や京都に行った。', zh: '去了东京、京都（等地方）。（还有别处）' } ],
+          miniExercise: { exerciseId: 'ex-cg14-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：引用のと在句子里锚定什么',
+          body: '引用のと把一段内容（原话或想法）打包挂到言说/思考动词上：「明日行く」と言った、面白いと思う。两个要点：①被引内容保持普通体（呼应ます形节点的从句普通体化规律）；②と后必须跟言う/思う/聞く/書く类动词，と自身不表达任何逻辑关系——它只是"内容→动词"的挂钩。中文引语靠冒号引号或"说/想"直接带宾语，没有专职引用格助词，因此漏掉と（＊面白い思う）是高频初级错误。',
+          minimalPair: [ { jp: '彼は来ないと思う。', zh: '我觉得他不会来。（と挂接想法内容）' }, { jp: '✗ 彼は来ない思う。', zh: '不合法：引用内容必须由と挂到思考动词上。' } ],
+          miniExercise: { exerciseId: 'ex-cg14-2' } }
+      ],
+      hook: '起点和终点——"从哪儿到哪儿"——这一对概念由哪两个助词搭档完成？'
+    },
+    layer2: {
+      body: '格助词と的三用法在历史上同源："并置"是原始核心，共同动作者是"与名词并置的人"，引用是"与言说行为并置的内容"。与共同动作相关的一个精细区分：AとBが結婚した（A和B结婚=互为配偶）vs AはBと結婚した（A娶/嫁了B）——对称动词（結婚する、喧嘩する、似ている）中と的位置改变论元结构，是 N3 级考点的常客。引用のと的领地将在传闻（そうだ）、引用命令（〜ように言う）等模态/连接节点持续扩展，本节点立住"挂钩"图式即可。条件のと（春になると暖かくなる）与格助词と同形异构，属连接系统，届时单独设点、勿混。',
+      boundaryCases: [ { jp: '犬と猫は性格が違う。', zh: '狗和猫性格不同——比较句中的と并列两个比较项，仍是穷尽绑定。', source: null, note: '比较结构预告より节点。' } ]
+    },
+    examples: {
+      tier1: [ { variable: 'と vs や（清单开放性）', sets: [ { jp: '肉と野菜を買う。', zh: '买肉和蔬菜。（封闭清单）' }, { jp: '肉や野菜を買う。', zh: '买肉啊蔬菜啊之类。（开放清单）' } ] } ],
+      tier2: [ { jp: '家族と旅行に行きます。', zh: '和家人去旅行。', register: 'polite' }, { jp: '無理だと思った。', zh: '当时觉得不行。', register: 'plain' }, { jp: '首相は記者団に対し、辞任しないと述べた。', zh: '首相向记者团表示不会辞职。（书面引用）', register: 'written' } ],
+      tier3: [ { jp: '「またね」と手を振った。', zh: '挥着手说"回头见"——引用のと可挂在非言说动词上，引导伴随话语的动作。', register: 'written', source: null } ]
+    },
+    criteria: ['C_TO_WITH'], errorRoots: ['R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词と',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: '并列/共同动作惯例归 N5，引用と惯例归 N4；均为主流教材通行分类，JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: 'と/や穷尽性差异与引用と的"挂钩"图式都是一次讲清型知识；对称动词的论元结构差异较难，已入 Layer 2 备查。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written'], note: '并列/共同/引用三用法遍布各语域；书面引用体已入例句。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-kara-made', module: 'core-grammar', order: 15, status: 'draft',
+    qualifies: { independentMechanism: 'から/まで作为一对端点标记覆盖空间/时间/来源域；まで与までに的"持续 vs 截止"对立是独立判断点。', citedByCount: 0, errorRoot: 'R_CASE', mergeNote: '两助词构成同一"区间图式"的起讫两端，语义互补且教学上总是成对出现，故合设一个节点；接续助词から（原因）另属连接系统。' },
+    title: { zh: 'から・まで：区间的起点与终点', ja: 'カラ・マデ', en: 'Kara and Made' },
+    refs: { requires: ['lc-particle-entry'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: 'から标起点，まで标终点，合起来画出一段区间：九時から五時まで（从九点到五点）、東京から大阪まで。から还管来源（先生からもらった），まで还管"甚至到…的地步"。',
+      example: { jp: '駅から家まで歩いた。', zh: '从车站走到家——空间区间的两个端点各由专职助词把守。' },
+      hook: '"星期五之前交"到底该说まで还是までに？交错了是要出事的。'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：から/まで在空间・时间・来源域怎么铺开',
+          body: '空间（東京から大阪まで）、时间（月曜から金曜まで）完全平行；から单用还标来源/出处：先生から聞いた（从老师那里听说）、木から作られる（由木头制成——原料残留可辨时倾向から，呼应で节点的材料分工）。まで单用可到"甚至"：子供まで笑っている（连孩子都在笑）——区间图式向量级的延伸，预告とりたて系统的さえ。',
+          minimalPair: [ { jp: '午後三時から会議がある。', zh: '下午三点开始有会议。（起点）' }, { jp: '午後三時まで会議がある。', zh: '会议开到下午三点。（终点）' } ],
+          miniExercise: { exerciseId: 'ex-cg15-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：まで与までに的分工',
+          body: 'まで=动作/状态持续到终点（五時まで働く：一直工作到五点，工作铺满整个区间）；までに=动作在截止点之前的某一刻完成（五時までに提出する：五点前交，交只发生一次）。判断问题：谓语是"持续"还是"一次性完成"？持续→まで，完成→までに。中文"到五点/五点之前"分工与此接近但常被"之前"迷惑；交作业、交报告类场景错用まで会把"截止前交"说成"一直交到五点"。',
+          minimalPair: [ { jp: '金曜日までにレポートを出す。', zh: '周五之前交报告。（一次性完成→までに）' }, { jp: '金曜日までレポートを書く。', zh: '写报告写到周五。（持续→まで）' } ],
+          miniExercise: { exerciseId: 'ex-cg15-2' } }
+      ],
+      hook: '有了区间，比较呢？"A比B高"的那个"比"字由谁承担？'
+    },
+    layer2: {
+      body: 'から/まで是日语中少数与中文介词（从/到）几乎一一对应的助词，习得成本低；真正的失分点集中在までに（惯例归 N4）与接续助词から的同形干扰上。接续助词から（雨だから休む"因为下雨所以休息"）挂在句子（活用形）之后表原因，与格助词から（挂在名词后表起点）语法位置不同：名词后=格助词，活用形后=接续助词——同一个形式靠接续位置消歧，这个判断模式在日语中反复出现（と、が、で均有同形多机制现象），值得作为通用策略记住。',
+      boundaryCases: [ { jp: '心から感謝します。', zh: '由衷感谢——から的来源义投射到抽象域（情感发源地），惯用化程度高。', note: '抽象来源义是から图式延伸的自然终点。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: 'まで vs までに（谓语类型）', sets: [ { jp: '十時まで寝ていた。', zh: '一直睡到十点。（持续）' }, { jp: '十時までに来てください。', zh: '请十点前来。（一次性）' } ] } ],
+      tier2: [ { jp: '会議は二時から四時までです。', zh: '会议从两点到四点。', register: 'polite' }, { jp: '友達から手紙が来た。', zh: '朋友来了信。（来源）', register: 'plain' }, { jp: '申込は本日から受け付ける。', zh: '申请自即日起受理。', register: 'written' } ],
+      tier3: [ { jp: 'どこから来たの？', zh: '你从哪儿来？——来源のから的口语高频形。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_KARAMADE'], errorRoots: ['R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词から・まで',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'から/まで惯例归 N5，までに惯例归 N4；均为主流教材通行分类，JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '主体与中文对应良好；までに的"截止 vs 持续"与接续から的同形干扰是仅有的两个难点，均可用一问判断。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: '区间表达遍布全部语域；例句覆盖四种。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-yori', module: 'core-grammar', order: 16, status: 'draft',
+    qualifies: { independentMechanism: 'より把名词标记为比较基准，且日语比较不改变形容词词形；"基准显性、程度隐性"的比较句构造是独立机制。', citedByCount: 0, errorRoot: 'R_CASE', mergeNote: null },
+    title: { zh: 'より：比较的基准点', ja: 'ヨリ格', en: 'The Particle Yori' },
+    refs: { requires: ['lc-particle-entry'], invokes: ['cg-i-adj-pred'], contrasts: [], previews: [] },
+    layer0: {
+      body: '"A比B高"日语说 AはBより高い：より给基准B贴标签，形容词高い保持原形——日语没有"更高"这种词形。比较的全部信息=基准（より）+性质（原形谓语）。',
+      example: { jp: '今日は昨日より暑い。', zh: '今天比昨天热——"昨天"被より标为基准，暑い不变形。' },
+      hook: '中文"比"站在两个名词中间，より却贴在基准后面——语序直觉会怎么坑你？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：比较句的基准该贴在谁身上',
+          body: '构造公式：X は Y より＋谓语原形。より永远贴在"输的那一方/参照物"后面，且紧跟其后（AはBより高い），不像中文"比"插在两项之间。高频错误是按中文语序把より前置或贴错对象：想说"东京比大阪大"，正确是東京は大阪より大きい——大阪（基准）+より。检查方法：把より读作"以…为基准"，句子仍通顺则贴对了。',
+          minimalPair: [ { jp: '新幹線は飛行機より安い。', zh: '新干线比飞机便宜。（飞机=基准）' }, { jp: '飛行機は新幹線より安い。', zh: '飞机比新干线便宜。（基准调换，胜负反转）' } ],
+          miniExercise: { exerciseId: 'ex-cg16-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：比较句的疑问与回答用哪套构件',
+          body: '二选一疑问句用どちら：犬と猫と、どちらが好きですか（狗和猫，你喜欢哪个？）。回答用〜のほうが：猫のほうが好きです（更喜欢猫）——ほう（方）指"两者中的那一边"，のほうが与より构成比较句的问答配套。三项以上用什么最（何が一番〜）。中文"哪个/更/最"三件套与どちら/ほうが/一番一一对应，但构件形态完全不同，需要整套替换而非逐词翻译。',
+          minimalPair: [ { jp: '猫のほうが好きだ。', zh: '（两者中）更喜欢猫。（二选一→ほうが）' }, { jp: '猫が一番好きだ。', zh: '（多者中）最喜欢猫。（三项以上→一番）' } ],
+          miniExercise: { exerciseId: 'ex-cg16-2' } }
+      ],
+      hook: '格助词标角色的故事到此告一段落——但还有一族助词专管"态度"：も、だけ、しか它们凭什么盖在格助词上面？'
+    },
+    layer2: {
+      body: '日语比较句的类型学特征是"基准标记型"（standard-marking）：比较语义由基准助词より独家承担，谓语无比较级形态（对比英语 -er/more、中文"更/比"双标记）。より的文语残留还有"起点"义（東京より出発——书面/公文体的から），阅读旧文体或正式公告时会遇到，与比较义靠语境区分。另有程度强化副词もっと（もっと高い"更高"）常被学习者误当比较句必需成分——实际上BよりAは高い本身已完整，もっと只在无基准的语境里补足"更"的语感（これ、もっと安くならない？），两者分工是"基准显性用より、基准隐含用もっと"。',
+      boundaryCases: [ { jp: '思ったより難しい。', zh: '比想象的难——基准可以是整个命题（思った），より的接续范围大于名词。', note: '命题基准是より高级用法的入口，惯例见于 N3 前后。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '基准的方向', sets: [ { jp: '中国語は日本語より話者が多い。', zh: '中文使用者比日语多。' }, { jp: '日本語は中国語より話者が少ない。', zh: '日语使用者比中文少。（同一事实，基准互换）' } ] } ],
+      tier2: [ { jp: '今年は去年より寒いです。', zh: '今年比去年冷。', register: 'polite' }, { jp: '電車のほうが速い。', zh: '电车更快。', register: 'plain' }, { jp: '予想より業績が良かった。', zh: '业绩好于预期。', register: 'written' } ],
+      tier3: [ { jp: 'これより会議を始めます。', zh: '会议现在开始——文语起点义のより，正式开场白固定句式。', register: 'polite', source: null } ]
+    },
+    criteria: ['C_YORI_STD'], errorRoots: ['R_CASE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > 格助词より',
+      parent_concept: { id: 'lc-particle-entry', label: '名词靠助词进入事件', type: 'node' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N4', note: '比较句式惯例归 N4（主流教材通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 2, note: '公式固定；难点是"比"的句中位置直觉迁移与どちら/ほうが/一番配套构件的整体替换。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written'], note: '比较表达遍布各语域；文语起点义只在正式语体出现，已入边界案例。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-mo-dake-shika', module: 'core-grammar', order: 17, status: 'draft',
+    qualifies: { independentMechanism: 'とりたて助词不标角色而在角色之上叠加信息态度（添加/限定），有独立的覆盖/叠加接续规则；しか的否定强制共现是硬语法约束。', citedByCount: 1, errorRoot: 'R_TORITATE', mergeNote: 'も/だけ/しか三词共享"范围操作"语义且教学上构成一组对照（添加 vs 正向限定 vs 负向限定），合设一节；こそ/さえ的量级强调另设节点。' },
+    title: { zh: 'も・だけ・しか：范围的添加与限定', ja: 'とりたて助詞（基礎）', en: 'Mo, Dake, Shika' },
+    refs: { requires: ['lc-particle-entry'], invokes: ['lc-wa-topic'], contrasts: [], previews: ['cg-p-koso-sae'] },
+    layer0: {
+      body: 'も（也）、だけ（只）、しか（除了…都不）不给名词分配角色——它们盖在角色之上，表达说话人对"范围"的态度：还有别的（も）、仅此而已（だけ）、少得不满（しか+否定）。',
+      example: { jp: '水も飲む。／水だけ飲む。／水しか飲まない。', zh: '也喝水/只喝水/只喝水（少得可怜）——同一个角色（受事），三种范围态度。' },
+      hook: 'だけ和しか都翻译成"只"，什么时候必须选しか？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：とりたて助词跟格助词怎么叠、怎么盖',
+          body: '接续规则两条：①盖掉が/を——本を読む→本も読む（＊本をも不自然，现代语中を被も直接覆盖）；②叠在に/で/へ/から后面——学校にも行く、図書館でも勉強する。这套"覆盖核心格、叠加边缘格"的规则与は完全相同（は正是とりたて家族的族长——它标话题的机制在 PART 1 已学）。中文"也/只"是副词、贴动词，日语とりたて贴名词，位置直觉需要重建。',
+          minimalPair: [ { jp: '日曜日も働く。', zh: '星期天也工作。（も盖在时间名词上）' }, { jp: '会社でも家でも働く。', zh: '在公司也在家也工作。（も叠在で之后）' } ],
+          miniExercise: { exerciseId: 'ex-cg17-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：だけ与しか+否定的语感分工',
+          body: '两者都表限定，信息态度相反：だけ+肯定=中性陈述范围（千円だけある：有一千日元，就说这个事实）；しか+否定=对范围之小的不满/意外（千円しかない：只有一千日元，太少了）。しか的谓语必须是否定形——这不是修辞选择而是硬语法：＊千円しかある不合法。中文"只有"两种态度都盖，选词时先问：要不要传达"少得不够"的评价？要→しか+否定；只陈述→だけ。',
+          minimalPair: [ { jp: '五分だけ休んだ。', zh: '休息了（就）五分钟。（中性）' }, { jp: '五分しか休んでいない。', zh: '只休息了五分钟（太少了）。（不满+否定谓语）' } ],
+          miniExercise: { exerciseId: 'ex-cg17-2' } },
+        { id: 'step-3', title: '完成本步后，你能判断：疑问词+も的全称否定怎么构造',
+          body: 'も与疑问词联手构成全称量化：何も＋否定=什么都不（何も食べない）、誰も＋否定=谁都不（誰も来なかった）、どこにも＋否定=哪儿都不。要点：①谓语必须否定；②格助词按叠加规则保留（どこにも、誰からも）。对应的全称肯定用でも（何でも食べる"什么都吃"）——も配否定、でも配肯定，这一对分工在中文"都"字句里没有形态区分，是听力抓取否定信息的关键信号。',
+          minimalPair: [ { jp: '誰も知らない。', zh: '谁都不知道。（疑问词+も+否定）' }, { jp: '誰でも知っている。', zh: '谁都知道。（疑问词+でも+肯定）' } ],
+          miniExercise: { exerciseId: 'ex-cg17-3' } }
+      ],
+      hook: '范围态度还有更极端的玩法——"正是这个"和"连…都…"，交给下一站こそ/さえ。'
+    },
+    layer2: {
+      body: '日语语法学把这族成员称为とりたて詞（取り立て助词，"提取"助词）：从潜在的同类集合中提取当前项并表态——も宣告"集合里还有别的成员成立"，だけ/しか宣告"集合里只有这一个成立"，两者的差异在于说话人预期（しか携带"低于预期"的评价预设）。しか的否定强制共现在类型学上属"否定极性项"（NPI）现象，与英语 any 的分布逻辑同族。とりたて系统是日语信息结构的下半场（上半场是は/が），JLPT 各级听读题中，抓住とりたて助词几乎等于抓住句子的评价立场，投入产出比极高。',
+      boundaryCases: [
+        { jp: '水だけしか飲まない。', zh: '只喝水（强调到底）——だけ与しか罕见叠用，双重限定的强调形。', note: 'だけしか叠用证明两词语法槽位不同（だけ靠内、しか靠外）。', source: null },
+        { jp: '一時間も待った。', zh: '等了整整一个小时——数量词+も表"多得意外"，与"也"无关。', note: '数量强调のも是"も=也"直觉的重要反例，惯例见于 N4-N3。', source: null }
+      ]
+    },
+    examples: {
+      tier1: [ { variable: '范围态度（同一命题）', sets: [ { jp: '肉だけ食べる。', zh: '只吃肉。（中性限定）' }, { jp: '肉しか食べない。', zh: '只吃肉（别的都不碰）。（评价性限定+强制否定）' } ] } ],
+      tier2: [ { jp: '私も行きます。', zh: '我也去。', register: 'polite' }, { jp: '今日は誰も来なかった。', zh: '今天谁都没来。', register: 'plain' }, { jp: '該当する回答は一件しか確認されなかった。', zh: '符合条件的回答仅确认到一件。', register: 'written' } ],
+      tier3: [ { jp: 'ちょっとだけ。', zh: '就一点点。——だけ贴在副词上的口语高频缩略应答。', register: 'spoken', source: null } ]
+    },
+    criteria: ['C_TORITATE_OVERLAY'], errorRoots: ['R_TORITATE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > とりたて助词（も・だけ・しか）',
+      parent_concept: { id: null, label: '助词系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N5', note: 'も/だけ惯例归 N5，しか+否定惯例归 N4；均为主流教材通行分类，JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '覆盖/叠加接续规则+しか否定强制+疑问词量化三块都有硬规则要建立；だけ/しか语感差异需语境练习。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'plain', 'written', 'spoken'], note: 'とりたて表态遍布全部语域；例句覆盖四种。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
+  {
+    id: 'cg-p-koso-sae', module: 'core-grammar', order: 18, status: 'draft',
+    qualifies: { independentMechanism: 'こそ/さえ在とりたて系统内承担量级操作：こそ排他指认焦点，さえ举极端例并派生最低条件句；量级图式区别于も/だけ的范围操作。', citedByCount: 0, errorRoot: 'R_TORITATE', mergeNote: '与も/だけ/しか共享とりたて机制（requires），但量级义与考级定位（N3-N2）不同，分设节点。' },
+    title: { zh: 'こそ・さえ：强调与极端例', ja: 'とりたて助詞（強調）', en: 'Koso and Sae' },
+    refs: { requires: ['cg-p-mo-dake-shika'], invokes: [], contrasts: [], previews: [] },
+    layer0: {
+      body: 'こそ把聚光灯钉死在一个词上："正是它、不是别的"（今度こそ勝つ）。さえ抬出量级上最不可能的例子："连…都…"（子供でさえ分かる），言外之意：其余更不在话下。',
+      example: { jp: '今年こそ N1 に合格する。', zh: '今年一定要过N1——こそ宣告"就是今年，不再拖了"。' },
+      hook: 'さえ和PART里学过的まで（子供まで笑う）都翻译"连"，差别在哪？'
+    },
+    layer1: {
+      steps: [
+        { id: 'step-1', title: '完成本步后，你能判断：こそ在句中强调什么、怎么接',
+          body: 'こそ盖在被强调项上（接续规则与も同族：盖が/を、叠に/で后），语义是排他性指认："在候选集合里，正是这一个"。典型场景：下决心（今度こそ）、纠正对方（それこそ問題だ"那才是问题"）、寒暄回敬（こちらこそ"我才要谢谢你"）。中文靠"正是/才/就是"加重音承担这个功能，日语交给一个专职助词——听力中こそ一响，焦点就位。',
+          minimalPair: [ { jp: '今度こそ合格する。', zh: '这次一定合格。（排他指认"这次"）' }, { jp: '今度は合格する。', zh: '这次会合格。（は话题，无排他强调）' } ],
+          miniExercise: { exerciseId: 'ex-cg18-1' } },
+        { id: 'step-2', title: '完成本步后，你能判断：さえ的极端例与さえ…ば的最低条件',
+          body: 'さえ的两个工作：①极端例（名词+（で）さえ+谓语）：専門家でさえ間違える（连专家都会错）——举出量级顶端，暗示"其余更会错"；②最低条件（〜さえ…ば）：時間さえあれば行ける（只要有时间就能去）——把条件压到最低一项。与まで的分野：まで陈述范围的意外扩张（子供まで笑った"笑的人竟然包括孩子"），さえ做量级论证（子供でさえ分かる→大人当然分かる），さえ句总隐含一个"更何况"的推理链。',
+          minimalPair: [ { jp: 'ひらがなさえ読めない。', zh: '连平假名都不会读。（量级底端→其余更不会）' }, { jp: '時間さえあれば、毎日勉強したい。', zh: '只要有时间，就想每天学习。（最低条件）' } ],
+          miniExercise: { exerciseId: 'ex-cg18-2' } }
+      ],
+      hook: '助词系统至此闭环——下一站回到谓语：动词还有可能形、被动形、使役形几台大引擎没点火。'
+    },
+    layer2: {
+      body: 'とりたて系统的量级端成员还有すら（书面语的さえ：見すら しない）、まで（意外扩张）、でも（例举缓和：お茶でも飲む？）——こそ/さえ是其中考级权重最高的两个。さえ…ば最低条件句的推理结构（满足最低项即可成立）使它成为议论文的高频构件；こそ的排他指认在从句中还有こそあれ/こそすれ等文语残留（N1 级）。这一族的共同点是：不改变命题的真值内容，只改变说话人对命题在量级/候选集合中位置的评价——阅读时删掉とりたて助词句子依然成立，但立场信息全部丢失，这正是它们在 JLPT 读解题中反复被考的原因。',
+      boundaryCases: [ { jp: '風邪をひいて、水さえ飲めなかった。', zh: '感冒了，连水都喝不下——さえ的极端例落在"最容易做到的事"上，否定它等于否定一切。', note: '否定语境下さえ举量级底端，肯定语境举顶端——方向由谓语极性决定。', source: null } ]
+    },
+    examples: {
+      tier1: [ { variable: '强调类型（こそ vs さえ）', sets: [ { jp: 'これこそ本物だ。', zh: '这才是真货。（排他指认）' }, { jp: '名前さえ知らない。', zh: '连名字都不知道。（极端例）' } ] } ],
+      tier2: [ { jp: 'こちらこそよろしくお願いします。', zh: '彼此彼此，请多关照。', register: 'polite' }, { jp: '本人でさえ理由が分からない。', zh: '连本人都不明白原因。', register: 'written' }, { jp: '君さえいれば、他には何もいらない。', zh: '只要有你，别的什么都不要。', register: 'spoken' } ],
+      tier3: [ { jp: '基本さえ押さえれば、応用は難しくない。', zh: '只要抓住基础，应用并不难——さえ…ば在学习指导语体中的典型运用。', register: 'written', source: null } ]
+    },
+    criteria: ['C_KOSO_SAE'], errorRoots: ['R_TORITATE'],
+    knowledgePosition: {
+      semantic_position: '认知层 > 助词系统 > とりたて助词（こそ・さえ）',
+      parent_concept: { id: null, label: '助词系统', type: 'category' },
+      child_concepts: [],
+      jlpt_relevance: { status: 'needs_verification', category: 'N3', note: 'こそ惯例见于 N3 前后、さえ/さえ…ば惯例见于 N3-N2 区间（主流备考书通行分类）；JLPT 官方无公开大纲可核对，标注待核验。' },
+      textbook_mapping: { status: 'mapping_pending', target: 'みんなの日本語（暂定）', note: '尚未逐课比对确认具体课次，标注为待补。' },
+      frequency: { status: 'source_required', note: '未核实语料库频率数据，不标注具体数值或排名。' },
+      difficulty: { status: 'pedagogical_simplification', level: 3, note: '量级推理（さえ的"更何况"链）需要建立新的语义直觉；こそ功能单纯，靠寒暄/决心等高频场景即可内化。' },
+      typical_contexts: { status: 'pedagogical_simplification', registers: ['polite', 'written', 'spoken'], note: '寒暄（こそ）、议论文（さえ…ば）、口语誓言是三个典型场景；例句已覆盖。' },
+      verification_status: 'source_required',
+      evidence: [],
+      last_verified: null
+    }
+  },
+
   {
     id: 'sample-node',
     module: '_sample',
@@ -1515,6 +1970,100 @@ const EXERCISES = [
   { id: 'ex-cg9-3', nodeId: 'cg-ta-form', stepId: null, criterionId: 'C_TA', errorRoot: 'R_CONJ', certainty: 'C', type: 'multi-reading',
     prompt: '（脱离语境）单独看「あ、来た。」这句话，说话人表达的一定是"过去发生的事"吗？', context: null, options: null, answer: null,
     feedback: '不一定。た形除了叙述过去，还可表示"预期实现/当场发现"（眼前公交进站时说来た），甚至催促（どいたどいた）。脱离语境无法唯一判定，属于多种合理解读——た的体（アスペクト）用法将在体系统模块展开。' },
+
+  // ---- 助词系统 ----
+  { id: 'ex-cg10-1', nodeId: 'cg-p-wo', stepId: 'step-1', criterionId: 'C_WO_SCOPE', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"过马路"——「道＿渡る」应填入？', context: null, options: ['を', 'で'], answer: 0,
+    feedback: '依据判据C_WO_SCOPE（を作用域律）：马路是移动动作扫过的经过域，用を；で会把它错标成动作的背景场地。' },
+  { id: 'ex-cg10-2', nodeId: 'cg-p-wo', stepId: 'step-2', criterionId: 'C_WO_SCOPE', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '"让孩子读书"，下面哪个说法合法？', context: null, options: ['子供に本を読ませる', '子供を本を読ませる'], answer: 0,
+    feedback: '依据判据C_WO_SCOPE：一个谓语原则上只带一个を（二重ヲ格制约），使役对象让位给に，受事保住を。' },
+  { id: 'ex-cg10-3', nodeId: 'cg-p-wo', stepId: null, criterionId: 'C_WO_SCOPE', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"下（离开）电车"——「電車＿降りる」应填入？', context: null, options: ['を', 'に'], answer: 0,
+    feedback: '依据判据C_WO_SCOPE：电车是动作剥离的离开点，用を（降りる/出る/卒業する同族）；に反而表示"落到"某处（バスに乗る上车）。' },
+
+  { id: 'ex-cg11-1', nodeId: 'cg-p-ni', stepId: 'step-1', criterionId: 'C_NI_POINT', errorRoot: 'R_NIDE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"住在大阪"——「大阪＿住んでいる」应填入？', context: null, options: ['に', 'で'], answer: 0,
+    feedback: '依据判据C_NI_POINT（に落点律）：住む描述"落定"，场所是存在落点→に；只有动作展开类谓语才配で。' },
+  { id: 'ex-cg11-2', nodeId: 'cg-p-ni', stepId: 'step-2', criterionId: 'C_NI_POINT', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个说法自然？', context: null, options: ['明日出発する。', '明日に出発する。'], answer: 0,
+    feedback: '依据判据C_NI_POINT：时点のに只贴钟表/日历可指的点（三時に、月曜日に）；明日是相对时间词，标准语中不加に。' },
+  { id: 'ex-cg11-3', nodeId: 'cg-p-ni', stepId: null, criterionId: 'C_NI_POINT', errorRoot: 'R_NIDE', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「教室＿います」应填入？', context: '打电话找人，对方问"你现在人在哪里"，你回答"我在教室（待着呢）"。', options: ['に', 'で'], answer: 0,
+    feedback: '在这个语境下：いる表示存在/所在，教室是存在落点→に。若谓语换成"在教室开会"（会議をする），场所才转用で。' },
+
+  { id: 'ex-cg12-1', nodeId: 'cg-p-de', stepId: 'step-1', criterionId: 'C_DE_FIELD', errorRoot: 'R_NIDE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"车站前有演唱会"——「駅の前＿コンサートがある」应填入？', context: null, options: ['で', 'に'], answer: 0,
+    feedback: '依据判据C_DE_FIELD（で场域律）：ある表"事件发生"时场所用で；只有表"存在"（有个书店）才用に。同一个ある，看它是存在还是发生。' },
+  { id: 'ex-cg12-2', nodeId: 'cg-p-de', stepId: 'step-2', criterionId: 'C_DE_FIELD', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"因感冒请假了"——「風邪＿会社を休んだ」应填入？', context: null, options: ['で', 'を'], answer: 0,
+    feedback: '依据判据C_DE_FIELD：原因是事件成立的背景条件，用で；感冒不是动作作用的对象，不能用を。' },
+  { id: 'ex-cg12-3', nodeId: 'cg-p-de', stepId: null, criterionId: 'C_DE_FIELD', errorRoot: 'R_NIDE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"用日语说"——「日本語＿話す」应填入？', context: null, options: ['で', 'に'], answer: 0,
+    feedback: '依据判据C_DE_FIELD：日语是说话凭借的手段（背景条件）→で；日本語に話す不成立（に会把语言错标成落点）。' },
+
+  { id: 'ex-cg13-1', nodeId: 'cg-p-he', stepId: 'step-1', criterionId: 'C_HE_DIRECTION', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"到了机场"——「空港＿着いた」应填入？', context: null, options: ['に', 'へ'], answer: 0,
+    feedback: '依据判据C_HE_DIRECTION（へ方向律）：着く是到达动词，视角锁定在落点上→只能に；へ的方向义在此无处安放。' },
+  { id: 'ex-cg13-2', nodeId: 'cg-p-he', stepId: 'step-2', criterionId: 'C_HE_DIRECTION', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '"给母亲的信"，下面哪个说法合法？', context: null, options: ['母への手紙', '母にの手紙'], answer: 0,
+    feedback: '依据判据C_HE_DIRECTION：名词化的方向/对象关系只能走への——に不能直接接の，这是へ不可被に替代的位置。' },
+  { id: 'ex-cg13-3', nodeId: 'cg-p-he', stepId: null, criterionId: 'C_HE_DIRECTION', errorRoot: 'R_CASE', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「どちら＿？」更自然的选择是？', context: '在楼道里遇到要出门的邻居，寒暄式地问一句"您这是上哪儿去呀"。', options: ['へ', 'に'], answer: 0,
+    feedback: '在这个语境下：出发寒暄关注的是"朝哪个方向动身"（人在途中的画面），惯用どちらへ；に把焦点错移到抵达结果上，寒暄语感变生硬。' },
+
+  { id: 'ex-cg14-1', nodeId: 'cg-p-to', stepId: 'step-1', criterionId: 'C_TO_WITH', errorRoot: 'R_CASE', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，「本＿雑誌を買った」应填入？', context: '你逛了书店，买了本子、杂志、笔记本、笔等一堆东西，回来随口举两样告诉朋友买了些什么。', options: ['や', 'と'], answer: 0,
+    feedback: '在这个语境下：实际买了很多样、只举两样代表→开放清单用や；用と会宣告"就买了这两样"，与事实矛盾。' },
+  { id: 'ex-cg14-2', nodeId: 'cg-p-to', stepId: 'step-2', criterionId: 'C_TO_WITH', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '"我觉得他不会来"，下面哪个说法合法？', context: null, options: ['彼は来ないと思う。', '彼は来ない思う。'], answer: 0,
+    feedback: '依据判据C_TO_WITH（と并伴律）：想法内容必须由引用のと挂到思考动词上；内容与思う直接相连不合法。' },
+  { id: 'ex-cg14-3', nodeId: 'cg-p-to', stepId: null, criterionId: 'C_TO_WITH', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '「妹とケーキを作った」的意思是？', context: null, options: ['和妹妹一起做了蛋糕', '给妹妹做了蛋糕'], answer: 0,
+    feedback: '依据判据C_TO_WITH：と标记并肩参与的共同动作者（"和妹妹一起"）；"给妹妹做"的接受者要用に（妹にケーキを作った）。' },
+
+  { id: 'ex-cg15-1', nodeId: 'cg-p-kara-made', stepId: 'step-1', criterionId: 'C_KARAMADE', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"从老师那里听说的"——「先生＿聞いた」应填入？', context: null, options: ['から', 'まで'], answer: 0,
+    feedback: '依据判据C_KARAMADE（から/まで端点律）：老师是信息的来源（起点端）→から；まで标终点/界限，方向正好相反。' },
+  { id: 'ex-cg15-2', nodeId: 'cg-p-kara-made', stepId: 'step-2', criterionId: 'C_KARAMADE', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"请在周五之前交报告"——「金曜日＿＿＿レポートを出してください」应填入？', context: null, options: ['までに', 'まで'], answer: 0,
+    feedback: '依据判据C_KARAMADE：交报告是一次性完成的动作→截止点用までに；まで会把句子变成"持续交到周五"，语义不通。' },
+  { id: 'ex-cg15-3', nodeId: 'cg-p-kara-made', stepId: null, criterionId: 'C_KARAMADE', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"一直睡到中午"——「昼＿寝ていた」应填入？', context: null, options: ['まで', 'までに'], answer: 0,
+    feedback: '依据判据C_KARAMADE：睡觉是铺满区间的持续状态→まで；までに要求"截止点前完成一次"，与持续谓语不搭。' },
+
+  { id: 'ex-cg16-1', nodeId: 'cg-p-yori', stepId: 'step-1', criterionId: 'C_YORI_STD', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '"新干线比飞机便宜"，正确的说法是？', context: null, options: ['新幹線は飛行機より安い。', '新幹線より飛行機は安い。'], answer: 0,
+    feedback: '依据判据C_YORI_STD（より基准律）：より贴在基准（飞机）后面；第二句的基准变成了新干线，句意反转为"飞机比新干线便宜"。' },
+  { id: 'ex-cg16-2', nodeId: 'cg-p-yori', stepId: 'step-2', criterionId: 'C_YORI_STD', errorRoot: 'R_CASE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"（狗和猫）更喜欢猫"——「猫＿＿＿好きです」应填入？', context: null, options: ['のほうが', 'がもっと'], answer: 0,
+    feedback: '依据判据C_YORI_STD：二选一的回答用〜のほうが；日语形容词没有比较级形态，"更"不能靠加词直译。' },
+  { id: 'ex-cg16-3', nodeId: 'cg-p-yori', stepId: null, criterionId: 'C_YORI_STD', errorRoot: 'R_CASE', certainty: 'A', type: 'judgment',
+    prompt: '「思ったより難しい」的意思是？', context: null, options: ['比想象的难', '想了想还是很难'], answer: 0,
+    feedback: '依据判据C_YORI_STD：より标记比较基准，基准可以是命题"思った"（当初的预想）——"比预想的难"。' },
+
+  { id: 'ex-cg17-1', nodeId: 'cg-p-mo-dake-shika', stepId: 'step-1', criterionId: 'C_TORITATE_OVERLAY', errorRoot: 'R_TORITATE', certainty: 'A', type: 'judgment',
+    prompt: '"星期天也去学校"，下面哪个说法自然？', context: null, options: ['日曜日も学校に行く。', '日曜日もに学校に行く。'], answer: 0,
+    feedback: '依据判据C_TORITATE_OVERLAY（とりたて覆盖律）：も盖在名词上时直接覆盖位置（时间名词后不残留に）；叠加只发生在に/で/へ等边缘格之后（学校にも）。' },
+  { id: 'ex-cg17-2', nodeId: 'cg-p-mo-dake-shika', stepId: 'step-2', criterionId: 'C_TORITATE_OVERLAY', errorRoot: 'R_TORITATE', certainty: 'A', type: 'judgment',
+    prompt: '下面哪个句子合法？', context: null, options: ['千円しかない。', '千円しかある。'], answer: 0,
+    feedback: '依据判据C_TORITATE_OVERLAY：しか必须与否定谓语共现，这是硬语法约束——しか+肯定形绝对不合法。' },
+  { id: 'ex-cg17-3', nodeId: 'cg-p-mo-dake-shika', stepId: 'step-3', criterionId: 'C_TORITATE_OVERLAY', errorRoot: 'R_TORITATE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"谁都没来"——「誰＿来なかった」应填入？', context: null, options: ['も', 'でも'], answer: 0,
+    feedback: '依据判据C_TORITATE_OVERLAY：疑问词+も配否定谓语=全称否定（谁都不）；でも配肯定（誰でも知っている）。极性配对不能错位。' },
+  { id: 'ex-cg17-4', nodeId: 'cg-p-mo-dake-shika', stepId: null, criterionId: 'C_TORITATE_OVERLAY', errorRoot: 'R_TORITATE', certainty: 'B', type: 'why-not-x',
+    prompt: '在这个语境下，更贴切的说法是？', context: '你钱包里只剩一千日元，房租还没着落，向朋友诉苦"我就只有一千块了"。', options: ['千円しかない。', '千円だけある。'], answer: 0,
+    feedback: '在这个语境下：诉苦要传达"少得不够"的评价→しか+否定；だけ+肯定只是中性陈述数额，苦味全无。' },
+
+  { id: 'ex-cg18-1', nodeId: 'cg-p-koso-sae', stepId: 'step-1', criterionId: 'C_KOSO_SAE', errorRoot: 'R_TORITATE', certainty: 'A', type: 'judgment',
+    prompt: '对方说「ありがとうございました」，回敬"我才要多谢您"用？', context: null, options: ['こちらこそ。', 'こちらさえ。'], answer: 0,
+    feedback: '依据判据C_KOSO_SAE（こそ/さえ极点律）：回敬寒暄是排他指认（"该道谢的正是我这边"）→こそ；さえ的极端例语义在此完全不通。' },
+  { id: 'ex-cg18-2', nodeId: 'cg-p-koso-sae', stepId: 'step-2', criterionId: 'C_KOSO_SAE', errorRoot: 'R_TORITATE', certainty: 'A', type: 'cloze-prediction',
+    prompt: '"只要有时间就能去"——「時間＿＿あれば行ける」应填入？', context: null, options: ['さえ', 'こそ'], answer: 0,
+    feedback: '依据判据C_KOSO_SAE：さえ…ば构成最低条件句（把条件压到仅剩一项）；こそ无此接续功能。' },
+  { id: 'ex-cg18-3', nodeId: 'cg-p-koso-sae', stepId: null, criterionId: 'C_KOSO_SAE', errorRoot: 'R_TORITATE', certainty: 'A', type: 'judgment',
+    prompt: '「専門家でさえ間違える」隐含的言外之意是？', context: null, options: ['一般人更会错', '只有专家会错'], answer: 0,
+    feedback: '依据判据C_KOSO_SAE：さえ举出量级顶端的极端例（最不该错的专家都错了），推理链指向"其余的人更不在话下"。' },
 
   {
     id: 'ex-sample-1',
@@ -2310,6 +2859,38 @@ const TEXT_DETECTORS = [
     }
   }
 ];
+
+// Per-particle detectors (PART 2 particle system). Same surface-level
+// caveat as everything above: boundary heuristics, not morphology. The
+// left-context classes are deliberately narrow (kanji/katakana for に/で/
+// へ/と) to avoid firing inside conjugation endings (飲んで, のに, こと).
+const PARTICLE_NODE_DETECTORS = [
+  { nodeId: 'cg-p-wo', what: '格助词を（受事/经过域/离开点）', re: /(?<=[一-龯々ァ-ヶーぁ-んA-Za-z0-9])(を)/g },
+  { nodeId: 'cg-p-ni', what: '格助词に（落点）', re: /(?<=[一-龯々ァ-ヶー])(に)(?=[一-龯々ァ-ヶーぁ-ん、\s]|$)/g },
+  { nodeId: 'cg-p-de', what: '格助词で（场域/手段）', re: /(?<=[一-龯々ァ-ヶー])(で)(?=[一-龯々ァ-ヶーぁ-ん、\s]|$)/g },
+  { nodeId: 'cg-p-he', what: '格助词へ（方向）', re: /(?<=[一-龯々ァ-ヶー])(へ)/g },
+  { nodeId: 'cg-p-to', what: '格助词と（并列/共同/引用）', re: /(?<=[一-龯々ァ-ヶー])(と)(?=[一-龯々ァ-ヶーぁ-ん、\s]|$)/g },
+  { nodeId: 'cg-p-kara-made', what: 'から/まで（区间端点）', re: /(?<=[一-龯々ァ-ヶーぁ-んA-Za-z0-9])(までに|から|まで)/g },
+  { nodeId: 'cg-p-yori', what: 'より（比较基准）', re: /(?<=[一-龯々ァ-ヶーぁ-んA-Za-z0-9])(より)/g },
+  { nodeId: 'cg-p-mo-dake-shika', what: 'とりたて助词（も/だけ/しか）', re: /((?<=[一-龯々ァ-ヶーA-Za-z0-9])も(?=[一-龯々ァ-ヶーぁ-ん、\s]|$)|だけ|しか)/g },
+  { nodeId: 'cg-p-koso-sae', what: 'とりたて助词（こそ/さえ）', re: /(こそ|さえ)/g }
+];
+PARTICLE_NODE_DETECTORS.forEach(pd => {
+  TEXT_DETECTORS.push({
+    nodeId: pd.nodeId,
+    what: pd.what,
+    detect(text) {
+      const seen = new Set();
+      const out = [];
+      let m;
+      pd.re.lastIndex = 0;
+      while ((m = pd.re.exec(text)) !== null) {
+        if (!seen.has(m[1])) { seen.add(m[1]); out.push(m[1]); }
+      }
+      return out.slice(0, 4);
+    }
+  });
+});
 
 // Analyze pasted text: run detectors, then reason over the graph about what
 // the learner can already read vs. what to study first. Pure function.
