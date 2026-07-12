@@ -27,9 +27,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # NOTE: no `environment:` block here on purpose. The auto-created
+    # github-pages environment only allows the default branch to deploy;
+    # referencing the environment makes runs from the trainer branch fail
+    # instantly with "branch not allowed by protection rules". deploy-pages
+    # itself only needs the permissions above.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
