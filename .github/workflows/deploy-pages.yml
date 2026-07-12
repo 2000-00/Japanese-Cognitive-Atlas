@@ -1,13 +1,18 @@
 name: Deploy GitHub Pages
 
-# Publishes the repo root (index.html + docs) to GitHub Pages on every push
-# to the branches below. No build step: index.html is a static single-file
-# app per docs/ARCHITECTURE.md, so the artifact is just the repo contents.
+# Publishes the repo root (index.html + trainer.html + src/ + data/ + docs)
+# to GitHub Pages on every push to the branches below. No build step: both
+# apps are static per docs/ARCHITECTURE.md, so the artifact is just the repo
+# contents. NOTE: the trainer branch is a superset of the atlas branch
+# (atlas + trainer commits); deployments share one Pages site, so whichever
+# branch pushed last wins — keep the trainer branch rebased on the default
+# branch, or merge it, to avoid publishing a site without the trainer.
 on:
   push:
     branches:
       - main
       - claude/japanese-cognitive-atlas-p3zszz
+      - claude/minna-japanese-trainer-0q2chi
   workflow_dispatch:
 
 permissions:
