@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minna Japanese Trainer — 《大家的日语》1～21课综合训练系统</title>
+<link rel="stylesheet" href="src/styles/main.css">
+<link rel="stylesheet" href="src/styles/responsive.css">
+</head>
+<body>
+<header class="app-header">
+  <span class="app-title">Minna Japanese Trainer</span>
+  <a href="index.html" class="small dim" title="打开知识图谱应用">🗺️ Atlas</a>
+  <span class="scope-badge" id="mjt-scope-badge">《大家的日语》第1～21课</span>
+</header>
+<div class="app-body">
+  <nav id="mjt-nav"></nav>
+  <main id="mjt-main"></main>
+</div>
+
+<!-- 数据层（与显示层分离；pending 数据单独存放于 data/pending/） -->
+<script src="data/meta.js"></script>
+<script src="data/readings.js"></script>
+<script src="data/counters.js"></script>
+<script src="data/knowledge-map.js"></script>
+<script src="data/pending/grammar-pending.js"></script>
+<script src="data/pending/listening-pending.js"></script>
+<script src="data/pending/reading-pending.js"></script>
+
+<!-- 工具层 -->
+<script src="src/utils/storage.js"></script>
+<script src="src/utils/random.js"></script>
+<script src="src/utils/speech.js"></script>
+
+<!-- 核心引擎 -->
+<script src="src/core/scope.js"></script>
+<script src="src/core/validator.js"></script>
+<script src="src/core/errorbook.js"></script>
+<script src="src/core/stats.js"></script>
+<script src="src/core/adaptive.js"></script>
+<script src="src/core/session.js"></script>
+
+<!-- 训练模块 -->
+<script src="src/modules/numbers.js"></script>
+<script src="src/modules/grammar.js"></script>
+<script src="src/modules/listening.js"></script>
+<script src="src/modules/reading.js"></script>
+<script src="src/modules/mixed.js"></script>
+
+<!-- 应用外壳 -->
+<script src="src/app.js"></script>
+</body>
+</html>

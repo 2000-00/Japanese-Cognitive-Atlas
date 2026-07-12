@@ -4,10 +4,21 @@ A single-file Japanese learning system built around cognitive mechanism
 first, memorization second. See `docs/` for the full design rationale; this
 README is just the quick start.
 
+This repo now ships **two apps**:
+
+1. `index.html` — the Knowledge Atlas (below).
+2. `trainer.html` — **Minna Japanese Trainer**（《大家的日语》1～21课综合
+   训练系统）: number/time/date/counter/yen reaction drills, listening,
+   grammar, reading, adaptive training, error book, reaction-time stats,
+   and a data-review workflow that keeps unverified textbook claims out of
+   formal training. See `docs/TRAINER_GUIDE.md`. Trainer questions link
+   back to real Atlas node ids via `knowledgeMap`.
+
 ## Quick start
 
-Open `index.html` directly in a browser (double-click it, or drag it into
-a browser window). No build step, no server, no install.
+Open `index.html` (Atlas) or `trainer.html` (Trainer) directly in a
+browser (double-click it, or drag it into a browser window). No build
+step, no server, no install.
 
 - **学习 (Study)** — browse nodes, read Layer 0/1/2.
 - **练习 (Practice)** — run exercises, graded A/B/C.
