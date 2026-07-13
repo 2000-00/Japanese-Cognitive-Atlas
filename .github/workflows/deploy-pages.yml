@@ -1,13 +1,18 @@
 name: Deploy GitHub Pages
 
-# Publishes the repo root (index.html + docs) to GitHub Pages on every push
-# to the branches below. No build step: index.html is a static single-file
-# app per docs/ARCHITECTURE.md, so the artifact is just the repo contents.
+# Publishes the repo root (index.html + trainer.html + src/ + data/ + docs)
+# to GitHub Pages on every push to the branches below. No build step: both
+# apps are static per docs/ARCHITECTURE.md, so the artifact is just the repo
+# contents. NOTE: the trainer branch is a superset of the atlas branch
+# (atlas + trainer commits); deployments share one Pages site, so whichever
+# branch pushed last wins — keep the trainer branch rebased on the default
+# branch, or merge it, to avoid publishing a site without the trainer.
 on:
   push:
     branches:
       - main
       - claude/japanese-cognitive-atlas-p3zszz
+      - claude/minna-japanese-trainer-0q2chi
   workflow_dispatch:
 
 permissions:
@@ -22,9 +27,11 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    # NOTE: no `environment:` block here on purpose. The auto-created
+    # github-pages environment only allows the default branch to deploy;
+    # referencing the environment makes runs from the trainer branch fail
+    # instantly with "branch not allowed by protection rules". deploy-pages
+    # itself only needs the permissions above.
     steps:
       - name: Checkout
         uses: actions/checkout@v4
