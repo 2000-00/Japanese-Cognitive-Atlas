@@ -12,8 +12,12 @@ MJT.stats = (function () {
     var list = allRecords();
     list.push({
       questionId: entry.questionId,
-      module: entry.module || 'unknown',       // numbers / grammar / listening / reading / mixed
+      module: entry.module || 'unknown',       // numbers / grammar / listening / reading / mixed / scenario
       category: entry.category || null,        // time / date / counter / price / basic / phone / duration
+      scenarioId: entry.scenarioId || null,    // 场景/框架ID（跨场景统计用）
+      level: entry.level || null,              // 听力等级
+      warmup: !!entry.warmup,                  // 是否基础热身（孤立数字题）
+      interaction: entry.interaction || null,  // choose / respond / input
       questionText: entry.questionText || '',
       correct: !!entry.correct,
       startTime: entry.startTime,

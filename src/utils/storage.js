@@ -11,6 +11,7 @@ MJT.storage = (function () {
     trainingHistory: 'training-history',
     masteryMap: 'mastery-map',
     reviewDecisions: 'review-decisions', // 数据审核页对 pending 条目的核实决定
+    importedPending: 'imported-pending', // 用户导入的待审核数据
     lastSession: 'last-session'
   };
 

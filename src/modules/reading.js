@@ -6,7 +6,7 @@ MJT.reading = (function () {
 
   function pool(settings) {
     var reviewDecisions = MJT.storage.load(MJT.storage.KEYS.reviewDecisions, {});
-    return MJT.scope.filter(MJT_DATA.pendingReading || [], {
+    return MJT.scope.filter((MJT_DATA.pendingReading || []).concat(MJT.app.importedItems('reading')), {
       maxLesson: settings.maxLesson,
       mode: 'textbook',
       reviewDecisions: reviewDecisions

@@ -21,7 +21,7 @@ page.on('dialog', d => d.accept());
 /* 1. 页面可以打开 */
 await page.goto(URL);
 await page.waitForSelector('#mjt-nav .nav-item');
-ok((await page.$$('#mjt-nav .nav-item')).length === 12, '页面打开，导航渲染12个页面入口');
+ok((await page.$$('#mjt-nav .nav-item')).length === 13, '页面打开，导航渲染13个页面入口（含场景训练）');
 ok((await page.textContent('#mjt-scope-badge')).includes('第1～21课'), '顶栏始终显示当前课程范围');
 
 /* 2. 首页内容 */
@@ -115,8 +115,8 @@ ok(grammarText.includes('当前已验证题目数量不足'), '待核实内容�
 /* 10. 数据审核页：核实一道语法题 → 进入正式训练 */
 await page.goto(URL + '#review');
 await page.waitForSelector('.review-item');
-const reviewText = await page.textContent('#mjt-main');
-ok(/已验证/.test(reviewText) && /待审核/.test(reviewText) && /最近一次验证/.test(reviewText), '审核页显示验证计数与最近验证时间');
+const reviewPageText = await page.textContent('#mjt-main');
+ok(/已核实/.test(reviewPageText) && /待审核/.test(reviewPageText) && /最近一次验证/.test(reviewPageText), '审核页显示验证计数与最近验证时间');
 await page.click('[data-decide="verified"][data-id="g-pending-001"]');
 await page.waitForTimeout(300);
 const promoted = await page.evaluate(() => JSON.parse(localStorage.getItem('mjt:review-decisions') || '{}'));
@@ -167,6 +167,116 @@ await mpage.click('.option-btn');
 await mpage.waitForSelector('.result-panel');
 ok(true, '手机端可完成完整作答流程');
 await mobile.close();
+
+/* 13.5 场景训练：预览门禁 + 六阶段完整流程 */
+await page.goto(URL + '#scenario');
+await page.waitForSelector('.scenario-card');
+const scText = await page.textContent('#mjt-main');
+ok(scText.includes('正式训练场景数量不足'), '未核实时场景页显示数量不足与预览说明');
+ok((await page.$$('.scenario-card')).length >= 14, '场景列表渲染14个以上场景卡片');
+ok(scText.includes('待核实 · 预览模式'), '待核实场景明确标注预览模式');
+// 进入便利店结账场景（预览）
+await page.click('[data-sc="scenario-convenience-store-checkout-001"]');
+await page.waitForSelector('#sc-start');
+const introText = await page.textContent('#mjt-main');
+ok(introText.includes('任务：') && introText.includes('店員'), '阶段1：显示任务与人物');
+ok(introText.includes('扩展生活词汇') && introText.includes('温める'), '扩展词汇卡片显示（含假名/中文/原因）');
+ok(!introText.includes('680円になります'), '阶段1不提前泄露对话原文');
+await page.click('#sc-start');
+await page.waitForSelector('[data-a]');
+ok((await page.textContent('#mjt-main')).includes('原文将在全部作答后才显示'), '阶段2：连续听力不显示原文');
+// 分段播放（难度1）：一直点"听下一段"直到进入信息提取
+for (let i = 0; i < 10; i++) {
+  const nextBtn = await page.$('[data-a="next"]');
+  if (nextBtn) { await nextBtn.click(); await page.waitForTimeout(150); }
+  else break;
+}
+await page.click('[data-a="questions"]');
+await page.waitForSelector('.option-btn');
+ok((await page.textContent('#mjt-main')).includes('信息提取'), '阶段3：信息提取问题渲染');
+// 依次作答全部问题（点第一个选项）
+for (let i = 0; i < 6; i++) {
+  const opts = await page.$$('.option-btn:not([disabled])');
+  if (!opts.length) break;
+  await opts[0].click();
+  await page.waitForSelector('.result-panel');
+  const cont = await page.$('#sc-result [data-a="next"]');
+  if (cont) { await cont.click(); await page.waitForTimeout(150); }
+}
+await page.waitForSelector('#sc-shadow');
+const scReviewText = await page.textContent('#mjt-main');
+ok(scReviewText.includes('完整原文与逐句解析') && scReviewText.includes('680円'), '阶段5：完整解析显示原文');
+ok(scReviewText.includes('更自然的回应方式'), '阶段5：显示更自然回应');
+await page.click('#sc-shadow');
+await page.waitForSelector('#sc-to-reinforce');
+ok((await page.textContent('#mjt-main')).includes('意群停顿'), '阶段6a：影子跟读（意群停顿）就绪');
+await page.click('#sc-to-reinforce');
+await page.waitForSelector('#sc-transfer .option-btn');
+ok((await page.textContent('#mjt-main')).includes('迁移强化'), '阶段6b：迁移强化生成新场景题');
+const previewNotInStats = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('mjt:response-times') || '[]').filter(r => r.module === 'scenario').length === 0);
+ok(previewNotInStats, '预览模式作答不计入正式场景统计');
+
+/* 13.6 审核工作台：筛选 + 批量核实 → 场景进入正式训练 */
+await page.goto(URL + '#review');
+await page.waitForSelector('[data-f-dataset]');
+const rwText = await page.textContent('#mjt-main');
+ok(rwText.includes('审核进度') && rwText.includes('批量核实'), '审核工作台渲染（进度/批量按钮）');
+await page.click('[data-f-dataset="scenario"]');
+await page.waitForSelector('#batch-verify');
+await page.click('#batch-verify'); // dialog 自动接受
+await page.waitForTimeout(300);
+await page.goto(URL + '#scenario');
+await page.waitForSelector('.scenario-card');
+const scText2 = await page.textContent('#mjt-main');
+ok(scText2.includes('已核实') && scText2.includes('开始训练'), '批量核实后场景进入正式训练');
+// 正式训练一个场景的第一问并确认计入统计
+await page.click('[data-sc="scenario-cafe-order-001"]');
+await page.waitForSelector('#sc-start');
+await page.click('#sc-start');
+for (let i = 0; i < 10; i++) {
+  const nextBtn = await page.$('[data-a="next"]');
+  if (nextBtn) { await nextBtn.click(); await page.waitForTimeout(120); } else break;
+}
+await page.click('[data-a="questions"]');
+await page.waitForSelector('.option-btn');
+await page.click('.option-btn');
+await page.waitForSelector('.result-panel');
+const formalCounted = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('mjt:response-times') || '[]').filter(r => r.module === 'scenario').length >= 1);
+ok(formalCounted, '正式模式场景作答计入统计');
+
+/* 13.7 听力等级页：默认 L3 */
+await page.goto(URL + '#listening');
+await page.waitForSelector('[data-lv]');
+const activeLv = await page.$eval('.chip.active[data-lv]', el => el.getAttribute('data-lv'));
+ok(activeLv === '3', '听力默认等级为 Level 3');
+await page.click('#listen-start');
+await page.waitForSelector('.option-btn');
+const lsText = await page.textContent('#mjt-main');
+ok(/【.+】/.test(lsText), '听力L3出题为场景句信息提取');
+
+/* 13.8 数字专项双入口 */
+await page.goto(URL + '#numbers');
+await page.waitForSelector('[data-mode]');
+const activeMode = await page.$eval('.chip.active[data-mode]', el => el.getAttribute('data-mode'));
+ok(activeMode === 'scene', '数字专项默认入口为场景数字');
+ok((await page.textContent('#mjt-main')).includes('基础反应'), '保留基础反应热身入口');
+
+/* 13.9 数据导入门禁（JSON → 待审核，不自动 verified） */
+const importResult = await page.evaluate(() => {
+  const items = [{ id: 'import-test-1', question: '（　）を食べます。', options: ['ごはん', 'みず'], answer: 'ごはん', explanation: '测试', lesson: [6], grammarPoints: ['を'], sourceStatus: 'verified' }];
+  MJT.app.handleImport('test.json', JSON.stringify(items));
+  const stored = JSON.parse(localStorage.getItem('mjt:imported-pending') || '[]');
+  return stored.length === 1 && stored[0].sourceStatus === 'pending' && stored[0].displaySource === '用户提供';
+});
+ok(importResult, '导入数据强制进入待审核区（sourceStatus 被覆盖为 pending）');
+
+/* 13.10 统计页升级 */
+await page.goto(URL + '#stats');
+const statsText2 = await page.textContent('#mjt-main');
+ok(statsText2.includes('场景训练') && statsText2.includes('用户回应正确率'), '统计页显示场景统计与回应正确率');
+ok(statsText2.includes('知识点掌握') && statsText2.includes('4 个不同场景'), '统计页显示跨场景掌握模型');
 
 /* 14. 深色模式 */
 await page.evaluate(() => MJT.app.saveSettings({ theme: 'dark' }));

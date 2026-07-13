@@ -245,3 +245,25 @@ h3 { margin: 1.2em 0 .5em; }
 .dim { color: var(--text-dim); }
 .small { font-size: .88rem; }
 .plan-block ul, .panel ul { margin: .3em 0; padding-left: 1.3em; }
+
+/* 场景训练 */
+.scenario-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: .8rem; margin: .6rem 0 1.2rem; }
+.scenario-card {
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-radius: 12px; padding: .9rem 1rem;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: .3rem;
+}
+.scenario-card .sc-title { font-weight: 700; font-size: 1.05rem; margin: 0; }
+.scenario-card .btn { margin-top: auto; align-self: flex-start; }
+.scenario-intro h2 { margin-top: 0; }
+.ev-block { margin: .8rem 0; }
+.ev-card {
+  background: var(--bg); border: 1px dashed var(--border);
+  border-radius: 8px; padding: .45rem .8rem; margin: .35rem 0;
+  font-size: .92rem;
+}
+.review-line { border-bottom: 1px dashed var(--border); padding: .45rem 0; }
+.review-line:last-child { border-bottom: none; }
+.review-line.wrong-line { background: var(--bad-bg); border-radius: 8px; padding: .45rem .6rem; }
+details > summary { cursor: pointer; }

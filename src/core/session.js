@@ -159,11 +159,15 @@ MJT.session = (function () {
       }
     }
 
-    /* 判定 */
+    /* 判定：支持 acceptedAnswers（用户回应类题目允许多个自然答案） */
     function isCorrect(q, userAnswer) {
       if (q.format === 'audio-input') {
         var norm = function (s) { return String(s).replace(/[^0-9]/g, ''); };
         return norm(userAnswer) === norm(q.answer);
+      }
+      if (q.acceptedAnswers && q.acceptedAnswers.length) {
+        var strip = function (s) { return String(s).replace(/[\s。、！？!?.]/g, ''); };
+        if (q.acceptedAnswers.some(function (a) { return strip(a) === strip(userAnswer); })) return true;
       }
       return String(userAnswer) === String(q.answer);
     }
@@ -182,6 +186,9 @@ MJT.session = (function () {
         questionId: q.id,
         module: cfg.module || q.module || 'unknown',
         category: q.numberCategory || null,
+        scenarioId: q.scenarioId || q.frameId || null,
+        level: q.level || null,
+        warmup: !!q.warmup,
         questionText: q.question || '',
         correct: correct,
         startTime: Math.round(state.startTime),
@@ -190,6 +197,7 @@ MJT.session = (function () {
       };
       state.records.push(rec);
       MJT.stats.record(rec);
+      if (MJT.mastery) MJT.mastery.recordFromQuestion(q, correct);
 
       var errorType = null;
       if (!correct) errorType = MJT.errorbook.record(q, userAnswer, responseTime, false);

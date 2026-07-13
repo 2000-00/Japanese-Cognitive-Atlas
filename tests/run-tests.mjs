@@ -25,16 +25,30 @@ vm.createContext(sandbox);
 
 const files = [
   'data/meta.js', 'data/readings.js', 'data/counters.js', 'data/knowledge-map.js',
-  'data/pending/grammar-pending.js', 'data/pending/listening-pending.js', 'data/pending/reading-pending.js',
+  'data/lesson-scope-review.js', 'data/numbers/scenario-frames.js',
+  'data/pending/grammar-pending.js',
+  'data/pending/grammar/lesson-01-05.js', 'data/pending/grammar/lesson-06-10.js',
+  'data/pending/grammar/lesson-11-15.js', 'data/pending/grammar/lesson-16-21.js',
+  'data/pending/listening-pending.js', 'data/pending/listening/short-dialogues.js',
+  'data/pending/reading-pending.js',
+  'data/pending/reading/messages.js', 'data/pending/reading/notices.js', 'data/pending/reading/schedules.js',
+  'data/pending/scenarios/shopping.js', 'data/pending/scenarios/dining.js',
+  'data/pending/scenarios/medical.js', 'data/pending/scenarios/transport.js',
+  'data/pending/scenarios/school.js', 'data/pending/scenarios/housing.js',
   'src/utils/storage.js', 'src/utils/random.js',
   'src/core/scope.js', 'src/core/validator.js', 'src/core/errorbook.js',
-  'src/core/stats.js', 'src/core/adaptive.js',
-  'src/modules/numbers.js'
+  'src/core/stats.js', 'src/core/adaptive.js', 'src/core/mastery.js',
+  'src/modules/numbers.js', 'src/modules/scenario-numbers.js', 'src/modules/listening.js'
 ];
 for (const f of files) {
   vm.runInContext(readFileSync(join(root, f), 'utf8'), sandbox, { filename: f });
 }
 const { MJT, MJT_DATA } = sandbox;
+// UI 层（app.js）不在 Node 中加载；提供 listening/validator 所需的最小桩
+MJT.app = {
+  getSettings: () => ({ maxLesson: 21, questionCount: 10, counterMode: 'universal', extendedVocab: 'light', ttsRate: 1, volume: 1 }),
+  importedItems: () => []
+};
 
 /* ---- 断言工具 ---- */
 let pass = 0, fail = 0;
@@ -84,11 +98,19 @@ eq(N.phoneToKana(['03', '1234']), 'ゼロさんのいちにさんよん', '电�
 
 /* ================= 数据验证器 ================= */
 const report = MJT.validator.validateAll();
-eq(report.counts.invalid, 0, '正式数据无校验失败条目：' + JSON.stringify(report.failures));
-eq(report.counts.verified, 10, '10个数量词读法为 verified');
-eq(report.counts.pending, 12 + 6 + 3, '语法12+听力6+阅读3 = 21条 pending');
+eq(report.counts.invalid, 0, '全部数据无校验失败条目：' + JSON.stringify(report.failures).slice(0, 800));
+const expectedPending = MJT_DATA.pendingGrammar.length + MJT_DATA.pendingListening.length +
+  MJT_DATA.pendingReading.length + MJT_DATA.pendingScenarios.length;
+eq(report.counts.verified, 10 + MJT_DATA.scenarioFrames.length, '数量词10 + 场景句框架' + MJT_DATA.scenarioFrames.length + ' 为 verified');
+eq(report.counts.pending, expectedPending, '语法' + MJT_DATA.pendingGrammar.length + '+听力' + MJT_DATA.pendingListening.length + '+阅读' + MJT_DATA.pendingReading.length + '+场景' + MJT_DATA.pendingScenarios.length + ' = ' + expectedPending + '条 pending');
 eq(report.counts.rejected, 0, '无 rejected');
 ok(report.ranAt, '验证报告有时间戳');
+eq(MJT_DATA.pendingScenarios.length, 14, '14个完整场景已加载');
+eq(MJT_DATA.pendingGrammar.length, 72, '语法题共72道（原12+新增60）');
+eq(MJT_DATA.pendingListening.length, 16, '听力题库16条（原6+L5对话10）');
+eq(MJT_DATA.pendingReading.length, 15, '阅读15篇（原3+新增12）');
+eq(MJT_DATA.lessonScopeReview.length, 21, '课程审核表21条');
+ok(MJT_DATA.lessonScopeReview.every(l => l.sourceStatus === 'pending' && l.reviewed === false), '课程审核表全部默认 pending/未核实');
 
 // 故意构造坏数据：超纲课程、缺答案、缺解析、伪造"教材原句"、unknown升级verified
 const badLesson = { id: 'bad-1', question: 'x?', options: ['a', 'b'], answer: 'a', explanation: 'e', grammarPoints: ['g'], lesson: [25], sourceStatus: 'verified', sourceType: 'manual_review' };
@@ -166,6 +188,117 @@ for (let i = 0; i < 400; i++) {
   genChecked++;
 }
 ok(genChecked === 400, '批量生成 400 题');
+
+/* ================= 场景系统 ================= */
+MJT_DATA.pendingScenarios.forEach(sc => {
+  const errs = MJT.validator.validateScenario(sc, { seenIds: {} });
+  if (errs.length) { fail++; failures.push(`场景 ${sc.id} 校验失败: ${errs.join('；')}`); } else pass++;
+  const listen = sc.steps.filter(s => s.script);
+  const infoQ = sc.steps.filter(s => s.interactionType === 'choose' || s.interactionType === 'input');
+  const respond = sc.steps.filter(s => s.interactionType === 'respond');
+  ok(listen.length >= 3 && listen.length <= 8, `${sc.id} 对话3~8轮 (${listen.length})`);
+  ok(infoQ.length >= 2, `${sc.id} 信息提取问题≥2 (${infoQ.length})`);
+  ok(respond.length >= 1 && respond.every(r => r.acceptedAnswers && r.acceptedAnswers.length), `${sc.id} 用户回应有可接受答案`);
+  ok(sc.review && sc.review.lineNotes && Object.keys(sc.review.lineNotes).length >= 3, `${sc.id} 有逐句解析`);
+  ok(sc.reinforcement && sc.reinforcement.length >= 1, `${sc.id} 有迁移强化`);
+  ok((sc.extendedVocab || []).length <= 5, `${sc.id} 扩展词汇≤5个`);
+  ok(sc.contentType === 'ai_generated_practice' && sc.isTextbookOriginal === false, `${sc.id} 真实性标记完整`);
+  ok(sc.sourceStatus === 'pending', `${sc.id} 默认待审核（不自称已教材核实）`);
+  // 迁移引用的场景必须真实存在
+  sc.reinforcement.filter(r => r.type === 'scenario').forEach(r => {
+    ok(MJT_DATA.pendingScenarios.some(x => x.id === r.ref), `${sc.id} 迁移引用的场景存在 (${r.ref})`);
+  });
+  // 场景门禁：pending 不进入正式训练，核实后进入
+  ok(!MJT.scope.check(sc, { maxLesson: 21 }).allowed, `${sc.id} 待核实时被正式训练拦截`);
+  ok(MJT.scope.check(sc, { maxLesson: 21, reviewDecisions: { [sc.id]: { status: 'verified' } } }).allowed, `${sc.id} 核实后放行`);
+});
+
+/* ================= 场景句框架 + 生成题选项规则 ================= */
+MJT_DATA.scenarioFrames.forEach(f => {
+  const errs = MJT.validator.validateFrame(f);
+  if (errs.length) { fail++; failures.push(`框架 ${f.id}: ${errs.join('；')}`); } else pass++;
+  if (f.level >= 4) ok(Object.keys(f.slots).length >= 2, `${f.id} L4+含两个以上信息点`);
+  // 每个框架实际生成一题：槽位填充完整、选项规则通过
+  const q = MJT.scenarioNumbers.generateFromFrame(f);
+  ok(q.audioScript.indexOf('{') === -1 && q.scriptJa.indexOf('{') === -1, `${f.id} 槽位填充无残留`);
+  const optErrs = MJT.validator.optionErrors(q.options, q.answer);
+  if (optErrs.length) { fail++; failures.push(`${f.id} 选项规则: ${optErrs.join('；')} → ${JSON.stringify(q.options)}`); } else pass++;
+  ok(q.options.length === 4, `${f.id} 四个选项`);
+  ok(q.explanation && q.audioScript, `${f.id} 有解析和TTS文本`);
+  ok(q.origin === '基于已验证知识生成的练习示例' && q.isTextbookOriginal === false, `${f.id} 生成题真实性标记`);
+});
+
+/* 批量抽样：正确答案位置分布（不固定在某一位） */
+{
+  const positions = [0, 0, 0, 0];
+  for (let i = 0; i < 200; i++) {
+    const q = MJT.scenarioNumbers.generate('mixed', 4, { minLevel: 2 });
+    positions[q.options.indexOf(q.answer)]++;
+  }
+  ok(positions.every(p => p > 10), '正确答案位置随机分布 ' + JSON.stringify(positions));
+}
+
+/* ================= 听力等级系统 ================= */
+eq(MJT.listening.DEFAULT_LEVEL, 3, '默认听力等级为 Level 3');
+// Level 5 对话规则
+MJT_DATA.pendingListening.filter(q => (q.level || 0) >= 5).forEach(q => {
+  const errs = MJT.validator.validateDialogue(q);
+  if (errs.length) { fail++; failures.push(`L5 ${q.id}: ${errs.join('；')}`); } else pass++;
+  ok(q.infoCount >= 2, `${q.id} L5 信息点≥2`);
+});
+// 单数字题（基础热身）占比 ≤5%
+{
+  const r = MJT.validator.checkWarmupRatio(400);
+  ok(r.ok, `正式听力训练中孤立数字题占比 ${(r.ratio * 100).toFixed(1)}% ≤ ${r.limit * 100}%（${r.warmup}/${r.total}）`);
+}
+// L2-L4 生成题必须是完整表达（句子含语境文字，非裸数字）
+for (let i = 0; i < 50; i++) {
+  const q = MJT.scenarioNumbers.generate('mixed', 4, { minLevel: 2 });
+  ok(q.scriptJa.replace(/[0-9０-９:：円時分月日人本枚冊台回階杯個匹]/g, '').length >= 4, `L${q.level} 数字进入完整表达`);
+}
+
+/* ================= 阅读问题与答案匹配 ================= */
+MJT_DATA.pendingReading.forEach(p => {
+  (p.questions || []).forEach((sub, i) => {
+    ok(sub.options.indexOf(sub.answer) !== -1, `${p.id} 问${i + 1} 选项含正确答案`);
+    ok(new Set(sub.options).size === sub.options.length, `${p.id} 问${i + 1} 选项无重复`);
+    ok(!!sub.locate && !!sub.reasoning, `${p.id} 问${i + 1} 有定位与推理说明`);
+  });
+});
+
+/* ================= 语法题规则 ================= */
+{
+  let withScenario = 0;
+  MJT_DATA.pendingGrammar.forEach(q => {
+    ok(new Set(q.options).size === q.options.length, `${q.id} 语法选项无重复`);
+    if (q.scenarioContext) withScenario++;
+  });
+  const newOnes = MJT_DATA.pendingGrammar.filter(q => q.id.indexOf('g2-') === 0);
+  const ratio = newOnes.filter(q => q.scenarioContext).length / newOnes.length;
+  ok(ratio >= 0.7, `新增语法题带生活场景说明比例 ${(ratio * 100).toFixed(0)}% ≥ 70%`);
+}
+
+/* ================= 跨场景掌握模型 ================= */
+{
+  MJT.mastery.record('测试知识点', 'ctx-1', true);
+  let s1 = MJT.mastery.summary();
+  ok(s1.learning.some(m => m.point === '测试知识点'), '单场景答对 → 学习中（不判定掌握）');
+  MJT.mastery.record('测试知识点', 'ctx-2', true);
+  MJT.mastery.record('测试知识点', 'ctx-3', true);
+  MJT.mastery.record('测试知识点', 'ctx-4', true);
+  let s2 = MJT.mastery.summary();
+  ok(s2.mastered.some(m => m.point === '测试知识点'), '4个不同场景稳定 → 掌握');
+  MJT.mastery.record('测试知识点', 'ctx-2', false);
+  let s3 = MJT.mastery.summary();
+  ok(s3.weak.some(m => m.point === '测试知识点'), '任一场景最近答错 → 回到薄弱');
+}
+
+/* ================= 扩展词汇约束 ================= */
+MJT_DATA.pendingScenarios.forEach(sc => {
+  (sc.extendedVocab || []).forEach(w => {
+    ok(w.scope === 'extended_basic' && !!w.kana && !!w.zh && !!w.reason && !!w.pos, `${sc.id} 扩展词 ${w.word} 标注完整（假名/中文/词性/原因）`);
+  });
+});
 
 /* ================= 汇总 ================= */
 console.log(`\n通过 ${pass} 项，失败 ${fail} 项`);

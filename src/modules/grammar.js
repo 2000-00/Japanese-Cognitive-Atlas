@@ -7,12 +7,18 @@ MJT.grammar = (function () {
 
   function pool(settings) {
     var reviewDecisions = MJT.storage.load(MJT.storage.KEYS.reviewDecisions, {});
-    var res = MJT.scope.filter(MJT_DATA.pendingGrammar || [], {
+    var items = (MJT_DATA.pendingGrammar || []).concat(MJT.app.importedItems('grammar'));
+    var res = MJT.scope.filter(items, {
       maxLesson: settings.maxLesson,
       mode: 'textbook',
       reviewDecisions: reviewDecisions
     });
     return res.allowed;
+  }
+
+  /* 全部语法题（含待审核），供审核工作台使用 */
+  function allItems() {
+    return (MJT_DATA.pendingGrammar || []).concat(MJT.app.importedItems('grammar'));
   }
 
   function startSession(container, opts) {
@@ -27,5 +33,5 @@ MJT.grammar = (function () {
     });
   }
 
-  return { pool: pool, startSession: startSession };
+  return { pool: pool, allItems: allItems, startSession: startSession };
 })();

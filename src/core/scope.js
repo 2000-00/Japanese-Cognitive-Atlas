@@ -29,6 +29,7 @@ MJT.scope = (function () {
   /* 条目声明的最大课程编号（lesson 可为数字、数组或 null） */
   function maxLessonOf(item) {
     if (item.lessonEnd !== undefined && item.lessonEnd !== null) return item.lessonEnd;
+    if (item.lessonRange && typeof item.lessonRange.max === 'number') return item.lessonRange.max;
     var l = item.lesson;
     if (l === null || l === undefined) return null; // 未声明课程归属
     if (Object.prototype.toString.call(l) === '[object Array]') {
@@ -48,6 +49,9 @@ MJT.scope = (function () {
     if (status !== 'verified') return { allowed: false, reason: '来源状态为 ' + status + '（待核实内容不进入正式训练）' };
 
     var lm = maxLessonOf(item);
+    // 审核页可修改课程编号：审核决定中的 lesson 覆盖条目声明值
+    var d = opts.reviewDecisions && opts.reviewDecisions[item.id];
+    if (d && typeof d.lesson === 'number') lm = d.lesson;
     if (lm !== null && lm > HARD_MAX) return { allowed: false, reason: '课程编号 ' + lm + ' 超过第' + HARD_MAX + '课硬上限' };
     if (lm !== null && lm > maxLesson) return { allowed: false, reason: '课程编号 ' + lm + ' 超出当前选择范围（1～' + maxLesson + '课）' };
 
