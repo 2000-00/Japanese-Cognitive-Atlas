@@ -32,13 +32,32 @@
 3. `node tests/run-tests.mjs` —— validateScenario 会拦截结构缺陷。
 4. 打开"数据审核"→ 筛选"场景"→ 对照教材核实。
 
-## 听力等级（新增）
+## 听力等级 —— Listening Engine 2.0（2026-07 重写）
 
-L1 基础热身（孤立数字，占比≤5%）→ L2 带单位短句 → L3 场景单句
-（**默认**）→ L4 双信息 → L5 短对话（题库）→ L6 完整情景（=场景训练）。
-L2-L4 由 `src/modules/scenario-numbers.js` 按 `data/numbers/
-scenario-frames.js` 的 61 个场景句框架实时生成（数值随机、干扰项按
-真实听错方式、四选项同类别——validator.optionErrors 校验）。
+六个等级**各自独立动态生成**，点哪级练哪级，绝不退化成数字题：
+
+| 等级 | 结构 | 生成器 |
+|------|------|--------|
+| L1 | 单信息热身（数字/时间/日期/数量词，听音识别） | `generateLevel1()` |
+| L2 | 带单位短句（名词＋数量＋谓语的完整句，禁止只播"110円"） | `generateLevel2()` |
+| L3（默认） | 场景单句，含 ≥2 信息点 | `generateLevel3()` |
+| L4 | 人物＋双信息＋先后/并列关系 | `generateLevel4()` |
+| L5 | 2～4 轮短对话 | `generateLevel5()` |
+| L6 | 4～8 轮完整场景＋综合/用户回应（禁止退化成单句/两轮） | `generateLevel6()` |
+
+- 引擎：`src/modules/listening.js`；素材池：`data/listening/skeletons.js`
+  （句型骨架 × 词汇槽 × 数字槽 × 人物 × 场景动态组合，数值/时间/金额每题
+  随机，组合近乎无限）。`displayText`/`speechText`/`readingText` 同源，作答后
+  才显示原文；干扰项按真实听错方式生成，四选项同类别。
+- **等级隔离 + 结构硬验证 + 不静默降级**：`generate(level)` 每题调用
+  `validator.validateListeningLevelStructure(item, level)`——生成题的
+  `listeningLevel` 与当前所选不一致、或结构不达标，**该题被拒绝并重新生成**，
+  连续失败达上限则显示真实错误（`__listeningError`），绝不用更简单的题替代。
+  每个等级有独立的防重复历史（指纹会话内唯一、骨架/场景/数字组合/目标词/
+  答案位置分级去重）；`startSession` 进入时 `resetLevel(level)` 清空该级队列。
+  每条题带 `{listeningLevel, generatorId, structureType}`。
+- 测试：`run-tests.mjs` 对每级各生成 60 题过结构验证、每级 200 题 0 重复、
+  等级不符必被拒；`smoke.mjs` 逐个点击 L1–L6 校验真实结构。
 
 ## 跨场景掌握（新增）
 

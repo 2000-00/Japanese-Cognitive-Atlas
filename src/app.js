@@ -417,50 +417,63 @@ MJT.app = (function () {
     };
   }
 
-  /* ============ 听力训练（等级系统） ============ */
+  /* ============ 听力训练（Listening Engine 2.0 · 等级隔离） ============ */
   function pageListening(main) {
     var s = getSettings();
     var LEVELS = [
-      { v: 1, n: 'L1 基础热身', d: '孤立数字/时间/金额（正式训练占比≤5%）' },
-      { v: 2, n: 'L2 带单位短句', d: '数字进入完整表达' },
-      { v: 3, n: 'L3 场景单句（默认）', d: '自然场景句信息提取' },
-      { v: 4, n: 'L4 双信息场景', d: '一句含两个以上信息' },
-      { v: 5, n: 'L5 短对话', d: '2～4轮对话（题库，需核实）' },
-      { v: 6, n: 'L6 完整情景', d: '4～8轮连续对话 → 场景训练页' }
+      { v: 1, n: 'L1 基础热身', d: '单个数字/时间/日期/数量（听音识别）' },
+      { v: 2, n: 'L2 带单位短句', d: '数字进入完整句子（名词＋数量＋谓语）' },
+      { v: 3, n: 'L3 场景单句', d: '自然场景句，含 ≥2 个信息点' },
+      { v: 4, n: 'L4 双信息场景', d: '人物＋双信息＋先后/并列关系' },
+      { v: 5, n: 'L5 短对话', d: '2～4 轮对话，抓取关键信息' },
+      { v: 6, n: 'L6 完整情景', d: '4～8 轮连续对话＋综合/用户回应' }
     ];
+    // 读取上次所选等级（作为初始选择，但训练以当前选择为准，不被默认值覆盖）
     var level = s.listeningLevel || MJT.listening.DEFAULT_LEVEL;
-    var l5count = MJT.listening.pool(s, 5).length;
+    if (level < 1 || level > 6) level = MJT.listening.DEFAULT_LEVEL;
+    var mc = MJT.listening.materialCounts();
     var html = '<h2>听力训练</h2>' +
-      '<p class="dim">默认从 Level 3 开始；可手动进入 Level 1 热身。浏览器语音合成（非母语者真人录音），数据保留 audioUrl 真实音频接口。原文在作答后才显示。</p>';
+      '<p class="dim">六个等级各自独立动态生成（generateLevel1…6），点击哪个等级就练哪个等级的结构，'
+      + '不会退化成数字题。原文在作答后才显示。浏览器语音合成（非母语者真人录音），数据保留 audioUrl 真实音频接口。</p>';
+    html += '<div class="panel small dim">素材池：句型 L2×' + mc.sentenceL2 + '／L3×' + mc.sentenceL3 +
+      '，结构 L4×' + mc.structL4 + '，对话 L5×' + mc.dialogL5 + '，完整场景 L6×' + mc.sceneL6 +
+      '；词汇槽 ' + mc.vocabSlots + '（商品' + mc.products + '／人物' + mc.people + '／地点' + mc.places + '）'
+      + '，场景 ' + mc.scenes + ' 个。数值/时间/金额每题随机生成，组合近乎无限。</div>';
     html += '<div class="panel"><div class="form-row"><label>听力等级</label><div class="chip-row">' +
       LEVELS.map(function (L) {
         return '<button class="chip' + (L.v === level ? ' active' : '') + '" data-lv="' + L.v + '" title="' + esc(L.d) + '">' + esc(L.n) + '</button>';
       }).join('') + '</div></div>' +
-      '<p class="dim small" id="lv-desc"></p>' +
-      '<button class="btn btn-primary" id="listen-start">开始训练 →</button></div>' +
+      '<div class="panel small" id="lv-info"></div>' +
+      '<label class="form-row" style="margin-top:8px"><input type="checkbox" id="lv-continuous"> 连续模式（答后自动进入下一题，最后汇总）</label>' +
+      '<label class="form-row"><input type="checkbox" id="lv-reveal"> 先听后答（音频播完再显示选项）</label>' +
+      '<button class="btn btn-primary" id="listen-start" style="margin-top:8px">开始训练 →</button></div>' +
       '<div id="bank-session"></div>';
     main.innerHTML = html;
     var chosen = { lv: level };
-    function updateDesc() {
+    function updateInfo() {
       var L = LEVELS.filter(function (x) { return x.v === chosen.lv; })[0];
-      var extra = chosen.lv === 5 ? ('　当前已核实对话题：' + l5count + ' 条' + (l5count === 0 ? '（<b>当前已验证题目数量不足</b>，请先在数据审核页核实）' : '')) : '';
-      document.getElementById('lv-desc').innerHTML = esc(L.d) + extra;
+      var struct = MJT.listening.levelStructureText(chosen.lv);
+      var matn = MJT.listening.levelMaterialCount(chosen.lv);
+      document.getElementById('lv-info').innerHTML =
+        '<b>' + esc(L.n) + '</b>　' + esc(L.d) + '<br>' +
+        '<span class="dim">结构要求：' + esc(struct) + '　·　本级素材：' + esc(matn) + '</span>';
     }
     main.querySelectorAll('[data-lv]').forEach(function (b) {
       b.addEventListener('click', function () {
         main.querySelectorAll('[data-lv]').forEach(function (x) { x.classList.remove('active'); });
         b.classList.add('active');
         chosen.lv = parseInt(b.getAttribute('data-lv'), 10);
-        updateDesc();
+        updateInfo();
       });
     });
-    updateDesc();
+    updateInfo();
     document.getElementById('listen-start').addEventListener('click', function () {
-      if (chosen.lv === 6) { navigate('scenario'); return; }
-      saveSettings({ listeningLevel: chosen.lv === 1 ? 3 : chosen.lv }); // L1只作热身，不改默认
+      // 关键修复：所选等级即训练等级，如实持久化（L1 不再被改存成 3）
+      saveSettings({ listeningLevel: chosen.lv });
       MJT.listening.startSession(document.getElementById('bank-session'), {
-        level: chosen.lv === 1 ? 1 : chosen.lv,
-        warmupOnly: chosen.lv === 1
+        level: chosen.lv,
+        continuous: document.getElementById('lv-continuous').checked,
+        revealAfterAudio: document.getElementById('lv-reveal').checked
       });
     });
   }

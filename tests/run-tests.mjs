@@ -29,6 +29,7 @@ const files = [
   'data/textbooks/minna/beginner1.js', 'data/textbooks/minna/lesson-page-index.js',
   'data/conjugation/lexicon.js',
   'data/numbers/scenario-frames.js',
+  'data/listening/skeletons.js',
   'data/pending/grammar-pending.js',
   'data/pending/grammar/lesson-01-05.js', 'data/pending/grammar/lesson-06-10.js',
   'data/pending/grammar/lesson-11-15.js', 'data/pending/grammar/lesson-16-21.js',
@@ -258,24 +259,106 @@ MJT_DATA.scenarioFrames.forEach(f => {
   ok(positions.every(p => p > 10), '正确答案位置随机分布 ' + JSON.stringify(positions));
 }
 
-/* ================= 听力等级系统 ================= */
+/* ================= Listening Engine 2.0（六等级独立生成 + 等级隔离 + 防重复） ================= */
 eq(MJT.listening.DEFAULT_LEVEL, 3, '默认听力等级为 Level 3');
-// Level 5 对话规则
+{
+  const L = MJT.listening;
+  const V = MJT.validator;
+
+  // 素材池规模（真实数量，不虚报）
+  const mc = L.materialCounts();
+  ok(mc.sentenceL2 >= 4 && mc.sentenceL3 >= 3 && mc.structL4 >= 2 && mc.dialogL5 >= 4 && mc.sceneL6 >= 2,
+    '各等级素材骨架齐备 ' + JSON.stringify(mc));
+  ok(mc.vocabSlots >= 30 && mc.scenes >= 8, '词汇槽 ' + mc.vocabSlots + ' 场景 ' + mc.scenes);
+
+  // 六个独立生成器：结构验证器逐一通过，且 listeningLevel/generatorId/structureType 正确
+  const GENS = { 1: L.generateLevel1, 2: L.generateLevel2, 3: L.generateLevel3, 4: L.generateLevel4, 5: L.generateLevel5, 6: L.generateLevel6 };
+  for (let lvl = 1; lvl <= 6; lvl++) {
+    L.resetLevel(lvl);
+    let structPass = 0;
+    for (let i = 0; i < 60; i++) {
+      const it = GENS[lvl]();
+      ok(it.listeningLevel === lvl, `generateLevel${lvl} 标记 listeningLevel=${lvl}`);
+      ok(it.generatorId === 'L' + lvl, `generateLevel${lvl} generatorId=L${lvl}`);
+      ok(!!it.structureType, `generateLevel${lvl} 有 structureType`);
+      const errs = V.validateListeningLevelStructure(it, lvl);
+      if (!errs.length) structPass++;
+      else { fail++; failures.push(`L${lvl} 结构验证失败: ${errs.join('；')} | display=${(it.listening && it.listening.displayText || '').replace(/\n/g, ' / ')}`); }
+      // 听力三源同步
+      ok(it.listening && it.listening.speechText === it.audioScript && !!it.listening.readingText && !!it.listening.displayText,
+        `L${lvl} displayText/speechText/readingText 同源`);
+      // 选项规则
+      ok(it.options.length >= 3 && it.options.includes(it.answer) && new Set(it.options).size === it.options.length,
+        `L${lvl} 选项≥3、含答案、不重复`);
+    }
+    ok(structPass === 60, `L${lvl} 60 题全部通过等级结构验证（${structPass}/60）`);
+  }
+
+  // 等级不符必被验证器拒绝（不得降级）：拿 L1 题按 L3 校验必须报错
+  {
+    L.resetLevel(1);
+    const l1 = L.generateLevel1();
+    const mism = V.validateListeningLevelStructure(l1, 3);
+    ok(mism.some(e => e.includes('等级不符')), '等级不符的题目被验证器拒绝（L1 冒充 L3）');
+    // L2 “禁止只播放裸数字”被拒
+    const bare = { listeningLevel: 2, generatorId: 'L2', structureType: '带单位短句', infoCount: 1, options: ['110円', '120円', '130円'], answer: '110円', question: 'x', listening: { displayText: '110円', speechText: 'x', readingText: 'x' }, scriptJa: '110円' };
+    ok(V.validateListeningLevelStructure(bare, 2).some(e => e.includes('孤立数字') || e.includes('完整')), 'L2 拦截孤立数字（禁止只播放110円）');
+    // L6 退化成两轮对话被拒
+    const shallow = { listeningLevel: 6, generatorId: 'L6', structureType: '完整场景', turnsCount: 2, infoCount: 3, options: ['a', 'b', 'c'], answer: 'a', question: 'x', listening: { displayText: 'A：x\nB：y', speechText: 'x', readingText: 'x' }, scriptJa: 'A：x\nB：y' };
+    ok(V.validateListeningLevelStructure(shallow, 6).some(e => e.includes('4 轮')), 'L6 拦截退化为两轮对话');
+  }
+
+  // 无静默降级：请求 L3，连续 200 题全部为 L3，且完全相同题目重复率为 0
+  for (let lvl = 1; lvl <= 6; lvl++) {
+    L.resetLevel(lvl);
+    const sim = [];
+    let genErr = 0;
+    for (let i = 0; i < 200; i++) {
+      const q = L.generate(lvl);
+      if (q && q.__error) { genErr++; continue; }
+      sim.push(q);
+    }
+    ok(genErr === 0, `L${lvl} 200 题生成无 __error（${genErr} 次失败）`);
+    ok(sim.every(q => q.listeningLevel === lvl), `L${lvl} 200 题无一降级到其它等级`);
+    // 完全相同题目（指纹）重复率为 0
+    const fps = sim.map(q => q.fingerprint);
+    eq(new Set(fps).size, sim.length, `L${lvl} 200 题完全相同题目重复率为 0（${new Set(fps).size}/${sim.length}）`);
+    // 同一场景不连续（warmup 除外）
+    let consecScene = 0;
+    for (let i = 1; i < sim.length; i++) if (sim[i].scene === sim[i - 1].scene && sim[i].scene !== 'warmup') consecScene++;
+    // 场景数量有限，允许少量连续（放宽阶段），但非全部连续
+    ok(consecScene < sim.length * 0.6, `L${lvl} 场景不至于长期连续重复（连续 ${consecScene}/${sim.length}）`);
+    // 正确答案位置最长连续 ≤ 3
+    let run = 1, maxRun = 1;
+    for (let i = 1; i < sim.length; i++) {
+      if (sim[i].answerPos === sim[i - 1].answerPos) { run++; maxRun = Math.max(maxRun, run); } else run = 1;
+    }
+    ok(maxRun <= 3, `L${lvl} 正确答案位置最长连续 ${maxRun} 次（≤3）`);
+  }
+
+  // 等级隔离：切换/重置会清空该等级队列缓存
+  L.resetLevel(3);
+  for (let i = 0; i < 5; i++) L.generate(3);
+  ok(L.sessionInfo(3).answered === 5, 'L3 出题后计数=5');
+  L.resetLevel(3);
+  ok(L.sessionInfo(3).answered === 0, 'resetLevel(3) 后计数归零（切换等级清空队列）');
+
+  // 结构文本与素材数量对外可查
+  for (let lvl = 1; lvl <= 6; lvl++) {
+    ok(!!L.levelStructureText(lvl) && !!L.levelMaterialCount(lvl), `L${lvl} 有结构说明与素材数量`);
+  }
+
+  // 默认等级(L3)绝不产出孤立数字热身题
+  const wr = MJT.validator.checkWarmupRatio(200);
+  eq(wr.warmup, 0, `默认等级听力训练中孤立数字热身题 = 0（等级隔离，${wr.warmup}/${wr.total}）`);
+}
+
+// 兼容：旧题库 L5 对话规则仍校验（题库数据未删除）
 MJT_DATA.pendingListening.filter(q => (q.level || 0) >= 5).forEach(q => {
   const errs = MJT.validator.validateDialogue(q);
   if (errs.length) { fail++; failures.push(`L5 ${q.id}: ${errs.join('；')}`); } else pass++;
   ok(q.infoCount >= 2, `${q.id} L5 信息点≥2`);
 });
-// 单数字题（基础热身）占比 ≤5%
-{
-  const r = MJT.validator.checkWarmupRatio(400);
-  ok(r.ok, `正式听力训练中孤立数字题占比 ${(r.ratio * 100).toFixed(1)}% ≤ ${r.limit * 100}%（${r.warmup}/${r.total}）`);
-}
-// L2-L4 生成题必须是完整表达（句子含语境文字，非裸数字）
-for (let i = 0; i < 50; i++) {
-  const q = MJT.scenarioNumbers.generate('mixed', 4, { minLevel: 2 });
-  ok(q.scriptJa.replace(/[0-9０-９:：円時分月日人本枚冊台回階杯個匹]/g, '').length >= 4, `L${q.level} 数字进入完整表达`);
-}
 
 /* ================= 阅读问题与答案匹配 ================= */
 MJT_DATA.pendingReading.forEach(p => {

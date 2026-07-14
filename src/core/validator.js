@@ -187,6 +187,74 @@ MJT.validator = (function () {
     return errors;
   }
 
+  /* ============ Listening Engine 2.0 等级结构硬验证 ============
+   * 校验单条动态生成的听力题是否达到其"声明等级"的结构标准。
+   * 供 MJT.listening.generate() 在出题前调用：任一错误 → 该题拒绝、
+   * 重新生成，绝不静默降级为更简单的题。expectedLevel 为当前所选等级，
+   * 生成题的 listeningLevel 与之不符时直接拒绝。 */
+  function validateListeningLevelStructure(item, expectedLevel) {
+    var errors = [];
+    if (!item) return ['空题目'];
+    var lvl = item.listeningLevel;
+    if (typeof lvl !== 'number') { errors.push('缺少 listeningLevel'); return errors; }
+    if (expectedLevel !== undefined && expectedLevel !== null && lvl !== expectedLevel) {
+      // 等级不符是致命错误：直接拒绝，不再检查其它结构（不得降级）
+      return ['等级不符：生成为 L' + lvl + '，当前要求 L' + expectedLevel];
+    }
+    if (item.generatorId !== 'L' + lvl) errors.push('generatorId 与等级不一致（' + item.generatorId + ' vs L' + lvl + '）');
+    if (!isNonEmptyString(item.structureType)) errors.push('缺少 structureType');
+
+    var display = (item.listening && item.listening.displayText) || item.scriptJa || '';
+    var info = item.infoCount || 0;
+    var hasPredicate = /(です|ます|でした|ました|ください|ましょう|ですか|ますか|ません|ください)/.test(display);
+    var nonDigitLen = display.replace(/[\s\n。、！？!?.：:0-9０-９円時分月日]/g, '').length;
+    var turns = item.turnsCount || 0;
+    var isDialogue = display.indexOf('\n') !== -1;
+
+    switch (lvl) {
+      case 1:
+        if (info !== 1) errors.push('L1 必须恰好单信息（infoCount=1，当前 ' + info + '）');
+        break;
+      case 2:
+        if (!hasPredicate) errors.push('L2 必须是完整短句（含谓语 です/ます 等）');
+        if (nonDigitLen < 3) errors.push('L2 不得只播放孤立数字/单位，需完整句子');
+        break;
+      case 3:
+        if (!item.scene || item.scene === 'warmup') errors.push('L3 必须带场景');
+        if (info < 2) errors.push('L3 必须含 ≥2 个信息点（当前 ' + info + '）');
+        if (!hasPredicate) errors.push('L3 必须是完整场景句');
+        break;
+      case 4:
+        if (info < 2) errors.push('L4 必须含 ≥2 个信息点（当前 ' + info + '）');
+        if (!item.hasRelation) errors.push('L4 必须含先后/并列关系（hasRelation）');
+        if (!item.hasPerson) errors.push('L4 必须含人物（hasPerson）');
+        break;
+      case 5:
+        if (turns < 2) errors.push('L5 必须是 2 轮以上对话（当前 ' + turns + '）');
+        if (turns > 4) errors.push('L5 对话不得超过 4 轮（当前 ' + turns + '）');
+        if (!isDialogue) errors.push('L5 必须是多轮对话（换行分隔发言）');
+        break;
+      case 6:
+        if (turns < 4) errors.push('L6 必须是 4 轮以上完整场景（当前 ' + turns + '），不得退化为单句/两轮对话');
+        if (turns > 8) errors.push('L6 对话不得超过 8 轮（当前 ' + turns + '）');
+        if (!isDialogue) errors.push('L6 必须是多轮连续对话');
+        break;
+      default:
+        errors.push('未知听力等级 L' + lvl);
+    }
+
+    // 选项通用规则：≥3 项、含正确答案、不重复
+    if (!isArray(item.options) || item.options.length < 3) errors.push('选项少于 3 个');
+    else {
+      if (item.options.indexOf(item.answer) === -1) errors.push('选项不含正确答案');
+      var set = {}; var dup = false;
+      item.options.forEach(function (o) { if (set[String(o)]) dup = true; set[String(o)] = true; });
+      if (dup) errors.push('选项重复');
+    }
+    if (!isNonEmptyString(item.question)) errors.push('缺少题干');
+    return errors;
+  }
+
   /* Level 5 校验：必须是对话且 ≥2 信息点 */
   function validateDialogue(q) {
     var errors = [];
@@ -281,21 +349,22 @@ MJT.validator = (function () {
     return report;
   }
 
-  /* 正式训练组卷抽样：孤立数字题（基础热身）比例检查。
-   * 抽样 n 组听力 getNext 输出，统计 warmup 占比是否 ≤ 上限。 */
+  /* 正式训练组卷抽样：默认等级(L3)绝不产出孤立数字热身题。
+   * Listening 2.0 下等级隔离，热身仅存在于 L1；此处抽样默认等级确认
+   * warmup 占比为 0（若为非 0 说明等级隔离被破坏）。 */
   function checkWarmupRatio(sampleSize) {
-    var settings = MJT.app.getSettings();
     var n = sampleSize || 200;
-    var getNext = MJT.listening.buildGetNext(MJT.listening.DEFAULT_LEVEL, settings, { count: n });
+    var lvl = MJT.listening.DEFAULT_LEVEL;
+    MJT.listening.resetLevel(lvl);
     var warmup = 0, total = 0;
     for (var i = 0; i < n; i++) {
-      var q = getNext(i);
-      if (!q) continue;
+      var q = MJT.listening.generate(lvl);
+      if (!q || q.__error) continue;
       total++;
-      if (q.warmup || q.level === 1) warmup++;
+      if (q.warmup || q.listeningLevel === 1) warmup++;
     }
     var ratio = total ? warmup / total : 0;
-    return { total: total, warmup: warmup, ratio: ratio, limit: MJT.listening.WARMUP_RATIO, ok: ratio <= MJT.listening.WARMUP_RATIO + 0.02 };
+    return { total: total, warmup: warmup, ratio: ratio, limit: 0.05, ok: ratio <= 0.05 };
   }
 
   return {
@@ -304,6 +373,7 @@ MJT.validator = (function () {
     validateScenario: validateScenario,
     validateFrame: validateFrame,
     validateDialogue: validateDialogue,
+    validateListeningLevelStructure: validateListeningLevelStructure,
     optionErrors: optionErrors,
     checkWarmupRatio: checkWarmupRatio
   };

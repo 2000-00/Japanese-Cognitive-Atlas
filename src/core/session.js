@@ -43,6 +43,20 @@ MJT.session = (function () {
       MJT.speech.stop();
       if (state.index >= state.count) return finish();
       var q = cfg.getNext(state.index);
+      if (q && q.__listeningError) {
+        // 生成器多次仍无法产出达标结构：显示真实错误，绝不降级为简单题
+        cleanup();
+        container.innerHTML =
+          '<div class="panel warn-panel"><h3>本等级暂时无法出题</h3>' +
+          '<p>' + esc(q.__listeningError) + '</p>' +
+          '<p class="dim">系统已按规则拒绝不达标的题目并重试，但未能在限次内生成符合该等级结构的新题——'
+          + '不会用更简单的题目替代。请稍后重试，或切换到其它听力等级。</p>' +
+          (state.records.length ? '<button class="btn btn-primary" data-action="err-finish">查看本组小结</button>' : '') +
+          '</div>';
+        var ef = container.querySelector('[data-action="err-finish"]');
+        if (ef) ef.addEventListener('click', finish);
+        return;
+      }
       if (!q) {
         if (state.records.length) return finish();
         container.innerHTML =
@@ -68,9 +82,17 @@ MJT.session = (function () {
         volume: settings.volume !== undefined ? settings.volume : 1,
         audioUrl: q.audioUrl || null,
         onend: function () {
+          if (cfg.revealOptionsAfterAudio) revealOptions();
           if (state.loop && !state.answered) setTimeout(function () { if (state.loop && !state.answered) playAudio(rate); }, 800);
         }
       });
+    }
+
+    function revealOptions() {
+      var opts = container.querySelector('#mjt-options');
+      if (opts) { opts.style.display = ''; opts.classList.remove('options-hidden'); }
+      var hint = container.querySelector('#mjt-opts-hint');
+      if (hint) hint.style.display = 'none';
     }
 
     function render(q) {
@@ -119,7 +141,9 @@ MJT.session = (function () {
         html += '<div class="input-row"><input type="text" id="mjt-answer-input" class="answer-input" inputmode="numeric" placeholder="输入答案">' +
           '<button class="btn btn-primary" data-action="submit-input">提交</button></div>';
       } else {
-        html += '<div class="options">';
+        var hideOpts = cfg.revealOptionsAfterAudio && q.audioScript;
+        if (hideOpts) html += '<p class="dim small" id="mjt-opts-hint">🎧 请先完整听一遍音频，选项将在播放后显示。</p>';
+        html += '<div class="options' + (hideOpts ? ' options-hidden' : '') + '" id="mjt-options"' + (hideOpts ? ' style="display:none"' : '') + '>';
         (q.options || []).forEach(function (opt, i) {
           html += '<button class="btn option-btn" data-option="' + esc(opt) + '"><span class="opt-key">' + (i + 1) + '</span> <span class="opt-text jp-text">' + esc(opt) + '</span></button>';
         });
@@ -156,6 +180,11 @@ MJT.session = (function () {
         container.querySelector('#mjt-answer-input').addEventListener('keydown', function (e) {
           if (e.key === 'Enter') doSubmit();
         });
+      }
+      // 揭示选项的兜底：无可用 TTS 或长时间未结束时仍让用户能作答
+      if (cfg.revealOptionsAfterAudio && q.audioScript) {
+        if (!MJT.speech.available) revealOptions();
+        else setTimeout(function () { if (!state.answered) revealOptions(); }, 12000);
       }
     }
 

@@ -250,15 +250,59 @@ const formalCounted = await page.evaluate(() =>
   JSON.parse(localStorage.getItem('mjt:response-times') || '[]').filter(r => r.module === 'scenario').length >= 1);
 ok(formalCounted, '正式模式场景作答计入统计');
 
-/* 13.7 听力等级页：默认 L3 */
+/* 13.7 听力 Engine 2.0：六个等级各自独立出题、结构不退化 */
 await page.goto(URL + '#listening');
 await page.waitForSelector('[data-lv]');
 const activeLv = await page.$eval('.chip.active[data-lv]', el => el.getAttribute('data-lv'));
 ok(activeLv === '3', '听力默认等级为 Level 3');
-await page.click('#listen-start');
-await page.waitForSelector('.option-btn');
-const lsText = await page.textContent('#mjt-main');
-ok(/【.+】/.test(lsText), '听力L3出题为场景句信息提取');
+ok((await page.textContent('#lv-info')).includes('结构要求'), '等级信息面板显示结构要求与素材数量');
+
+// 逐个等级点击 → 开始 → 校验出题标记与真实结构（不降级为数字题）
+const levelChecks = [
+  { lv: 1, marker: '【L1', name: '单信息热身' },
+  { lv: 2, marker: '【L2', name: '带单位短句' },
+  { lv: 3, marker: '【L3', name: '场景单句' },
+  { lv: 4, marker: '【L4', name: '双信息' },
+  { lv: 5, marker: '【L5', name: '短对话' },
+  { lv: 6, marker: '【L6', name: '完整场景' }
+];
+for (const c of levelChecks) {
+  await page.goto(URL + '#listening');
+  await page.waitForSelector('[data-lv="' + c.lv + '"]');
+  await page.click('[data-lv="' + c.lv + '"]');
+  await page.click('#listen-start');
+  await page.waitForSelector('.option-btn');
+  const qText = await page.textContent('.question-card');
+  ok(qText.includes(c.marker), 'L' + c.lv + ' 出题带本级标记 ' + c.marker + '（点哪级练哪级，不降级）');
+  // 该题在页面内声明的 listeningLevel 必须等于所选等级
+  const lvlOk = await page.evaluate((lv) => {
+    // 通过一次独立生成校验引擎输出等级一致（不依赖会话内部状态）
+    const it = MJT.listening.generate(lv);
+    return it && !it.__error && it.listeningLevel === lv &&
+      MJT.validator.validateListeningLevelStructure(it, lv).length === 0;
+  }, c.lv);
+  ok(lvlOk, 'L' + c.lv + ' 生成题 listeningLevel 与所选一致且通过结构验证');
+  if (c.lv >= 5) {
+    // 对话类：作答后原文应为多轮（含换行/发言人）
+    await page.click('.option-btn');
+    await page.waitForSelector('.result-panel');
+    const script = await page.textContent('.script-block');
+    ok(/：|:/.test(script), 'L' + c.lv + ' 原文为多轮对话（含发言人）');
+  }
+}
+
+// 无静默降级：默认等级(L3)连续生成 100 题全部 L3
+const noDowngrade = await page.evaluate(() => {
+  MJT.listening.resetLevel(3);
+  let allL3 = true, err = 0;
+  for (let i = 0; i < 100; i++) {
+    const q = MJT.listening.generate(3);
+    if (q && q.__error) { err++; continue; }
+    if (q.listeningLevel !== 3) allL3 = false;
+  }
+  return allL3 && err === 0;
+});
+ok(noDowngrade, 'L3 连续100题无一降级为其它等级、无生成失败');
 
 /* 13.8 数字专项双入口 */
 await page.goto(URL + '#numbers');
