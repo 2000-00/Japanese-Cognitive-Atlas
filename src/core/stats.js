@@ -18,6 +18,8 @@ MJT.stats = (function () {
       level: entry.level || null,              // 听力等级
       warmup: !!entry.warmup,                  // 是否基础热身（孤立数字题）
       interaction: entry.interaction || null,  // choose / respond / input
+      conjForm: entry.conjForm || null,        // 变形训练：目标变形（自适应权重用）
+      qtype: entry.qtype || null,              // 题型
       questionText: entry.questionText || '',
       correct: !!entry.correct,
       startTime: entry.startTime,

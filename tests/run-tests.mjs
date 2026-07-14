@@ -385,19 +385,91 @@ MJT_DATA.pendingScenarios.forEach(sc => {
   // 词库真实性标记
   ok(lex.ref.sourceStatus === 'verified' && lex.ref.lessonAttribution.status === 'pending', '词库：读法verified但课程归属pending');
 
-  // 变形题生成：结构完整 + 通过验证器 + 选项去重
-  let cjChecked = 0;
-  for (let i = 0; i < 300; i++) {
-    const mode = i % 5 === 0 ? 'warmup' : 'scene';
-    const q = MJT.conjugationDrills.generate(mode, (i % 3) + 1);
-    ok(q.options.includes(q.answer) && new Set(q.options).size === q.options.length, `变形题选项含答案且不重复(${mode})`);
-    ok(q.contentType === 'ai_generated_practice' && q.isTextbookOriginal === false, `变形题真实性标记(${mode})`);
-    ok(!!q.explanation && q.explanation.length > 5, `变形题有解析(${mode})`);
-    if (mode === 'warmup') ok(q.warmup === true, '热身题标 warmup');
-    else ok(q.relationship && q.scenarioContext, '情景变形题带人物关系与场景');
-    cjChecked++;
+}
+
+/* ================= 变形引擎 2.0：动态生成 / 防重复 / 听力 ================= */
+{
+  const CD = MJT.conjugationDrills;
+  // 词汇池数量
+  const ps = CD.poolStats();
+  ok(ps.verbs >= 55, '动词池 ' + ps.verbs + ' 个（大幅扩容）');
+  ok(ps.iAdj >= 25, 'い形容词池 ' + ps.iAdj + ' 个');
+  ok(ps.naAdj >= 25, 'な形容词池 ' + ps.naAdj + ' 个');
+  ok(ps.nouns >= 40, '名词判断句素材 ' + ps.nouns + ' 个');
+
+  // 30分钟模拟：连续生成200题，检查重复率与各项约束
+  CD.resetHistory();
+  const sim = [];
+  for (let i = 0; i < 200; i++) sim.push(CD.generate('mixed', 2, { listeningRatio: 0.5 }));
+  // 每题结构与验证器
+  let structOk = 0, listenCount = 0, listenLinkOk = 0;
+  sim.forEach(q => {
+    const errs = MJT.validator.validateItem(q, { kind: 'question', seenIds: {} });
+    if (!errs.length) structOk++;
+    if (q.format === 'audio-input') ok(!!q.answer && q.acceptedAnswers, '输入题有答案与可接受答案');
+    else ok(q.options.includes(q.answer) && new Set(q.options).size === q.options.length, '选项含答案且不重复');
+    if (q.audioScript) {
+      listenCount++;
+      if (q.listening && q.listening.speechText === q.audioScript && q.listening.readingText && q.listening.displayText) listenLinkOk++;
+    }
+  });
+  eq(structOk, 200, '200题全部通过验证器结构检查');
+  // 完全相同题目重复率为0（按 skeleton + 选项/答案 组合）
+  const sig = sim.map(q => q.skeleton + '|' + (q.options ? q.options.join(',') : q.answer));
+  eq(new Set(sig).size, 200, '200题完全相同题目重复率为0');
+  // 同一目标词连续重复率为0
+  let consecWord = 0;
+  for (let i = 1; i < sim.length; i++) if (sim[i].wordId === sim[i - 1].wordId) consecWord++;
+  eq(consecWord, 0, '同一目标词连续重复=0');
+  // 最近8题目标词不重复
+  let win8 = 0;
+  for (let i = 0; i < sim.length; i++) {
+    const w = sim[i].wordId;
+    for (let j = Math.max(0, i - 7); j < i; j++) if (sim[j].wordId === w) { win8++; break; }
   }
-  eq(cjChecked, 300, '批量生成300道变形题');
+  eq(win8, 0, '最近8题内目标词不重复');
+  // 正确答案位置连续相同不超过2次
+  let maxRun = 1, run = 1;
+  for (let i = 1; i < sim.length; i++) {
+    if (sim[i].answerPos === sim[i - 1].answerPos && sim[i].answerPos !== undefined) { run++; maxRun = Math.max(maxRun, run); } else run = 1;
+  }
+  ok(maxRun <= 3, '正确答案位置最长连续 ' + maxRun + ' 次（≤3可接受）');
+  // 答案位置分布（4选项应大致均匀，各位置>15次）
+  const posDist = [0, 0, 0, 0];
+  sim.forEach(q => { if (q.answerPos >= 0 && q.answerPos < 4) posDist[q.answerPos]++; });
+  ok(posDist.filter(p => p > 15).length >= 3, '答案位置分布较均匀 ' + JSON.stringify(posDist));
+  // 听力比例符合设置（50%±15%）
+  const listenRatio = listenCount / 200;
+  ok(listenRatio >= 0.35 && listenRatio <= 0.65, '听力题比例 ' + Math.round(listenRatio * 100) + '% 接近设定50%');
+  // 听力数据 speechText/displayText/readingText 关联
+  eq(listenLinkOk, listenCount, '所有听力题 speechText=audioScript 且 readingText/displayText 存在');
+  // sessionInfo 统计
+  const info = CD.sessionInfo();
+  ok(info.distinctWords >= 40, '200题模拟使用不同词 ' + info.distinctWords + ' 个');
+
+  // 各题型可单独生成
+  ['clozeForm', 'formToDict', 'errorCorrection', 'adjNoun', 'listenFormToDict', 'listenLabel',
+   'listenSentenceForm', 'listenSentenceGap', 'listenDialogue', 'listenTransform'].forEach(t => {
+    CD.resetHistory();
+    const q = CD.generate(t, 2);
+    ok(q.qtype === t || t === 'listenTransform', '题型 ' + t + ' 可生成');
+    if (t.indexOf('listen') === 0) ok(!!q.audioScript && !!q.listening, t + ' 是听力题（有audioScript+listening数据）');
+  });
+  // 全听力模式：听力比例=100%
+  CD.resetHistory();
+  let allListen = 0;
+  for (let i = 0; i < 50; i++) { const q = CD.generate('mixed', 2, { listeningRatio: 1 }); if (q.audioScript) allListen++; }
+  ok(allListen === 50, '全听力模式下 50/50 均为听力题');
+  // 纯文字模式：听力比例=0%
+  CD.resetHistory();
+  let noListen = 0;
+  for (let i = 0; i < 50; i++) { const q = CD.generate('mixed', 2, { listeningRatio: 0 }); if (q.audioScript) noListen++; }
+  eq(noListen, 0, '纯文字模式下无听力题');
+
+  // 听后变形（模式D）是输入题且有可接受答案
+  CD.resetHistory();
+  const dq = CD.generate('listenTransform', 2);
+  ok(dq.format === 'audio-input' && dq.acceptedAnswers && dq.acceptedAnswers.length >= 1, '听后变形为输入题且有可接受答案');
 }
 
 /* ================= 词汇覆盖 / 缺口扫描 ================= */

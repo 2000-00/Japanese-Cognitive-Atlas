@@ -280,27 +280,45 @@ const statsText2 = await page.textContent('#mjt-main');
 ok(statsText2.includes('场景训练') && statsText2.includes('用户回应正确率'), '统计页显示场景统计与回应正确率');
 ok(statsText2.includes('知识点掌握') && statsText2.includes('4 个不同场景'), '统计页显示跨场景掌握模型');
 
-/* 13.11 变形训练：情景模式作答，含变形过程解析 */
+/* 13.11 变形训练 2.0：综合模式作答，含变形过程解析 + 词汇池/防重复展示 */
 await page.goto(URL + '#conjugation');
 await page.waitForSelector('#cj-start');
-ok((await page.textContent('#mjt-main')).includes('情景反应') && (await page.textContent('#mjt-main')).includes('基础热身'), '变形训练页有情景/热身双模式');
+const cjPage = await page.textContent('#mjt-main');
+ok(cjPage.includes('2.0') && cjPage.includes('词汇池') && cjPage.includes('变形听力'), '变形训练页显示2.0/词汇池/听力模式');
+ok(/动词 \d+/.test(cjPage), '页面显示真实词汇池数量');
 await page.click('#cj-start');
-await page.waitForSelector('.option-btn');
-await page.click('.option-btn');
-await page.waitForSelector('.result-panel');
-const cjResult = await page.textContent('.result-panel');
-ok(/原形与变形|变形|反应时间/.test(cjResult), '变形题作答后显示变形过程解析与反应时间');
+await page.waitForSelector('.option-btn, .answer-input');
+const liveText = await page.textContent('#cj-live');
+ok(liveText.includes('已用不同词') && liveText.includes('最近20题重复词'), '实时显示防重复统计（不同词/重复词）');
+// 作答若干题（文字或输入），确认无重复卡死且计入统计
+let answered = 0;
+for (let i = 0; i < 6; i++) {
+  const opt = await page.$('.option-btn');
+  if (opt) { await opt.click(); }
+  else { const inp = await page.$('.answer-input'); if (inp) { await inp.fill('テスト'); await page.click('[data-action="submit-input"]'); } }
+  await page.waitForTimeout(200);
+  const nextBtn = await page.$('[data-action="next"]');
+  if (nextBtn) { await nextBtn.click(); await page.waitForTimeout(150); answered++; }
+  await page.waitForSelector('.option-btn, .answer-input, .summary-panel').catch(() => {});
+  if (await page.$('.summary-panel')) break;
+}
+ok(answered >= 3, '变形训练可连续作答多题（不卡重复）');
 const cjRecorded = await page.evaluate(() =>
   JSON.parse(localStorage.getItem('mjt:response-times') || '[]').some(r => r.module === 'conjugation'));
 ok(cjRecorded, '变形训练计入统计');
 
-/* 13.12 变形热身模式 */
+/* 13.12 变形听力模式：出现音频控制条，答题前隐藏原文 */
 await page.goto(URL + '#conjugation');
-await page.waitForSelector('[data-m="warmup"]');
-await page.click('[data-m="warmup"]');
+await page.waitForSelector('[data-m="listen"]');
+await page.click('[data-m="listen"]');
 await page.click('#cj-start');
-await page.waitForSelector('.option-btn');
-ok((await page.textContent('#mjt-main')).includes('基础热身'), '变形热身模式生成孤立词题');
+await page.waitForSelector('.audio-player');
+ok((await page.$('.audio-player')) !== null, '变形听力模式出现音频播放控制条');
+const preAnswer = await page.textContent('.question-card');
+ok(!/。/.test(preAnswer) || preAnswer.includes('（　）') || preAnswer.includes('原形'), '听力题作答前不直接显示完整原文句');
+await page.click('.option-btn');
+await page.waitForSelector('.result-panel');
+ok((await page.textContent('.result-panel')).includes('原文'), '变形听力作答后显示原文');
 
 /* 13.13 词汇覆盖页 */
 await page.goto(URL + '#coverage');

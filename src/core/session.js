@@ -189,6 +189,8 @@ MJT.session = (function () {
         scenarioId: q.scenarioId || q.frameId || null,
         level: q.level || null,
         warmup: !!q.warmup,
+        conjForm: q.conjForm || null,   // 变形训练：自适应权重据此统计弱形式
+        qtype: q.qtype || null,
         questionText: q.question || '',
         correct: correct,
         startTime: Math.round(state.startTime),
@@ -214,6 +216,16 @@ MJT.session = (function () {
         else if (String(v) === String(userAnswer) && !correct) btn.classList.add('wrong');
         btn.disabled = true;
       });
+
+      if (cfg.continuous) {
+        // 连续模式：只给紧凑反馈，自动进入下一题，结果在结束时汇总
+        var el = container.querySelector('#mjt-result');
+        el.innerHTML = '<div class="result-panel ' + (correct ? 'result-correct' : 'result-wrong') + '">' +
+          '<div class="result-head"><strong>' + (correct ? '✓' : '✗ 正确：' + esc(q.answer)) + '</strong>' +
+          '<span class="rt-badge">' + fmtSec(responseTime) + '</span></div></div>';
+        setTimeout(function () { if (state.answered) next(); }, correct ? 700 : 1400);
+        return;
+      }
 
       renderResult(q, userAnswer, correct, responseTime, errorType);
 

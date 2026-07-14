@@ -983,45 +983,81 @@ MJT.app = (function () {
   /* ============ 变形训练 ============ */
   function pageConjugation(main) {
     var s = getSettings();
-    var html = '<h2>变形训练 · Conjugation</h2>' +
+    var stageObj = MJT.scope.stageById(s.stage);
+    var ps = MJT.conjugationDrills.poolStats();
+    var html = '<h2>变形训练 · Conjugation Reaction Engine 2.0</h2>' +
       '<p class="dim">动词（五段/一段/不规则）、い形容词、な形容词、名词判断句的活用反应。' +
-      '默认"情景反应"：变形放进带人物关系与时间的完整句；"基础热身"为孤立词快速反应。' +
-      '活用规则为辞典可核实的客观事实，生成的练习标注"基于已验证知识生成"。</p>';
-    html += '<div class="panel"><div class="form-row"><label>模式</label><div class="chip-row" id="cj-mode">' +
-      '<button class="chip active" data-m="scene">情景反应（默认）</button>' +
-      '<button class="chip" data-m="warmup">基础热身（孤立词·速度反应）</button>' +
+      '大词库 × 变形 × 场景 × 人物关系 × 时间 × 题型 动态组合，内置防重复。' +
+      '活用规则辞典可核实；词库为通用常见词（课程归属 pending，非教材词表）。</p>';
+    html += '<div class="panel small dim">当前范围：' + (stageObj ? stageObj.name + ' · ' : '') + '第1～' + s.maxLesson + '课　·　' +
+      '词汇池：动词 ' + ps.verbs + '、い形 ' + ps.iAdj + '、な形 ' + ps.naAdj + '、名词 ' + ps.nouns + '（共 ' + ps.total + '）</div>';
+    html += '<div class="panel">' +
+      '<div class="form-row"><label>模式</label><div class="chip-row" id="cj-mode">' +
+      '<button class="chip active" data-m="mixed">综合（文字+听力）</button>' +
+      '<button class="chip" data-m="listen">变形听力（模式A/B/C/D）</button>' +
+      '<button class="chip" data-m="continuous">连续变形听力</button>' +
+      '<button class="chip" data-m="text">纯文字变形</button>' +
+      '<button class="chip" data-m="warmup">基础热身</button>' +
       '</div></div>' +
+      '<div class="form-row"><label>听力题比例</label><div class="chip-row" id="cj-ratio">' +
+      [['0.5', '50%（默认）'], ['0.7', '70%'], ['1', '全听力'], ['0.3', '30%']].map(function (r, i) {
+        return '<button class="chip' + (i === 0 ? ' active' : '') + '" data-r="' + r[0] + '">' + r[1] + '</button>';
+      }).join('') + '</div></div>' +
       '<div class="form-row"><label>难度</label><div class="chip-row" id="cj-diff">' +
       [1, 2, 3].map(function (d) { return '<button class="chip' + (d === s.difficulty ? ' active' : '') + '" data-d="' + d + '">' + ['基础', '初级', '综合'][d - 1] + '</button>'; }).join('') +
       '</div></div>' +
+      '<div class="form-row"><label>题目数量</label><div class="chip-row" id="cj-count">' +
+      [10, 20, 30].map(function (c) { return '<button class="chip' + (c === s.questionCount ? ' active' : '') + '" data-c="' + c + '">' + c + '</button>'; }).join('') +
+      '</div></div>' +
       '<button class="btn btn-primary" id="cj-start">开始训练 →</button></div>' +
-      '<div id="cj-session"></div>';
+      '<div id="cj-live"></div><div id="cj-session"></div>';
     main.innerHTML = html;
-    var chosen = { mode: 'scene', diff: s.difficulty };
-    main.querySelectorAll('[data-m]').forEach(function (b) {
-      b.addEventListener('click', function () { main.querySelectorAll('[data-m]').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); chosen.mode = b.getAttribute('data-m'); });
-    });
-    main.querySelectorAll('[data-d]').forEach(function (b) {
-      b.addEventListener('click', function () { main.querySelectorAll('[data-d]').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); chosen.diff = parseInt(b.getAttribute('data-d'), 10); });
-    });
+    var chosen = { mode: 'mixed', ratio: 0.5, diff: s.difficulty, count: s.questionCount };
+    function bind(sel, key, parse) {
+      main.querySelectorAll(sel).forEach(function (b) {
+        b.addEventListener('click', function () {
+          b.parentNode.querySelectorAll('.chip').forEach(function (x) { x.classList.remove('active'); });
+          b.classList.add('active'); chosen[key] = parse(b);
+        });
+      });
+    }
+    bind('[data-m]', 'mode', function (b) { return b.getAttribute('data-m'); });
+    bind('[data-r]', 'ratio', function (b) { return parseFloat(b.getAttribute('data-r')); });
+    bind('[data-d]', 'diff', function (b) { return parseInt(b.getAttribute('data-d'), 10); });
+    bind('[data-c]', 'count', function (b) { return parseInt(b.getAttribute('data-c'), 10); });
     document.getElementById('cj-start').addEventListener('click', function () {
-      startConjugationSession(document.getElementById('cj-session'), chosen.mode, chosen.diff);
+      startConjugationSession(document.getElementById('cj-session'), chosen);
+      document.getElementById('cj-session').scrollIntoView({ behavior: 'smooth' });
     });
   }
 
-  function startConjugationSession(box, mode, difficulty) {
-    saveLastSession({ module: 'conjugation', mode: mode, difficulty: difficulty });
-    // 情景模式插入≤10%的热身；热身模式全部热身
-    var WARM_RATIO = 0.10, warmUsed = 0, budget = Math.floor(getSettings().questionCount * WARM_RATIO);
+  function startConjugationSession(box, chosen) {
+    saveLastSession({ module: 'conjugation', mode: chosen.mode, difficulty: chosen.diff });
+    MJT.conjugationDrills.resetHistory();
+    var live = document.getElementById('cj-live');
+    var mode = chosen.mode;
+    var ratio = mode === 'listen' || mode === 'continuous' ? 1 : mode === 'text' ? 0 : mode === 'warmup' ? 0 : chosen.ratio;
+    // 热身占比≤10%（仅综合/文字模式插入）
+    var WARM = 0.10, warmUsed = 0, budget = Math.floor(chosen.count * WARM);
+    function refreshLive() {
+      if (!live) return;
+      var info = MJT.conjugationDrills.sessionInfo();
+      live.innerHTML = '<div class="panel small dim">本轮已用不同词：<b>' + info.distinctWords + '</b> 个　·　' +
+        '最近20题重复词：<b>' + info.recentRepeatWords + '</b>　·　听力比例设定：<b>' + Math.round(ratio * 100) + '%</b>　·　词汇池：' + info.poolSize + '</div>';
+    }
     MJT.session.start(box, {
-      module: 'conjugation', categoryId: 'conjugation', difficulty: difficulty,
-      count: getSettings().questionCount,
+      module: 'conjugation', categoryId: 'conjugation', difficulty: chosen.diff,
+      count: chosen.count, continuous: mode === 'continuous',
       getNext: function () {
-        if (mode === 'warmup') return MJT.conjugationDrills.generate('warmup', difficulty);
-        if (warmUsed < budget && Math.random() < WARM_RATIO) { warmUsed++; return MJT.conjugationDrills.generate('warmup', difficulty); }
-        return MJT.conjugationDrills.generate('scene', difficulty);
+        refreshLive();
+        if (mode === 'warmup') return MJT.conjugationDrills.generate('formToDict', chosen.diff, { listeningRatio: 0 });
+        if ((mode === 'mixed' || mode === 'text') && warmUsed < budget && Math.random() < WARM) {
+          warmUsed++; return MJT.conjugationDrills.generate('formToDict', chosen.diff, { listeningRatio: 0 });
+        }
+        return MJT.conjugationDrills.generate('mixed', chosen.diff, { listeningRatio: ratio });
       },
-      onRestart: function () { startConjugationSession(box, mode, difficulty); }
+      onFinish: function () { refreshLive(); },
+      onRestart: function () { startConjugationSession(box, chosen); }
     });
   }
 
