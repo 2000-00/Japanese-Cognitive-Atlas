@@ -21,8 +21,8 @@ page.on('dialog', d => d.accept());
 /* 1. 页面可以打开 */
 await page.goto(URL);
 await page.waitForSelector('#mjt-nav .nav-item');
-ok((await page.$$('#mjt-nav .nav-item')).length === 13, '页面打开，导航渲染13个页面入口（含场景训练）');
-ok((await page.textContent('#mjt-scope-badge')).includes('第1～21课'), '顶栏始终显示当前课程范围');
+ok((await page.$$('#mjt-nav .nav-item')).length === 15, '页面打开，导航渲染15个页面入口（含场景/变形/词汇覆盖）');
+ok((await page.textContent('#mjt-scope-badge')).includes('第1～') && (await page.textContent('#mjt-scope-badge')).includes('初级Ⅰ'), '顶栏显示初级Ⅰ当前课程范围');
 
 /* 2. 首页内容 */
 ok((await page.textContent('#mjt-main')).includes('今日完成'), '首页显示今日统计');
@@ -125,8 +125,8 @@ await page.goto(URL + '#grammar');
 const grammarText2 = await page.textContent('#mjt-main');
 ok(grammarText2.includes('1') && grammarText2.includes('当前已验证可用题目'), '核实通过的题目进入正式训练池（1条）');
 
-/* 11. 课程范围过滤：把范围调到第9课 → 第10课的题被拦截 */
-await page.evaluate(() => { MJT.app.saveSettings({ maxLesson: 9 }); });
+/* 11. 课程范围过滤：手动模式调到第9课 → 第10课的题被拦截 */
+await page.evaluate(() => { MJT.app.saveSettings({ lessonRangeMode: 'manual', maxLesson: 9 }); });
 await page.evaluate(() => {
   const map = JSON.parse(localStorage.getItem('mjt:review-decisions') || '{}');
   map['g-pending-002'] = { status: 'verified', at: new Date().toISOString() }; // 第10课的题
@@ -135,19 +135,21 @@ await page.evaluate(() => {
 await page.goto(URL + '#grammar');
 await page.waitForTimeout(200);
 const poolAt9 = await page.evaluate(() => MJT.grammar.pool(MJT.app.getSettings()).map(q => q.id));
-ok(!poolAt9.includes('g-pending-002'), '范围设为1~9课时，声明第10课的题被课程范围过滤拦截');
+ok(!poolAt9.includes('g-pending-002'), '手动第1~9课时，声明第10课的题被课程范围过滤拦截');
 ok(!poolAt9.includes('g-pending-003'), '第14课的题同样被拦截');
-await page.evaluate(() => { MJT.app.saveSettings({ maxLesson: 21 }); });
+// 切回 Stage2（1~25），maxLesson 应解析为 25
+const stage2Max = await page.evaluate(() => { MJT.app.saveSettings({ lessonRangeMode: 'stage', stage: 'stage2' }); return MJT.app.getSettings().maxLesson; });
+ok(stage2Max === 25, 'Stage2 累计范围解析为第1~25课（当前=' + stage2Max + '）');
 
-/* 12. 数字题随机生成 + 超纲拦截（第22课模拟） */
+/* 12. 数字题随机生成 + 超纲拦截（第26课模拟，硬上限25） */
 const scopeCheck = await page.evaluate(() => {
-  const q22 = { id: 'fake', lesson: [22], sourceStatus: 'verified' };
+  const q26 = { id: 'fake', lesson: [26], sourceStatus: 'verified' };
   return {
-    blocked22: !MJT.scope.check(q22, { maxLesson: 21 }).allowed,
+    blocked26: !MJT.scope.check(q26, { maxLesson: 25 }).allowed,
     gen: !!MJT.numbers.generate('mixed', 2)
   };
 });
-ok(scopeCheck.blocked22, '第22课以后内容被硬上限拦截');
+ok(scopeCheck.blocked26, '第26课以后内容被硬上限（25）拦截');
 ok(scopeCheck.gen, '数字题可随机生成');
 
 /* 13. 手机视口 */
@@ -277,6 +279,44 @@ await page.goto(URL + '#stats');
 const statsText2 = await page.textContent('#mjt-main');
 ok(statsText2.includes('场景训练') && statsText2.includes('用户回应正确率'), '统计页显示场景统计与回应正确率');
 ok(statsText2.includes('知识点掌握') && statsText2.includes('4 个不同场景'), '统计页显示跨场景掌握模型');
+
+/* 13.11 变形训练：情景模式作答，含变形过程解析 */
+await page.goto(URL + '#conjugation');
+await page.waitForSelector('#cj-start');
+ok((await page.textContent('#mjt-main')).includes('情景反应') && (await page.textContent('#mjt-main')).includes('基础热身'), '变形训练页有情景/热身双模式');
+await page.click('#cj-start');
+await page.waitForSelector('.option-btn');
+await page.click('.option-btn');
+await page.waitForSelector('.result-panel');
+const cjResult = await page.textContent('.result-panel');
+ok(/原形与变形|变形|反应时间/.test(cjResult), '变形题作答后显示变形过程解析与反应时间');
+const cjRecorded = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('mjt:response-times') || '[]').some(r => r.module === 'conjugation'));
+ok(cjRecorded, '变形训练计入统计');
+
+/* 13.12 变形热身模式 */
+await page.goto(URL + '#conjugation');
+await page.waitForSelector('[data-m="warmup"]');
+await page.click('[data-m="warmup"]');
+await page.click('#cj-start');
+await page.waitForSelector('.option-btn');
+ok((await page.textContent('#mjt-main')).includes('基础热身'), '变形热身模式生成孤立词题');
+
+/* 13.13 词汇覆盖页 */
+await page.goto(URL + '#coverage');
+await page.waitForSelector('#mjt-main .stat-grid');
+const covText = await page.textContent('#mjt-main');
+ok(covText.includes('词汇覆盖率') && covText.includes('教材词表尚未录入'), '词汇覆盖页显示覆盖率与词表未录入提示');
+ok(covText.includes('AI 内容生产任务') && covText.includes('录入教材词表'), '覆盖页显示AI生产任务（含人工录入任务）');
+
+/* 13.14 Stage 切换（累计范围） */
+await page.goto(URL + '#settings');
+await page.waitForSelector('[data-set="stage"]');
+await page.click('[data-set="stage"][data-val="stage2"]');
+await page.waitForTimeout(150);
+const stageBadge = await page.evaluate(() => document.getElementById('mjt-scope-badge').textContent);
+ok(stageBadge.includes('第1～25课'), 'Stage2 切换后范围变为第1~25课（累计）');
+await page.evaluate(() => MJT.app.saveSettings({ stage: 'stage1', lessonRangeMode: 'stage' }));
 
 /* 14. 深色模式 */
 await page.evaluate(() => MJT.app.saveSettings({ theme: 'dark' }));

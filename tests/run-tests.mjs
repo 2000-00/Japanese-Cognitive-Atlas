@@ -27,6 +27,7 @@ const files = [
   'data/meta.js', 'data/readings.js', 'data/counters.js', 'data/knowledge-map.js',
   'data/lesson-scope-review.js',
   'data/textbooks/minna/beginner1.js', 'data/textbooks/minna/lesson-page-index.js',
+  'data/conjugation/lexicon.js',
   'data/numbers/scenario-frames.js',
   'data/pending/grammar-pending.js',
   'data/pending/grammar/lesson-01-05.js', 'data/pending/grammar/lesson-06-10.js',
@@ -39,8 +40,9 @@ const files = [
   'data/pending/scenarios/school.js', 'data/pending/scenarios/housing.js',
   'src/utils/storage.js', 'src/utils/random.js',
   'src/core/scope.js', 'src/core/validator.js', 'src/core/errorbook.js',
-  'src/core/stats.js', 'src/core/adaptive.js', 'src/core/mastery.js',
-  'src/modules/numbers.js', 'src/modules/scenario-numbers.js', 'src/modules/listening.js'
+  'src/core/stats.js', 'src/core/adaptive.js', 'src/core/mastery.js', 'src/core/coverage.js',
+  'src/modules/numbers.js', 'src/modules/scenario-numbers.js', 'src/modules/listening.js',
+  'src/modules/conjugation.js', 'src/modules/conjugation-drills.js'
 ];
 for (const f of files) {
   vm.runInContext(readFileSync(join(root, f), 'utf8'), sandbox, { filename: f });
@@ -111,12 +113,22 @@ eq(MJT_DATA.pendingScenarios.length, 14, '14个完整场景已加载');
 eq(MJT_DATA.pendingGrammar.length, 72, '语法题共72道（原12+新增60）');
 eq(MJT_DATA.pendingListening.length, 16, '听力题库16条（原6+L5对话10）');
 eq(MJT_DATA.pendingReading.length, 15, '阅读15篇（原3+新增12）');
-eq(MJT_DATA.lessonScopeReview.length, 21, '课程审核表21条');
+eq(MJT_DATA.lessonScopeReview.length, 25, '课程审核表25条（初级Ⅰ）');
 ok(MJT_DATA.lessonScopeReview.every(l => l.sourceStatus === 'pending' && l.reviewed === false), '课程审核表全部默认 pending/未核实');
 
+// Stage 系统与硬上限=25
+eq(MJT.scope.HARD_MAX, 25, '硬上限=25（初级Ⅰ）');
+eq(MJT.scope.resolveMaxLesson({ stage: 'stage1' }), 20, 'Stage1 → 第1~20课');
+eq(MJT.scope.resolveMaxLesson({ stage: 'stage2' }), 25, 'Stage2 → 第1~25课');
+eq(MJT.scope.resolveMaxLesson({ lessonRangeMode: 'manual', maxLesson: 18 }), 18, '手动模式 → 自定义上限');
+eq(MJT.scope.resolveMaxLesson({ lessonRangeMode: 'manual', maxLesson: 99 }), 25, '手动模式超上限被clamp到25');
+ok(MJT.scope.stageById('stage2') && MJT.scope.stageById('stage2').maxLesson === 25, 'stageById 可解析 Stage2');
+
 // 故意构造坏数据：超纲课程、缺答案、缺解析、伪造"教材原句"、unknown升级verified
-const badLesson = { id: 'bad-1', question: 'x?', options: ['a', 'b'], answer: 'a', explanation: 'e', grammarPoints: ['g'], lesson: [25], sourceStatus: 'verified', sourceType: 'manual_review' };
-ok(MJT.validator.validateItem(badLesson, { kind: 'question' }).some(e => e.includes('超过第21课')), '拦截第22课以后内容（第25课）');
+const badLesson = { id: 'bad-1', question: 'x?', options: ['a', 'b'], answer: 'a', explanation: 'e', grammarPoints: ['g'], lesson: [26], sourceStatus: 'verified', sourceType: 'manual_review' };
+ok(MJT.validator.validateItem(badLesson, { kind: 'question' }).some(e => e.includes('超过第25课')), '拦截第26课以后内容（硬上限25）');
+const okLesson25 = { id: 'ok-25', question: 'x?', options: ['a', 'b'], answer: 'a', explanation: 'e', grammarPoints: ['g'], lesson: [25], sourceStatus: 'verified', sourceType: 'manual_review' };
+ok(!MJT.validator.validateItem(okLesson25, { kind: 'question' }).some(e => e.includes('超过')), '第25课内容不再被拦截');
 const noAnswer = { id: 'bad-2', question: 'x?', options: ['a', 'b'], explanation: 'e', grammarPoints: ['g'], lesson: [1], sourceStatus: 'verified', sourceType: 'manual_review' };
 ok(MJT.validator.validateItem(noAnswer, { kind: 'question' }).some(e => e.includes('缺少答案')), '拦截缺少答案');
 const noExplain = { id: 'bad-3', question: 'x?', options: ['a', 'b'], answer: 'a', grammarPoints: ['g'], lesson: [1], sourceStatus: 'verified', sourceType: 'manual_review' };
@@ -133,7 +145,8 @@ const S = MJT.scope;
 const vItem = { id: 's1', lesson: [10], sourceStatus: 'verified' };
 ok(S.check(vItem, { maxLesson: 21 }).allowed, '范围内 verified 条目放行');
 ok(!S.check(vItem, { maxLesson: 9 }).allowed, '用户选1~9课时拦截第10课内容');
-ok(!S.check({ id: 's2', lesson: [22], sourceStatus: 'verified' }, { maxLesson: 21 }).allowed, '拦截第22课（硬上限）');
+ok(!S.check({ id: 's2', lesson: [26], sourceStatus: 'verified' }, { maxLesson: 25 }).allowed, '拦截第26课（硬上限25）');
+ok(S.check({ id: 's2b', lesson: [24], sourceStatus: 'verified' }, { maxLesson: 25 }).allowed, '第24课在 Stage2 范围内放行');
 ok(!S.check({ id: 's3', lesson: [5], sourceStatus: 'pending' }, { maxLesson: 21 }).allowed, '拦截待核实（pending）内容');
 ok(!S.check({ id: 's4', lesson: [5], sourceStatus: 'rejected' }, { maxLesson: 21 }).allowed, '拦截 rejected 内容');
 const uItem = { id: 's5', lesson: null, sourceStatus: 'verified', lessonAttribution: { status: 'pending' } };
@@ -301,6 +314,103 @@ MJT_DATA.pendingScenarios.forEach(sc => {
     ok(w.scope === 'extended_basic' && !!w.kana && !!w.zh && !!w.reason && !!w.pos, `${sc.id} 扩展词 ${w.word} 标注完整（假名/中文/词性/原因）`);
   });
 });
+
+/* ================= 变形反应引擎 ================= */
+{
+  const CJ = MJT.conjugation;
+  const lex = CJ.lexicon();
+  const V = (r) => lex.verbs.find(v => v.reading === r);
+  const cv = (r, form) => CJ.conjugateVerb(V(r), form).surface;
+  const cvr = (r, form) => CJ.conjugateVerb(V(r), form).reading;
+  // 五段 て/た 音便全覆盖
+  eq(cv('かう', 'te'), '買って', '五段 う→って');
+  eq(cv('かく', 'te'), '書いて', '五段 く→いて');
+  eq(cv('いく', 'te'), '行って', '行く 例外→行って');
+  eq(cv('およぐ', 'te'), '泳いで', '五段 ぐ→いで');
+  eq(cv('はなす', 'te'), '話して', '五段 す→して');
+  eq(cv('まつ', 'te'), '待って', '五段 つ→って');
+  eq(cv('しぬ', 'te'), '死んで', '五段 ぬ→んで');
+  eq(cv('あそぶ', 'te'), '遊んで', '五段 ぶ→んで');
+  eq(cv('のむ', 'te'), '飲んで', '五段 む→んで');
+  eq(cv('のむ', 'ta'), '飲んだ', '五段 た形 む→んだ');
+  eq(cv('かく', 'ta'), '書いた', '五段 た形 く→いた');
+  eq(cv('いく', 'ta'), '行った', '行く た形例外');
+  // 五段 masu/nai
+  eq(cv('かう', 'masu'), '買います', '五段 masu');
+  eq(cv('まつ', 'masu'), '待ちます', '五段 masu つ→ち');
+  eq(cv('かう', 'nai'), '買わない', '五段 nai う→わ');
+  eq(cv('のむ', 'nai'), '飲まない', '五段 nai む→ま');
+  // 伪一段：帰る/入る/走る 按五段
+  eq(cv('かえる', 'te'), '帰って', '伪一段 帰る→帰って（五段）');
+  eq(cv('かえる', 'masu'), '帰ります', '伪一段 帰る→帰ります');
+  eq(cv('はしる', 'nai'), '走らない', '伪一段 走る→走らない');
+  // 一段
+  eq(cv('たべる', 'masu'), '食べます', '一段 masu');
+  eq(cv('たべる', 'te'), '食べて', '一段 te');
+  eq(cv('たべる', 'nai'), '食べない', '一段 nai');
+  eq(cv('たべる', 'ta'), '食べた', '一段 ta');
+  eq(cv('みる', 'te'), '見て', '一段 見る→見て');
+  // 不规则
+  eq(cv('する', 'masu'), 'します', 'する→します');
+  eq(cv('する', 'te'), 'して', 'する→して');
+  eq(cv('べんきょうする', 'masu'), '勉強します', 'X+する→Xします');
+  eq(cv('べんきょうする', 'te'), '勉強して', 'X+する→Xして');
+  eq(cv('くる', 'masu'), '来ます', '来る surface→来ます');
+  eq(cvr('くる', 'masu'), 'きます', '来る reading→きます');
+  eq(cvr('くる', 'nai'), 'こない', '来る reading nai→こない');
+  eq(cvr('くる', 'te'), 'きて', '来る reading te→きて');
+  eq(cvr('くる', 'ta'), 'きた', '来る reading ta→きた');
+  eq(cv('くる', 'masuPastNeg'), '来ませんでした', '来る 敬体过去否定');
+  eq(cv('くる', 'naiPast'), '来なかった', '来る 普通体过去否定');
+  // ています
+  eq(cv('のむ', 'teiru'), '飲んでいます', 'ています（て形＋います）');
+  eq(cv('たべる', 'teiru'), '食べています', '一段 ています');
+  // い形容词
+  const IA = (r) => lex.iAdjectives.find(a => a.reading === r);
+  eq(CJ.conjIAdj(IA('たかい'), 'neg').surface, '高くない', 'い形 否定 くない');
+  eq(CJ.conjIAdj(IA('たかい'), 'past').surface, '高かった', 'い形 过去 かった');
+  eq(CJ.conjIAdj(IA('たかい'), 'te').surface, '高くて', 'い形 て形 くて');
+  eq(CJ.conjIAdj(IA('たかい'), 'pastNeg').surface, '高くなかった', 'い形 过去否定');
+  eq(CJ.conjIAdj(IA('いい'), 'past').surface, 'よかった', 'いい 不规则 よかった');
+  eq(CJ.conjIAdj(IA('いい'), 'neg').surface, 'よくない', 'いい 不规则 よくない');
+  eq(CJ.conjIAdj(IA('いい'), 'present').surface, 'いい', 'いい 现在保持いい');
+  // な形容词 / 名词 コピュラ
+  const NA = (r) => lex.naAdjectives.find(a => a.reading === r);
+  eq(CJ.conjCopula(NA('しずか'), 'present').surface, '静かだ', 'な形 现在 だ');
+  eq(CJ.conjCopula(NA('しずか'), 'pastPolite').surface, '静かでした', 'な形 敬体过去 でした');
+  eq(CJ.conjCopula(NA('しずか'), 'neg').surface, '静かじゃない', 'な形 否定 じゃない');
+  const NO = (r) => lex.nouns.find(n => n.reading === r);
+  eq(CJ.conjCopula(NO('がくせい'), 'presentPolite').surface, '学生です', '名词判断句 です');
+  eq(CJ.conjCopula(NO('がくせい'), 'past').surface, '学生だった', '名词判断句 过去 だった');
+  // 词库真实性标记
+  ok(lex.ref.sourceStatus === 'verified' && lex.ref.lessonAttribution.status === 'pending', '词库：读法verified但课程归属pending');
+
+  // 变形题生成：结构完整 + 通过验证器 + 选项去重
+  let cjChecked = 0;
+  for (let i = 0; i < 300; i++) {
+    const mode = i % 5 === 0 ? 'warmup' : 'scene';
+    const q = MJT.conjugationDrills.generate(mode, (i % 3) + 1);
+    ok(q.options.includes(q.answer) && new Set(q.options).size === q.options.length, `变形题选项含答案且不重复(${mode})`);
+    ok(q.contentType === 'ai_generated_practice' && q.isTextbookOriginal === false, `变形题真实性标记(${mode})`);
+    ok(!!q.explanation && q.explanation.length > 5, `变形题有解析(${mode})`);
+    if (mode === 'warmup') ok(q.warmup === true, '热身题标 warmup');
+    else ok(q.relationship && q.scenarioContext, '情景变形题带人物关系与场景');
+    cjChecked++;
+  }
+  eq(cjChecked, 300, '批量生成300道变形题');
+}
+
+/* ================= 词汇覆盖 / 缺口扫描 ================= */
+{
+  const rep = MJT.coverage.analyze({ maxLesson: 25 });
+  eq(rep.textbookVocabTotal, 0, '教材词表未录入时统计为0（不虚报）');
+  eq(rep.coverageRate, null, '未录入词表时覆盖率为null，不编造百分比');
+  ok(rep.gaps.some(g => g.includes('教材词表未录入')), '缺口扫描发现词表未录入');
+  ok(rep.byForm.length === 4 && rep.byForm.every(f => typeof f.verified === 'number'), '各训练形式内容量可统计');
+  const tasks = MJT.coverage.generationTasks(rep);
+  ok(tasks.some(t => t.status === 'manual'), '词表录入为人工任务（AI不自动填教材词）');
+  ok(tasks.every(t => t.status !== 'verified'), 'AI生产任务不会产出verified（需人工审核）');
+}
 
 /* ================= 教材数据库骨架（初级Ⅰ） ================= */
 {

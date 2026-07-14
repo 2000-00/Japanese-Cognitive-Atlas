@@ -1,10 +1,10 @@
 /* 课程范围控制器
  *
  * 规则（真实性原则的执行层）：
- *  1. 系统硬上限为第21课（MJT_DATA.meta.lessonMax），任何声明课程编号
- *     超过21的条目一律拦截，永不进入练习页面。
- *  2. 用户可在 1..21 内选择当前最高课程 maxLesson；条目声明课程编号
- *     必须 ≤ maxLesson 才可用。
+ *  1. 系统硬上限为第25课（初级Ⅰ；MJT_DATA.meta.lessonMax），任何声明
+ *     课程编号超过25的条目一律拦截，永不进入练习页面。
+ *  2. 用户通过 Stage（Stage1=1~20 / Stage2=1~25）或手动设置选择当前
+ *     最高课程 maxLesson（累计模式）；条目声明课程编号 ≤ maxLesson 才可用。
  *  3. sourceStatus 必须为 'verified' 才能进入正式训练；
  *     'pending'（含所有待核实演示数据）只出现在数据审核页；
  *     'rejected' 对学习者完全不可见。
@@ -17,7 +17,7 @@
 window.MJT = window.MJT || {};
 
 MJT.scope = (function () {
-  var HARD_MAX = 21; // 与 MJT_DATA.meta.lessonMax 一致；validator 会校验两者相等
+  var HARD_MAX = 25; // 与 MJT_DATA.meta.lessonMax 一致；validator 会校验两者相等
 
   /* 读取审核决定后条目的有效来源状态 */
   function effectiveSourceStatus(item, reviewDecisions) {
@@ -78,11 +78,35 @@ MJT.scope = (function () {
     return { allowed: allowed, blocked: blocked };
   }
 
+  /* Stage 解析：从设置中确定当前 maxLesson。
+   * 优先级：手动 maxLesson（若设置了 lessonRangeMode='manual'）> Stage 预设。
+   * 始终 clamp 到 [1, HARD_MAX]。累计模式：范围永远是 1..maxLesson。 */
+  function resolveMaxLesson(settings) {
+    settings = settings || {};
+    var meta = (window.MJT_DATA && MJT_DATA.meta) || {};
+    var max = HARD_MAX;
+    if (settings.lessonRangeMode === 'manual' && typeof settings.maxLesson === 'number') {
+      max = settings.maxLesson;
+    } else {
+      var stageId = settings.stage || meta.defaultStage;
+      var stage = (meta.stages || []).filter(function (s) { return s.id === stageId; })[0];
+      max = stage ? stage.maxLesson : (settings.maxLesson || HARD_MAX);
+    }
+    return Math.max(1, Math.min(HARD_MAX, max));
+  }
+
+  function stageById(id) {
+    var meta = (window.MJT_DATA && MJT_DATA.meta) || {};
+    return (meta.stages || []).filter(function (s) { return s.id === id; })[0] || null;
+  }
+
   return {
     HARD_MAX: HARD_MAX,
     check: check,
     filter: filter,
     maxLessonOf: maxLessonOf,
-    effectiveSourceStatus: effectiveSourceStatus
+    effectiveSourceStatus: effectiveSourceStatus,
+    resolveMaxLesson: resolveMaxLesson,
+    stageById: stageById
   };
 })();

@@ -7,7 +7,9 @@ MJT.app = (function () {
 
   /* ============ 设置 ============ */
   var DEFAULT_SETTINGS = {
-    maxLesson: 21,          // 学习范围上限（1~21）
+    stage: 'stage1',        // Stage 累计阶段（stage1=1~20 / stage2=1~25）
+    lessonRangeMode: 'stage', // 'stage' 用 Stage 预设 | 'manual' 用手动 maxLesson
+    maxLesson: 20,          // 手动模式下的学习范围上限（1~25）
     questionCount: 10,      // 每组题目数量
     difficulty: 1,          // 1基础 2初级 3综合
     showKana: true,
@@ -30,6 +32,8 @@ MJT.app = (function () {
     Object.keys(DEFAULT_SETTINGS).forEach(function (k) {
       out[k] = s[k] !== undefined ? s[k] : DEFAULT_SETTINGS[k];
     });
+    // maxLesson 由 Stage/手动模式统一解析，供所有模块直接读取（累计范围 1..maxLesson）
+    out.maxLesson = MJT.scope.resolveMaxLesson(out);
     return out;
   }
   function saveSettings(patch) {
@@ -67,10 +71,12 @@ MJT.app = (function () {
     { id: 'numbers', name: '数字专项', icon: '🔢' },
     { id: 'listening', name: '听力训练', icon: '🎧' },
     { id: 'grammar', name: '语法训练', icon: '📖' },
+    { id: 'conjugation', name: '变形训练', icon: '🔀' },
     { id: 'reading', name: '阅读训练', icon: '📄' },
     { id: 'mixed', name: '综合训练', icon: '🎯' },
     { id: 'errorbook', name: '错题本', icon: '📕' },
     { id: 'stats', name: '学习统计', icon: '📊' },
+    { id: 'coverage', name: '词汇覆盖', icon: '📚' },
     { id: 'knowledge', name: '知识图谱', icon: '🗺️' },
     { id: 'review', name: '数据审核', icon: '🔍' },
     { id: 'settings', name: '设置', icon: '⚙️' }
@@ -105,7 +111,9 @@ MJT.app = (function () {
     fn(main, r.param);
     // 顶栏始终显示当前范围
     var s = getSettings();
-    document.getElementById('mjt-scope-badge').textContent = '《大家的日语》第1～' + s.maxLesson + '课';
+    var stageObj = MJT.scope.stageById(s.stage);
+    document.getElementById('mjt-scope-badge').textContent =
+      '初级Ⅰ · ' + (s.lessonRangeMode === 'manual' ? '手动' : (stageObj ? stageObj.name : '')) + ' · 第1～' + s.maxLesson + '课';
     window.scrollTo(0, 0);
   }
 
@@ -121,7 +129,8 @@ MJT.app = (function () {
 
     var html = '<div class="page-home">';
     html += '<h2>' + esc(MJT_DATA.meta.appNameZh) + '</h2>';
-    html += '<p class="dim">当前学习范围：<b>《大家的日语》第1～' + s.maxLesson + '课</b>（可在设置中调整；系统硬上限第21课）</p>';
+    var stageObj0 = MJT.scope.stageById(s.stage);
+    html += '<p class="dim">当前学习范围：<b>' + (stageObj0 ? stageObj0.name + '（' : '') + '《大家的日本语 初级Ⅰ》第1～' + s.maxLesson + '课' + (stageObj0 ? '）' : '') + '</b>（累计模式；可在设置中切换 Stage 或手动设置，系统硬上限第25课）</p>';
 
     html += '<div class="stat-grid">' +
       '<div class="stat"><div class="stat-value">' + ov.today.total + '</div><div class="stat-label">今日完成</div></div>' +
@@ -695,7 +704,7 @@ MJT.app = (function () {
       statuses.map(function (d) { return '<button class="chip' + (reviewFilter.status === d[0] ? ' active' : '') + '" data-f-status="' + d[0] + '">' + d[1] + '</button>'; }).join('') + '</div></div>' +
       '<div class="form-row"><label>课程</label><select id="f-lesson" class="answer-input" style="max-width:8rem">' +
       '<option value="all">全部</option>' +
-      (function () { var o = ''; for (var l = 1; l <= 21; l++) o += '<option value="' + l + '"' + (reviewFilter.lesson === String(l) ? ' selected' : '') + '>第' + l + '课</option>'; return o; })() +
+      (function () { var o = ''; for (var l = 1; l <= MJT.scope.HARD_MAX; l++) o += '<option value="' + l + '"' + (reviewFilter.lesson === String(l) ? ' selected' : '') + '>第' + l + '课</option>'; return o; })() +
       '</select>　<label>关键词/语法点/场景</label><input id="f-kw" class="answer-input" style="max-width:14rem" placeholder="如：て形 / 便利店 / から" value="' + esc(reviewFilter.keyword) + '"></div>' +
       '<div class="btn-row">' +
       '<button class="btn btn-primary" id="batch-verify">✓ 批量核实（当前筛选 ' + filtered.filter(function (e) { return statusOf(e) === 'pending'; }).length + ' 条待审核）</button>' +
@@ -904,9 +913,13 @@ MJT.app = (function () {
         return '<button class="chip' + (String(s[key]) === String(o.v) ? ' active' : '') + '" data-set="' + key + '" data-val="' + o.v + '">' + o.n + '</button>';
       }).join('') + '</div>';
     }
-    var lessonOpts = []; for (var i = 5; i <= 21; i++) if (i % 3 === 0 || i === 21) lessonOpts.push({ v: i, n: '～第' + i + '课' });
+    var lessonOpts = []; for (var i = 5; i <= MJT.scope.HARD_MAX; i++) if (i % 5 === 0 || i === MJT.scope.HARD_MAX) lessonOpts.push({ v: i, n: '～第' + i + '课' });
+    var stageOpts = (MJT_DATA.meta.stages || []).map(function (st) { return { v: st.id, n: st.name + '（' + st.range + '）' }; });
     var html = '<h2>设置</h2><div class="panel settings-panel">';
-    html += '<div class="form-row"><label>学习范围（最高课程）</label>' + chipRow('maxLesson', lessonOpts) + '</div>';
+    html += '<div class="form-row"><label>训练阶段 Stage（累计范围）</label>' + chipRow('stage', stageOpts) + '</div>';
+    html += '<div class="form-row"><label>范围模式</label>' + chipRow('lessonRangeMode', [{ v: 'stage', n: '按 Stage（推荐）' }, { v: 'manual', n: '手动设上限' }]) + '</div>';
+    html += '<div class="form-row"><label>手动最高课程<br><span class="dim small">仅"手动设上限"模式生效</span></label>' + chipRow('maxLesson', lessonOpts) + '</div>';
+    html += '<div class="form-row"><span class="dim small">当前生效范围：第1～' + s.maxLesson + '课（累计包含低课次全部知识）</span></div>';
     html += '<div class="form-row"><label>每组题目数量</label>' + chipRow('questionCount', [{ v: 5, n: '5' }, { v: 10, n: '10' }, { v: 20, n: '20' }, { v: 30, n: '30' }]) + '</div>';
     html += '<div class="form-row"><label>默认难度</label>' + chipRow('difficulty', [{ v: 1, n: '基础' }, { v: 2, n: '初级' }, { v: 3, n: '综合' }]) + '</div>';
     html += '<div class="form-row"><label>显示假名</label>' + chipRow('showKana', [{ v: true, n: '开' }, { v: false, n: '关' }]) + '</div>';
@@ -967,6 +980,99 @@ MJT.app = (function () {
   }
 
   /* ============ 路由表 ============ */
+  /* ============ 变形训练 ============ */
+  function pageConjugation(main) {
+    var s = getSettings();
+    var html = '<h2>变形训练 · Conjugation</h2>' +
+      '<p class="dim">动词（五段/一段/不规则）、い形容词、な形容词、名词判断句的活用反应。' +
+      '默认"情景反应"：变形放进带人物关系与时间的完整句；"基础热身"为孤立词快速反应。' +
+      '活用规则为辞典可核实的客观事实，生成的练习标注"基于已验证知识生成"。</p>';
+    html += '<div class="panel"><div class="form-row"><label>模式</label><div class="chip-row" id="cj-mode">' +
+      '<button class="chip active" data-m="scene">情景反应（默认）</button>' +
+      '<button class="chip" data-m="warmup">基础热身（孤立词·速度反应）</button>' +
+      '</div></div>' +
+      '<div class="form-row"><label>难度</label><div class="chip-row" id="cj-diff">' +
+      [1, 2, 3].map(function (d) { return '<button class="chip' + (d === s.difficulty ? ' active' : '') + '" data-d="' + d + '">' + ['基础', '初级', '综合'][d - 1] + '</button>'; }).join('') +
+      '</div></div>' +
+      '<button class="btn btn-primary" id="cj-start">开始训练 →</button></div>' +
+      '<div id="cj-session"></div>';
+    main.innerHTML = html;
+    var chosen = { mode: 'scene', diff: s.difficulty };
+    main.querySelectorAll('[data-m]').forEach(function (b) {
+      b.addEventListener('click', function () { main.querySelectorAll('[data-m]').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); chosen.mode = b.getAttribute('data-m'); });
+    });
+    main.querySelectorAll('[data-d]').forEach(function (b) {
+      b.addEventListener('click', function () { main.querySelectorAll('[data-d]').forEach(function (x) { x.classList.remove('active'); }); b.classList.add('active'); chosen.diff = parseInt(b.getAttribute('data-d'), 10); });
+    });
+    document.getElementById('cj-start').addEventListener('click', function () {
+      startConjugationSession(document.getElementById('cj-session'), chosen.mode, chosen.diff);
+    });
+  }
+
+  function startConjugationSession(box, mode, difficulty) {
+    saveLastSession({ module: 'conjugation', mode: mode, difficulty: difficulty });
+    // 情景模式插入≤10%的热身；热身模式全部热身
+    var WARM_RATIO = 0.10, warmUsed = 0, budget = Math.floor(getSettings().questionCount * WARM_RATIO);
+    MJT.session.start(box, {
+      module: 'conjugation', categoryId: 'conjugation', difficulty: difficulty,
+      count: getSettings().questionCount,
+      getNext: function () {
+        if (mode === 'warmup') return MJT.conjugationDrills.generate('warmup', difficulty);
+        if (warmUsed < budget && Math.random() < WARM_RATIO) { warmUsed++; return MJT.conjugationDrills.generate('warmup', difficulty); }
+        return MJT.conjugationDrills.generate('scene', difficulty);
+      },
+      onRestart: function () { startConjugationSession(box, mode, difficulty); }
+    });
+  }
+
+  /* ============ 词汇覆盖 / 缺口扫描 ============ */
+  function pageCoverage(main) {
+    var s = getSettings();
+    var report = MJT.coverage.analyze(s);
+    var html = '<h2>词汇覆盖 · 缺口扫描</h2>';
+    html += '<p class="dim">统计《大家的日本语 初级Ⅰ》教材词汇进入训练语料的情况，' +
+      '并自动发现覆盖缺口、生成待审核补充任务。教材词表需在"数据审核"逐课核实录入后，覆盖率才有意义。</p>';
+
+    // 教材词汇录入状态
+    html += '<div class="stat-grid">' +
+      '<div class="stat"><div class="stat-value">' + report.textbookVocabTotal + '</div><div class="stat-label">已录入教材词</div></div>' +
+      '<div class="stat"><div class="stat-value ' + (report.textbookVocabVerified ? 'ok' : 'warn') + '">' + report.textbookVocabVerified + '</div><div class="stat-label">已核实词</div></div>' +
+      '<div class="stat"><div class="stat-value">' + report.corpusVocabRefs + '</div><div class="stat-label">语料引用词次</div></div>' +
+      '<div class="stat"><div class="stat-value ' + (report.coverageRate === null ? '' : 'ok') + '">' + (report.coverageRate === null ? '—' : Math.round(report.coverageRate * 100) + '%') + '</div><div class="stat-label">词汇覆盖率</div></div>' +
+      '</div>';
+
+    if (report.textbookVocabTotal === 0) {
+      html += '<div class="panel warn-panel"><b>教材词表尚未录入。</b> 本册为扫描版，需按 scripts/parse-minna.py 的 OCR 底稿' +
+        '在"数据审核"页逐课核实录入词汇（AI 不凭记忆填写教材词表），录入后本页自动统计每课覆盖率并生成缺口补充任务。</div>';
+    }
+
+    // 各训练形式覆盖（基于当前已加载语料，按信息类型/题型维度）
+    html += '<h3>各训练形式内容量（当前 Stage 范围内）</h3>';
+    html += '<div class="table-wrap"><table class="data-table"><thead><tr><th>形式</th><th>已核实可用</th><th>待审核</th></tr></thead><tbody>';
+    report.byForm.forEach(function (f) {
+      html += '<tr><td>' + esc(f.name) + '</td><td>' + f.verified + '</td><td>' + f.pending + '</td></tr>';
+    });
+    html += '</tbody></table></div>';
+
+    // 缺口扫描 → 生成任务
+    html += '<h3>缺口扫描</h3>';
+    if (report.gaps.length) {
+      html += '<ul>' + report.gaps.map(function (g) { return '<li>' + esc(g) + '</li>'; }).join('') + '</ul>';
+    } else {
+      html += '<p class="dim">暂无可自动判定的缺口（需先录入教材词表与更多语料）。</p>';
+    }
+    var tasks = MJT.coverage.generationTasks(report);
+    html += '<div class="panel"><p class="script-label">AI 内容生产任务（自动生成建议，进入待审核流程）</p>';
+    if (tasks.length) {
+      html += '<ul>' + tasks.map(function (t) { return '<li><b>' + esc(t.type) + '</b>：' + esc(t.description) + '</li>'; }).join('') + '</ul>' +
+        '<p class="dim small">说明：AI 只能生产 pending 待审核内容，不能自动升级为 verified。审核通过后自动进入正式训练。</p>';
+    } else {
+      html += '<p class="dim">当前无生成任务。</p>';
+    }
+    html += '</div>';
+    main.innerHTML = html;
+  }
+
   var ROUTES = {
     home: pageHome,
     today: pageToday,
@@ -985,8 +1091,10 @@ MJT.app = (function () {
       '混合听力、语法、阅读与数字反应，按错题权重自适应出题。',
       null,
       function (box, o) { MJT.mixed.startSession(box, o); }),
+    conjugation: pageConjugation,
     errorbook: pageErrorbook,
     stats: pageStats,
+    coverage: pageCoverage,
     knowledge: pageKnowledge,
     review: pageReview,
     settings: pageSettings

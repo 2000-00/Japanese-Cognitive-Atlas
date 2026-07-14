@@ -13,11 +13,20 @@ window.MJT_DATA = window.MJT_DATA || {};
 
 window.MJT_DATA.meta = {
   appName: 'Minna Japanese Trainer',
-  appNameZh: '《大家的日语》1～21课综合训练系统',
-  schemaVersion: 1,
-  // 系统固定课程范围
+  appNameZh: '《大家的日本语 初级Ⅰ》综合学习系统',
+  textbook: '大家的日本语 初级Ⅰ 第二版 本册',
+  textbookId: 'minna-beginner1',
+  schemaVersion: 2,
+  // 系统课程范围（初级Ⅰ 共25课；硬上限=25）
   lessonMin: 1,
-  lessonMax: 21,
+  lessonMax: 25,
+  // Stage 累计阶段系统：切换 Stage 只改变 maxLesson 上限，
+  // 低课次内容始终参与训练（累计模式，非替换）。
+  stages: [
+    { id: 'stage1', name: 'Stage 1', range: '第1～20课', maxLesson: 20 },
+    { id: 'stage2', name: 'Stage 2', range: '第1～25课', maxLesson: 25 }
+  ],
+  defaultStage: 'stage1',
   // 允许的来源状态 / 来源类型（验证器据此校验）
   sourceStatusValues: ['verified', 'pending', 'rejected'],
   sourceTypeValues: ['user_material', 'official_material', 'manual_review', 'unknown'],
@@ -48,11 +57,11 @@ window.MJT_DATA.meta = {
   ]
 };
 
-/* 课程 1～21 注册表。
+/* 课程 1～25 注册表。
  * grammarSummary 仅为开发用占位说明——每一课具体教什么语法属于
  * "教材归属声明"，未经用户对照实体教材核实前不得写入 verified 数据。 */
 window.MJT_DATA.lessons = [];
-for (var _l = 1; _l <= 21; _l++) {
+for (var _l = 1; _l <= 25; _l++) {
   window.MJT_DATA.lessons.push({
     id: 'lesson-' + _l,
     lesson: _l,

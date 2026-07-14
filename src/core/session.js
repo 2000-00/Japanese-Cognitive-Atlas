@@ -106,7 +106,7 @@ MJT.session = (function () {
           (settings.showKana && q.passageKana ? '<p class="kana-line">' + esc(q.passageKana).replace(/\n/g, '<br>') + '</p>' : '') +
           '</div>';
       }
-      html += '<p class="question-text jp-text">' + esc(q.question) + '</p>';
+      html += '<p class="question-text jp-text">' + esc(q.question).replace(/\n/g, '<br>') + '</p>';
       if (q.displayJa && !q.audioScript) {
         html += '<p class="question-ja jp-large">' + esc(q.displayJa) + '</p>';
         if (settings.showKana && q.questionKana) html += '<p class="kana-line">' + esc(q.questionKana) + '</p>';

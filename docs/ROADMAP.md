@@ -32,6 +32,28 @@
 - 其他教材目录已建好占位：`resources/textbooks/{minna/beginner2,
   dekiru, shadowing, shinkanzen, jlpt, eju}/`
 
+### 已落地（2026-07 本轮）
+
+- **Lesson Range 扩到 25 课 + Stage 系统**：`meta.stages`（Stage1=1~20 /
+  Stage2=1~25，累计模式）、`scope.resolveMaxLesson()`、`scope.HARD_MAX=25`；
+  `getSettings()` 统一注入 `maxLesson`，全部模块无需改动即读取当前范围。
+  设置页可切 Stage 或手动设上限。清除了所有写死的 21。
+- **变形反应引擎**（模块6核心）：`data/conjugation/lexicon.js`（动词/形容词/
+  名词，读法与活用类别 verified、课程归属 pending）+ `src/modules/
+  conjugation.js`（纯活用引擎，五段全音便/一段/する·来る·X+する/伪一段/
+  い形含いい/な形/名词コピュラ）+ `conjugation-drills.js`（情景反应带
+  人物关系·时间·极性，热身孤立词，作答后给原形+变形过程）+ 变形训练页。
+- **词汇覆盖/缺口扫描**（模块3框架）：`src/core/coverage.js` + 词汇覆盖页；
+  教材词表未录入时覆盖率如实为 null，产出 AI 生产任务（只 pending）与
+  人工录入任务，绝不自动 verified。
+
+### 教材词表录入（下一步的关键人工前置）
+
+初级Ⅰ为扫描版，词表须对照 OCR 底稿（`scripts/parse-minna.py`）逐课核实后
+写入 `data/textbooks/minna/beginner1.js` 的 `lessons[].vocabulary`
+（sourceStatus 由 pending→verified）。录入后覆盖率、缺口扫描、按词生成
+才真正生效。**AI 不得凭记忆填写教材词表。**
+
 ---
 
 ## 模块一览与状态
@@ -40,10 +62,10 @@
 |---|------|------|----------|
 | 1 | 音频系统升级 | 未开始 | speech.js 已留 audioUrl 接口，TTS 仅浏览器实时合成 |
 | 2 | 语料库系统 | 部分（场景=雏形） | 14个场景已是"对话语料+多题型"结构，但阅读/语法仍是独立题库 |
-| 3 | 教材词汇覆盖统计 | 未开始 | lesson-scope-review.js 已有21课登记表（全部待用户填写） |
+| 3 | 教材词汇覆盖统计 | **框架就绪** | coverage.js 缺口扫描+生产任务 + 词汇覆盖页；教材词表待录入（词表为0时覆盖率如实显示 null） |
 | 4 | 扩展词汇 | **已完成** | extendedVocab 标记 + 三档设置 + 验证器≤5词检查 |
 | 5 | 情景训练入口 | 部分 | 场景页已是六阶段流程；其他题型入口尚未并入场景 |
-| 6 | 词类变形系统 | 未开始 | 语法题含变形题型，但无"文章内变形"专项 |
+| 6 | 词类变形系统 | **已完成核心** | conjugation.js 引擎（五段/一段/不规则/伪一段/い/な/名词全形）+ 情景反应/热身双模式 + 独立页面 |
 | 7 | 能力驱动统计 | 部分 | 已按时间/金额/数量词/助词/变形分类统计+自适应权重 |
 | 8 | 词汇浸泡 | 未开始 | mastery.js 的跨场景机制可复用（词汇=知识点） |
 | 9 | 知识图谱联动 | 部分 | 题目→Atlas节点单向映射已核实；反向"点节点看例句"未做 |
