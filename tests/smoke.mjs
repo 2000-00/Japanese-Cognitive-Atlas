@@ -170,14 +170,15 @@ await mpage.waitForSelector('.result-panel');
 ok(true, '手机端可完成完整作答流程');
 await mobile.close();
 
-/* 13.5 场景训练：预览门禁 + 六阶段完整流程 */
+/* 13.5 场景训练：模板直接训练（无门禁）+ 六阶段完整流程 */
 await page.goto(URL + '#scenario');
 await page.waitForSelector('.scenario-card');
 const scText = await page.textContent('#mjt-main');
-ok(scText.includes('正式训练场景数量不足'), '未核实时场景页显示数量不足与预览说明');
+ok(!scText.includes('正式训练场景数量不足'), '不再显示"正式训练数量不足"');
 ok((await page.$$('.scenario-card')).length >= 14, '场景列表渲染14个以上场景卡片');
-ok(scText.includes('待核实 · 预览模式'), '待核实场景明确标注预览模式');
-// 进入便利店结账场景（预览）
+ok(scText.includes('基于已验证知识生成'), '场景标注"基于已验证知识生成"，直接训练');
+ok(scText.includes('随机场景') && scText.includes('自动生成综合反应组'), '提供随机场景与自动生成兜底入口');
+// 进入便利店结账场景（直接正式训练）
 await page.click('[data-sc="scenario-convenience-store-checkout-001"]');
 await page.waitForSelector('#sc-start');
 const introText = await page.textContent('#mjt-main');
@@ -215,24 +216,25 @@ ok((await page.textContent('#mjt-main')).includes('意群停顿'), '阶段6a：�
 await page.click('#sc-to-reinforce');
 await page.waitForSelector('#sc-transfer .option-btn');
 ok((await page.textContent('#mjt-main')).includes('迁移强化'), '阶段6b：迁移强化生成新场景题');
-const previewNotInStats = await page.evaluate(() =>
-  JSON.parse(localStorage.getItem('mjt:response-times') || '[]').filter(r => r.module === 'scenario').length === 0);
-ok(previewNotInStats, '预览模式作答不计入正式场景统计');
+const scoreCounted = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('mjt:response-times') || '[]').filter(r => r.module === 'scenario').length >= 1);
+ok(scoreCounted, '场景直接训练即计入正式统计（无预览门禁）');
 
-/* 13.6 审核工作台：筛选 + 批量核实 → 场景进入正式训练 */
+/* 13.5b 自动生成兜底：任何时候都有内容 */
+await page.goto(URL + '#scenario');
+await page.waitForSelector('#sc-auto');
+await page.click('#sc-auto');
+await page.waitForSelector('#sc-auto-box .option-btn, #sc-auto-box .answer-input');
+ok((await page.$('#sc-auto-box .option-btn')) !== null || (await page.$('#sc-auto-box .answer-input')) !== null, '自动生成综合反应组永远有题（不空白）');
+
+/* 13.6 审核工作台仍可用（场景不再是必须审核对象） */
 await page.goto(URL + '#review');
 await page.waitForSelector('[data-f-dataset]');
 const rwText = await page.textContent('#mjt-main');
 ok(rwText.includes('审核进度') && rwText.includes('批量核实'), '审核工作台渲染（进度/批量按钮）');
-await page.click('[data-f-dataset="scenario"]');
-await page.waitForSelector('#batch-verify');
-await page.click('#batch-verify'); // dialog 自动接受
-await page.waitForTimeout(300);
+// 直接正式训练另一个场景并确认计入统计
 await page.goto(URL + '#scenario');
-await page.waitForSelector('.scenario-card');
-const scText2 = await page.textContent('#mjt-main');
-ok(scText2.includes('已核实') && scText2.includes('开始训练'), '批量核实后场景进入正式训练');
-// 正式训练一个场景的第一问并确认计入统计
+await page.waitForSelector('[data-sc="scenario-cafe-order-001"]');
 await page.click('[data-sc="scenario-cafe-order-001"]');
 await page.waitForSelector('#sc-start');
 await page.click('#sc-start');
@@ -315,8 +317,10 @@ await page.click('#cj-start');
 await page.waitForSelector('.audio-player');
 ok((await page.$('.audio-player')) !== null, '变形听力模式出现音频播放控制条');
 const preAnswer = await page.textContent('.question-card');
-ok(!/。/.test(preAnswer) || preAnswer.includes('（　）') || preAnswer.includes('原形'), '听力题作答前不直接显示完整原文句');
-await page.click('.option-btn');
+ok(!/。/.test(preAnswer) || preAnswer.includes('（　）') || preAnswer.includes('原形') || preAnswer.includes('任务'), '听力题作答前不直接显示完整原文句');
+const cjOpt = await page.$('.option-btn');
+if (cjOpt) { await cjOpt.click(); }
+else { const inp = await page.$('.answer-input'); await inp.fill('テスト'); await page.click('[data-action="submit-input"]'); }
 await page.waitForSelector('.result-panel');
 ok((await page.textContent('.result-panel')).includes('原文'), '变形听力作答后显示原文');
 

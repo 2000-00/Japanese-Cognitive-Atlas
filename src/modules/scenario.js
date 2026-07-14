@@ -5,8 +5,10 @@
  * 逐句作用/语法/易听错点/更自然回应）→ 影子跟读（意群停顿）→
  * 迁移强化（同知识点换场景出题）。
  *
- * 门禁：pending 场景只能在"审核预览模式"下体验（明确标注、
- * 不计入正式统计与掌握判定）；核实通过后进入正式训练。 */
+ * 定位：场景模板属于程序逻辑 / 基于已验证知识生成的练习，直接进入正式
+ * 训练，不作为必须审核对象。只有教材原文/词汇/语法/例句走 pending→verified。
+ * 场景可用性只受两点约束：① 用户在审核页显式"拒绝"的场景排除；
+ * ② 扩展词汇设置（off/light）过滤。任何时候进入场景训练都有内容。 */
 window.MJT = window.MJT || {};
 
 MJT.scenario = (function () {
@@ -27,20 +29,22 @@ MJT.scenario = (function () {
     return out;
   }
 
-  /* 按设置过滤：formal=已核实的；previewable=待核实的（预览模式）
-   * 扩展词汇开关：off=只允许无扩展词场景；light=≤5个；normal=全部 */
+  /* 场景池：模板即程序逻辑，默认全部可直接训练（formal）。
+   * 仅排除：① 用户在审核页显式"拒绝"(rejected) 的场景；
+   *        ② 扩展词汇设置 off（含扩展词的场景）/ light（扩展词>5）。
+   * previewable 保留为空（不再有"审核预览"门禁）。 */
   function pools(settings) {
     var decisions = MJT.storage.load(MJT.storage.KEYS.reviewDecisions, {});
     var formal = [], previewable = [], blocked = [];
     all().forEach(function (s) {
+      if (MJT.scope.effectiveSourceStatus(s, decisions) === 'rejected') {
+        blocked.push({ item: s, reason: '已在数据审核页拒绝' }); return;
+      }
       var ev = (s.extendedVocab || []).length;
       var mode = settings.extendedVocab || 'light';
-      if (mode === 'off' && ev > 0) { blocked.push({ item: s, reason: '包含扩展词汇（当前设置为100%教材范围）' }); return; }
-      if (mode === 'light' && ev > 5) { blocked.push({ item: s, reason: '扩展词汇超过5个（当前为少量扩展模式）' }); return; }
-      var r = MJT.scope.check(s, { maxLesson: settings.maxLesson, reviewDecisions: decisions });
-      if (r.allowed) formal.push(s);
-      else if (MJT.scope.effectiveSourceStatus(s, decisions) === 'pending') previewable.push(s);
-      else blocked.push({ item: s, reason: r.reason });
+      if (mode === 'off' && ev > 0) { blocked.push({ item: s, reason: '含扩展词汇（当前100%教材范围模式）' }); return; }
+      if (mode === 'light' && ev > 5) { blocked.push({ item: s, reason: '扩展词汇超过5个（当前少量扩展模式）' }); return; }
+      formal.push(s);
     });
     return { formal: formal, previewable: previewable, blocked: blocked };
   }

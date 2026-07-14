@@ -205,16 +205,12 @@ MJT.app = (function () {
     var s = getSettings();
     var pools = MJT.scenario.pools(s);
     if (param) {
-      // 直接进入指定场景
+      // 直接进入指定场景（模板即程序逻辑，直接正式训练）
       var sc = MJT.scenario.byId(param);
-      if (sc) {
-        var isFormal = pools.formal.some(function (x) { return x.id === param; });
-        var isPreview = pools.previewable.some(function (x) { return x.id === param; });
-        if (isFormal || isPreview) {
-          main.innerHTML = '<div id="sc-player"></div>';
-          MJT.scenario.start(document.getElementById('sc-player'), param, { preview: !isFormal });
-          return;
-        }
+      if (sc && pools.formal.some(function (x) { return x.id === param; })) {
+        main.innerHTML = '<div id="sc-player"></div>';
+        MJT.scenario.start(document.getElementById('sc-player'), param, {});
+        return;
       }
     }
     var hist = MJT.storage.load(MJT.storage.KEYS.trainingHistory, []);
@@ -223,37 +219,59 @@ MJT.app = (function () {
 
     var html = '<h2>场景训练 · 日本生活模拟</h2>' +
       '<p class="dim">场景 → 连续听力 → 信息提取 → 用户回应 → 完整解析 → 影子跟读 → 迁移强化。' +
-      '答题前不显示原文；浏览器语音合成（非真人录音）。</p>';
-    if (!pools.formal.length) {
-      html += '<div class="panel warn-panel"><b>正式训练场景数量不足。</b> 全部场景的课程归属尚待核实（AI 不猜测知识点属于哪一课）。' +
-        '你可以：① 在「数据审核」页核实场景后正式训练并计入统计；② 直接用<b>审核预览模式</b>体验（不计入正式统计与掌握判定）。</div>';
-    }
+      '答题前不显示原文；浏览器语音合成（非真人录音）。场景模板为"基于已验证知识生成的练习"，可直接训练。</p>';
+
+    // 兜底：任何时候都能开始——随机场景 + 自动生成数字/变形反应组
+    html += '<div class="btn-row">' +
+      '<button class="btn btn-primary" id="sc-random">🎲 随机场景（每次自动挑选）</button>' +
+      '<button class="btn" id="sc-auto">⚡ 自动生成综合反应组（数字+变形，永远有内容）</button>' +
+      '</div><div id="sc-auto-box"></div>';
+
     var byCat = {};
-    pools.formal.forEach(function (sc) { (byCat[sc.category] = byCat[sc.category] || { formal: [], preview: [] }).formal.push(sc); });
-    pools.previewable.forEach(function (sc) { (byCat[sc.category] = byCat[sc.category] || { formal: [], preview: [] }).preview.push(sc); });
+    pools.formal.forEach(function (sc2) { (byCat[sc2.category] = byCat[sc2.category] || []).push(sc2); });
     Object.keys(byCat).forEach(function (cat) {
       html += '<h3>' + esc(MJT.scenario.CATEGORY_NAMES[cat] || cat) + '</h3><div class="scenario-grid">';
-      byCat[cat].formal.concat(byCat[cat].preview).forEach(function (sc) {
-        var formal = byCat[cat].formal.indexOf(sc) !== -1;
-        var acc = lastAcc[sc.id];
+      byCat[cat].forEach(function (sc2) {
+        var acc = lastAcc[sc2.id];
         html += '<div class="scenario-card">' +
-          '<p class="sc-title">' + esc(sc.title) + '</p>' +
-          '<p class="dim small">任务：' + esc(sc.goal) + '</p>' +
-          '<p class="dim small">难度' + '★'.repeat(sc.difficulty) + ' · ' + (sc.steps ? sc.steps.filter(function (st) { return st.script; }).length : 0) + '轮对话 · ' +
-          esc((sc.informationTypes || []).join('/')) +
+          '<p class="sc-title">' + esc(sc2.title) + '</p>' +
+          '<p class="dim small">任务：' + esc(sc2.goal) + '</p>' +
+          '<p class="dim small">难度' + '★'.repeat(sc2.difficulty) + ' · ' + (sc2.steps ? sc2.steps.filter(function (st) { return st.script; }).length : 0) + '轮对话 · ' +
+          esc((sc2.informationTypes || []).join('/')) +
           (acc !== undefined && acc !== null ? ' · 上次 ' + Math.round(acc * 100) + '%' : '') + '</p>' +
-          '<p>' + (formal ? '<span class="badge badge-ok">已核实</span>' : '<span class="badge badge-pending">待核实 · 预览模式</span>') + '</p>' +
-          '<button class="btn ' + (formal ? 'btn-primary' : '') + '" data-sc="' + esc(sc.id) + '" data-formal="' + formal + '">' + (formal ? '开始训练 →' : '预览体验 →') + '</button>' +
+          '<p><span class="badge badge-origin">基于已验证知识生成</span></p>' +
+          '<button class="btn btn-primary" data-sc="' + esc(sc2.id) + '">开始训练 →</button>' +
           '</div>';
       });
       html += '</div>';
     });
     if (pools.blocked.length) {
-      html += '<p class="dim small">已过滤 ' + pools.blocked.length + ' 个场景（' + esc(pools.blocked[0].reason) + ' 等）。</p>';
+      html += '<p class="dim small">已按设置过滤 ' + pools.blocked.length + ' 个场景（' + esc(pools.blocked[0].reason) + ' 等，可在设置调整扩展词汇模式）。</p>';
     }
     main.innerHTML = html;
     main.querySelectorAll('[data-sc]').forEach(function (b) {
       b.addEventListener('click', function () { navigate('scenario', b.getAttribute('data-sc')); });
+    });
+    // 随机场景：每次自动挑一个（优先没做过的）
+    document.getElementById('sc-random').addEventListener('click', function () {
+      var pick = pools.formal.filter(function (x) { return lastAcc[x.id] === undefined; })[0] || MJT.random.pick(pools.formal);
+      if (pick) navigate('scenario', pick.id);
+    });
+    // 自动生成综合反应组：永不空白（纯 verified 生成练习）
+    document.getElementById('sc-auto').addEventListener('click', function () {
+      var box = document.getElementById('sc-auto-box');
+      MJT.conjugationDrills.resetHistory();
+      MJT.session.start(box, {
+        module: 'scenario', categoryId: 'scenario-auto', difficulty: s.difficulty, count: s.questionCount,
+        getNext: function () {
+          // 交替：场景数字 + 情景变形（都基于 verified 通用知识，范围内始终可生成）
+          return Math.random() < 0.5
+            ? MJT.scenarioNumbers.generate('mixed', s.difficulty >= 3 ? 4 : 3, { minLevel: 2 })
+            : MJT.conjugationDrills.generate('clozeForm', s.difficulty, { listeningRatio: 0.3 });
+        },
+        onRestart: function () { navigate('scenario'); }
+      });
+      box.scrollIntoView({ behavior: 'smooth' });
     });
   }
 

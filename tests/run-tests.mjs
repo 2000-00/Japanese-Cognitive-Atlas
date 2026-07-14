@@ -103,10 +103,12 @@ eq(N.phoneToKana(['03', '1234']), 'ゼロさんのいちにさんよん', '电�
 /* ================= 数据验证器 ================= */
 const report = MJT.validator.validateAll();
 eq(report.counts.invalid, 0, '全部数据无校验失败条目：' + JSON.stringify(report.failures).slice(0, 800));
+// 场景现为"基于已验证知识生成"的练习，直接 verified（模板即程序逻辑，不再走审核门禁）
 const expectedPending = MJT_DATA.pendingGrammar.length + MJT_DATA.pendingListening.length +
-  MJT_DATA.pendingReading.length + MJT_DATA.pendingScenarios.length;
-eq(report.counts.verified, 10 + MJT_DATA.scenarioFrames.length, '数量词10 + 场景句框架' + MJT_DATA.scenarioFrames.length + ' 为 verified');
-eq(report.counts.pending, expectedPending, '语法' + MJT_DATA.pendingGrammar.length + '+听力' + MJT_DATA.pendingListening.length + '+阅读' + MJT_DATA.pendingReading.length + '+场景' + MJT_DATA.pendingScenarios.length + ' = ' + expectedPending + '条 pending');
+  MJT_DATA.pendingReading.length;
+eq(report.counts.verified, 10 + MJT_DATA.scenarioFrames.length + MJT_DATA.pendingScenarios.length,
+  '数量词10 + 场景句框架' + MJT_DATA.scenarioFrames.length + ' + 场景' + MJT_DATA.pendingScenarios.length + ' 为 verified');
+eq(report.counts.pending, expectedPending, '语法' + MJT_DATA.pendingGrammar.length + '+听力' + MJT_DATA.pendingListening.length + '+阅读' + MJT_DATA.pendingReading.length + ' = ' + expectedPending + '条 pending（场景不再计入 pending）');
 eq(report.counts.rejected, 0, '无 rejected');
 ok(report.ranAt, '验证报告有时间戳');
 eq(MJT_DATA.pendingScenarios.length, 14, '14个完整场景已加载');
@@ -218,14 +220,17 @@ MJT_DATA.pendingScenarios.forEach(sc => {
   ok(sc.reinforcement && sc.reinforcement.length >= 1, `${sc.id} 有迁移强化`);
   ok((sc.extendedVocab || []).length <= 5, `${sc.id} 扩展词汇≤5个`);
   ok(sc.contentType === 'ai_generated_practice' && sc.isTextbookOriginal === false, `${sc.id} 真实性标记完整`);
-  ok(sc.sourceStatus === 'pending', `${sc.id} 默认待审核（不自称已教材核实）`);
+  ok(sc.lessonStatus === 'pending', `${sc.id} 课程归属仍 pending（不自称教材第N课）`);
   // 迁移引用的场景必须真实存在
   sc.reinforcement.filter(r => r.type === 'scenario').forEach(r => {
     ok(MJT_DATA.pendingScenarios.some(x => x.id === r.ref), `${sc.id} 迁移引用的场景存在 (${r.ref})`);
   });
-  // 场景门禁：pending 不进入正式训练，核实后进入
-  ok(!MJT.scope.check(sc, { maxLesson: 21 }).allowed, `${sc.id} 待核实时被正式训练拦截`);
-  ok(MJT.scope.check(sc, { maxLesson: 21, reviewDecisions: { [sc.id]: { status: 'verified' } } }).allowed, `${sc.id} 核实后放行`);
+  // 场景现为 verified 生成练习，直接可训练（模板即程序逻辑，无审核门禁）
+  ok(sc.sourceStatus === 'verified' && sc.contentType === 'ai_generated_practice' && sc.isTextbookOriginal === false,
+    `${sc.id} 标记为"基于已验证知识生成"，直接训练`);
+  ok(MJT.scope.check(sc, { maxLesson: 25 }).allowed, `${sc.id} 直接进入正式训练（范围内）`);
+  // 用户显式拒绝后才排除
+  ok(!MJT.scope.check(sc, { maxLesson: 25, reviewDecisions: { [sc.id]: { status: 'rejected' } } }).allowed, `${sc.id} 被显式拒绝后排除`);
 });
 
 /* ================= 场景句框架 + 生成题选项规则 ================= */

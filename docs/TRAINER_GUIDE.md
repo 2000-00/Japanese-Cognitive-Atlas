@@ -12,9 +12,14 @@
   信息提取问题、≥1次用户回应（acceptedAnswers）、完整解析
   （review.lineNotes/naturalResponses/grammarNotes）、迁移强化
   （reinforcement）、扩展词汇（extendedVocab，≤5个，标 extended_basic）。
-- 场景默认 `sourceStatus: 'pending'`（课程归属未核实）→ 只能在
-  **审核预览模式**体验（不计入正式统计与掌握判定）；在"数据审核"
-  工作台核实（可批量）后进入正式训练。
+- **场景模板 = 程序逻辑 / 基于已验证知识生成的练习**（2026-07 调整）：
+  `sourceStatus: 'verified'`、`contentType: 'ai_generated_practice'`、
+  `isTextbookOriginal: false`，**直接进入正式训练**、计入统计，不再有
+  "审核预览"门禁。仅两种情况排除场景：① 用户在数据审核页显式"拒绝"；
+  ② 扩展词汇设置为 off（含扩展词的场景）。`lessonStatus` 仍 pending
+  （不声明"教材第N课"）。只有教材原文/词汇/语法/例句才走 pending→verified。
+- **永不空白**：场景页提供"随机场景"与"自动生成综合反应组"（数字+变形，
+  全部基于 verified 通用知识动态生成），任何时候进入都有内容。
 - 播放器：`src/modules/scenario.js`；六阶段流程 + 意群停顿影子跟读。
 
 ### 如何添加新场景

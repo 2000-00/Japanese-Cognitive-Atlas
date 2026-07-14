@@ -56,7 +56,7 @@ window.MJT_DATA.pendingScenarios.push(
       { type: 'scenario', ref: 'scenario-dentist-appointment-001' }
     ],
     contentType: 'ai_generated_practice', displaySource: '基于已验证知识生成', isTextbookOriginal: false,
-    origin: '待核实演示数据', sourceStatus: 'pending', sourceType: 'manual_review', reviewed: false,
+    origin: '基于已验证知识生成的练习示例', sourceStatus: 'verified', sourceType: 'manual_review', reviewed: true,
     sourceReference: 'AI编写的宿舍报修常用表达；课程归属待对照教材核实。'
   },
 
@@ -111,7 +111,7 @@ window.MJT_DATA.pendingScenarios.push(
       { type: 'scenario', ref: 'scenario-train-platform-001' }
     ],
     contentType: 'ai_generated_practice', displaySource: '基于已验证知识生成', isTextbookOriginal: false,
-    origin: '待核实演示数据', sourceStatus: 'pending', sourceType: 'manual_review', reviewed: false,
+    origin: '基于已验证知识生成的练习示例', sourceStatus: 'verified', sourceType: 'manual_review', reviewed: true,
     sourceReference: 'AI编写的快递再配送常用表达；课程归属待对照教材核实。'
   }
 );
