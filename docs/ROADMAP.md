@@ -16,6 +16,22 @@
 必须携带 `contentType: ai_generated_practice` 标记、待核实内容不进
 正式训练（详见 TRAINER_GUIDE.md）。
 
+## 当前阶段范围（2026-07 用户指定）
+
+**第一阶段只围绕《大家的日本语 初级Ⅰ 第二版 本册》单册开发。**
+不开发初级Ⅱ、できる日本語、Shadowing 或其他教材。
+
+- 教材文件：`resources/textbooks/minna/beginner1/minna1.pdf`
+  （用户提供，326页**扫描版**，无文本层 → 解析必须走 OCR＋人工审核）
+- 解析管线：`scripts/parse-minna.py`（OCR 缓存已 gitignore——版权全文
+  不入公开仓库；Pages 部署已排除 resources/textbooks）
+- 递增开发：先 Lesson 01～20，再 01～25；教材解析完成后 PDF 不再是
+  主要数据来源，所有训练读取 `data/textbooks/minna/` 教材数据库
+- 教材数据库骨架：`data/textbooks/minna/beginner1.js`（25课，全部
+  pending；OCR 只产出待审核底稿，AI 不凭记忆填写教材内容）
+- 其他教材目录已建好占位：`resources/textbooks/{minna/beginner2,
+  dekiru, shadowing, shinkanzen, jlpt, eju}/`
+
 ---
 
 ## 模块一览与状态

@@ -1,0 +1,4 @@
+
+# 受版权保护的教材全文产物不入库（PDF 本体由用户自行决定）
+resources/textbooks/**/ocr/
+node_modules

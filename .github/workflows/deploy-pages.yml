@@ -36,6 +36,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Copyrighted textbook files (scanned PDFs, OCR output) must not be
+      # published on the public Pages site. They stay in the repo only.
+      - name: Exclude copyrighted textbook resources from site
+        run: rm -rf resources/textbooks
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

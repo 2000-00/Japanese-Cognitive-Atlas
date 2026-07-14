@@ -25,7 +25,9 @@ vm.createContext(sandbox);
 
 const files = [
   'data/meta.js', 'data/readings.js', 'data/counters.js', 'data/knowledge-map.js',
-  'data/lesson-scope-review.js', 'data/numbers/scenario-frames.js',
+  'data/lesson-scope-review.js',
+  'data/textbooks/minna/beginner1.js', 'data/textbooks/minna/lesson-page-index.js',
+  'data/numbers/scenario-frames.js',
   'data/pending/grammar-pending.js',
   'data/pending/grammar/lesson-01-05.js', 'data/pending/grammar/lesson-06-10.js',
   'data/pending/grammar/lesson-11-15.js', 'data/pending/grammar/lesson-16-21.js',
@@ -299,6 +301,19 @@ MJT_DATA.pendingScenarios.forEach(sc => {
     ok(w.scope === 'extended_basic' && !!w.kana && !!w.zh && !!w.reason && !!w.pos, `${sc.id} 扩展词 ${w.word} 标注完整（假名/中文/词性/原因）`);
   });
 });
+
+/* ================= 教材数据库骨架（初级Ⅰ） ================= */
+{
+  const tb = MJT_DATA.textbooks['minna-beginner1'];
+  ok(!!tb && tb.lessons.length === 25, '初级Ⅰ教材数据库有25课骨架');
+  ok(tb.sourceStatus === 'pending' && tb.reviewed === false, '教材数据库整体为 pending（不自称已核实）');
+  ok(tb.lessons.every(l => l.sourceStatus === 'pending' && l.reviewed === false), '25课全部 pending');
+  ok(tb.lessons.every(l => l.vocabulary.length === 0 && l.grammar.length === 0), '骨架不含AI凭记忆填写的教材内容');
+  const idx = MJT_DATA.minnaLessonPageIndex;
+  ok(idx.length === 25, '页码索引覆盖25课');
+  ok(idx.every((e, i) => i === 0 || e.startPage > idx[i - 1].startPage), '页码索引单调递增');
+  ok(tb.lessons.every(l => l.pageRange && l.pageRangeStatus === 'pending'), '页码建议已并入骨架且保持 pending');
+}
 
 /* ================= 汇总 ================= */
 console.log(`\n通过 ${pass} 项，失败 ${fail} 项`);
